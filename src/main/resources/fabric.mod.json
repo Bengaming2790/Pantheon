@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "panthon",
+  "version": "${version}",
+  "name": "Panthon",
+  "description": "A server-side mod for the Pantheon Server",
+  "authors": [],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/pantheon/icon.png",
+  "environment": "server",
+  "entrypoints": {
+    "fabric-datagen": [
+      "ca.techgarage.pantheon.client.PanthonDataGenerator"
+    ],
+    "main": [
+      "ca.techgarage.pantheon.Pantheon"
+    ]
+  },
+  "mixins": [
+    "panthon.mixins.json",
+    {
+      "config": "panthon.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}

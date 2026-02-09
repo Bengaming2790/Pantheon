@@ -50,7 +50,7 @@ public class Peitho extends Item implements PolymerItem {
         if (world.isClient()) return;
 
         if (user.getInventory().contains(stack) && stack.isOf(this)) {
-            user.setStatusEffect(new StatusEffectInstance(StatusEffects.HEALTH_BOOST, Integer.MAX_VALUE, 20, false, false, true), user);
+            user.setStatusEffect(new StatusEffectInstance(StatusEffects.HEALTH_BOOST, Integer.MAX_VALUE, 40, false, false, true), user);
         }
     }
 

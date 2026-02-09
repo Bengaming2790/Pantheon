@@ -29,7 +29,7 @@ public class PeithoTick {
             if (!hasPeitho) continue;
 
             player.setStatusEffect(
-                    new StatusEffectInstance(StatusEffects.HEALTH_BOOST, 220, 1, false, false, false),
+                    new StatusEffectInstance(StatusEffects.HEALTH_BOOST, 40, 1, false, false, false),
                     player
             );
         }

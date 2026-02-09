@@ -1,9 +1,14 @@
 package ca.techgarage.pantheon.items;
 
 import ca.techgarage.pantheon.Pantheon;
-import eu.pb4.polymer.core.api.item.PolymerItem;
-import eu.pb4.polymer.core.api.item.SimplePolymerItem;
+
+import ca.techgarage.pantheon.items.weapons.Astrape;
+import ca.techgarage.pantheon.items.weapons.Peitho;
+import ca.techgarage.pantheon.items.weapons.Varatha;
+import ca.techgarage.pantheon.status.Conducting;
+import net.minecraft.entity.effect.StatusEffectCategory;
 import net.minecraft.item.Item;
+
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
@@ -13,16 +18,66 @@ import net.minecraft.util.Identifier;
 import java.util.function.Function;
 
 public class ModItems {
-
-
-
-    private static SimplePolymerItem registerPolymerItem(String name, Function<SimplePolymerItem.Settings, SimplePolymerItem> function) {
-        return Registry.register(Registries.ITEM, Identifier.of(Pantheon.MOD_ID, name),
-                function.apply(new SimplePolymerItem.Settings().registryKey(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Pantheon.MOD_ID, name)))));
-    }
+    public static Peitho PEITHO;
 
     public static void registerItems() {
-        // Example of registering a simple item
-        registerPolymerItem("drachma", SimplePolymerItem::new);
+        Registry.register(
+                Registries.ITEM,
+                Identifier.of(Pantheon.MOD_ID, "drachma"),
+                new DrachmaItem(
+                        new Item.Settings()
+                                .registryKey(
+                                        RegistryKey.of(
+                                                RegistryKeys.ITEM,
+                                                Identifier.of(Pantheon.MOD_ID, "drachma")
+                                        )
+                                )
+                )
+        );
+        Registry.register(
+                Registries.ITEM,
+                Identifier.of(Pantheon.MOD_ID, "varatha"),
+                new Varatha(
+                        new Item.Settings()
+                                .registryKey(
+                                        RegistryKey.of(
+                                                RegistryKeys.ITEM,
+                                                Identifier.of(Pantheon.MOD_ID, "varatha")
+                                        )
+                                )
+                )
+        );
+
+        Registry.register(
+                Registries.ITEM,
+                Identifier.of(Pantheon.MOD_ID, "astrape"),
+                new Astrape(
+                        new Item.Settings()
+                                .registryKey(
+                                        RegistryKey.of(
+                                                RegistryKeys.ITEM,
+                                                Identifier.of(Pantheon.MOD_ID, "astrape")
+                                        )
+                                )
+                )
+        );
+
+        PEITHO = (Peitho) Registry.register(
+                Registries.ITEM,
+                Identifier.of(Pantheon.MOD_ID, "peitho"),
+                new Peitho(
+                        new Item.Settings()
+                                .registryKey(
+                                        RegistryKey.of(
+                                                RegistryKeys.ITEM,
+                                                Identifier.of(Pantheon.MOD_ID, "peitho")
+                                        )
+                                )
+                )
+        );
+
+        Registry.register(
+                Registries.STATUS_EFFECT, Identifier.of(Pantheon.MOD_ID, "conducting"), new Conducting(StatusEffectCategory.HARMFUL, 0xC5FF00)
+        );
     }
 }

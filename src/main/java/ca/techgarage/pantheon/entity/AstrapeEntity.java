@@ -22,6 +22,13 @@ public class AstrapeEntity extends TridentEntity implements PolymerEntity {
     }
 
     @Override
+    public boolean postHit(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+        
+        
+    }
+    
+
+    @Override
     public EntityType<?> getPolymerEntityType(PacketContext packetContext) {
         return EntityType.TRIDENT;
     }

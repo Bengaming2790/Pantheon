@@ -18,10 +18,14 @@ import net.minecraft.util.Identifier;
 import java.util.function.Function;
 
 public class ModItems {
+
+    public static DrachmaItem DRACHMA
+    public static Varatha VARATHA
     public static Peitho PEITHO;
+    public static Astrape ASTRAPE;
 
     public static void registerItems() {
-        Registry.register(
+       DRACHMA = (DrachmaItem) Registry.register(
                 Registries.ITEM,
                 Identifier.of(Pantheon.MOD_ID, "drachma"),
                 new DrachmaItem(
@@ -34,7 +38,7 @@ public class ModItems {
                                 )
                 )
         );
-        Registry.register(
+       VARATHA = (Varatha) Registry.register(
                 Registries.ITEM,
                 Identifier.of(Pantheon.MOD_ID, "varatha"),
                 new Varatha(
@@ -48,7 +52,7 @@ public class ModItems {
                 )
         );
 
-        Registry.register(
+      ASTRAPE = (Astrape) Registry.register(
                 Registries.ITEM,
                 Identifier.of(Pantheon.MOD_ID, "astrape"),
                 new Astrape(

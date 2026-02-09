@@ -18,7 +18,6 @@ public class PeithoTick {
     private static void tick(MinecraftServer server) {
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
 
-            // Check if player has Peitho anywhere in inventory
             boolean hasPeitho = false;
             for (var stack : player.getInventory()) {
                 if (stack.isOf(ModItems.PEITHO)) {
@@ -29,7 +28,6 @@ public class PeithoTick {
 
             if (!hasPeitho) continue;
 
-            // Apply your effect once
             player.setStatusEffect(
                     new StatusEffectInstance(StatusEffects.HEALTH_BOOST, 220, 1, false, false, false),
                     player

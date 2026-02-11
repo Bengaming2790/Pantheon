@@ -58,7 +58,6 @@ public class DashState {
         }
     }
 
-    /** Small inner holder – NOT a new file */
     public static class ParticleCast {
         int ticks;
         final ParticleEffect particle;

@@ -3,8 +3,8 @@ package ca.techgarage.pantheon.items.weapons;
 import ca.techgarage.pantheon.api.Dash;
 import ca.techgarage.pantheon.api.DashState;
 import eu.pb4.polymer.core.api.item.PolymerItem;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.effect.StatusEffectCategory;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
@@ -44,15 +44,11 @@ public class Peitho extends Item implements PolymerItem {
         }
         return ActionResult.SUCCESS;
     }
-
-    public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
-        if (!(entity instanceof PlayerEntity user)) return;
-        if (world.isClient()) return;
-
-        if (user.getInventory().contains(stack) && stack.isOf(this)) {
-            user.setStatusEffect(new StatusEffectInstance(StatusEffects.HEALTH_BOOST, Integer.MAX_VALUE, 40, false, false, true), user);
-        }
+    @Override
+    public void modifyBasePolymerItemStack(ItemStack out, ItemStack stack, PacketContext context) {
+        out.remove(DataComponentTypes.CUSTOM_DATA);
     }
+
 
 
     @Override

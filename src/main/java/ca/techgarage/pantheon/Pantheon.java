@@ -39,11 +39,7 @@ public class Pantheon implements ModInitializer {
             return;
         }
         PolymerResourcePackUtils.addModAssets(MOD_ID);
-        boolean added = PolymerResourcePackUtils.addModAssets(MOD_ID);
-        logger.info("[Pantheon] assets pack added: " + added);
-        if (!added) {
-            logger.error("[Pantheon] Polymer failed to add mod assets for '{}'. Ensure `src/main/resources/assets/pantheon` exists and is packaged.", MOD_ID);
-        }
+
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             DashState.tick(server);
         });

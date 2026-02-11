@@ -21,11 +21,7 @@ public class AstrapeEntity extends TridentEntity implements PolymerEntity {
         super(world, player, stack);
     }
 
-    @Override
-    public boolean postHit(ItemStack stack, LivingEntity target, LivingEntity attacker) {
-        
-        
-    }
+
     
 
     @Override

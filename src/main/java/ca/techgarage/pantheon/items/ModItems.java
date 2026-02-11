@@ -19,10 +19,11 @@ import java.util.function.Function;
 
 public class ModItems {
 
-    public static DrachmaItem DRACHMA
-    public static Varatha VARATHA
+    public static DrachmaItem DRACHMA;
+    public static Varatha VARATHA;
     public static Peitho PEITHO;
     public static Astrape ASTRAPE;
+    public static Conducting CONDUCTING;
 
     public static void registerItems() {
        DRACHMA = (DrachmaItem) Registry.register(
@@ -80,7 +81,7 @@ public class ModItems {
                 )
         );
 
-        Registry.register(
+        CONDUCTING = Registry.register(
                 Registries.STATUS_EFFECT, Identifier.of(Pantheon.MOD_ID, "conducting"), new Conducting(StatusEffectCategory.HARMFUL, 0xC5FF00)
         );
     }

@@ -1,3 +1,6 @@
 {
-  "item.pantheon.drachma": "Drachma"
+  "item.pantheon.drachma": "Drachma",
+  "item.pantheon.varatha": "Varatha",
+  "item.pantheon.peitho": "Peitho",
+  "itemGroup.pantheon.items": "Pantheon"
 }

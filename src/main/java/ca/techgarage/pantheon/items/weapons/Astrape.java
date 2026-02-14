@@ -70,10 +70,6 @@ public class Astrape extends TridentItem implements PolymerItem {
 
         // Apply extra damage attributed to the attacker
         target.damage((ServerWorld) attacker.getEntityWorld(), attacker.getRecentDamageSource(), extraDamage);
-
-        if (target instanceof PlayerEntity player) {
-            player.removeStatusEffect(net.minecraft.entity.effect.StatusEffects.SLOWNESS);
-        }
     }
 
 

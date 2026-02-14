@@ -2,14 +2,18 @@ package ca.techgarage.pantheon.items.weapons;
 
 import ca.techgarage.pantheon.entity.AstrapeEntity;
 import ca.techgarage.pantheon.items.ModItems;
+import ca.techgarage.pantheon.status.ModEffects;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.AttributeModifierSlot;
 import net.minecraft.component.type.AttributeModifiersComponent;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.effect.StatusEffect;
+import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.PersistentProjectileEntity;
 import net.minecraft.item.Item;
@@ -19,13 +23,16 @@ import net.minecraft.item.TridentItem;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.Unit;
 import net.minecraft.world.World;
+import org.jspecify.annotations.Nullable;
 import xyz.nucleoid.packettweaker.PacketContext;
 
 public class Astrape extends TridentItem implements PolymerItem {
 
     public Astrape(Item.Settings settings) {
-        super(settings);
+        super(settings.component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers()).component(DataComponentTypes.MAX_STACK_SIZE, 1) );
     }
 
     public static AttributeModifiersComponent createAttributeModifiers() {
@@ -34,7 +41,7 @@ public class Astrape extends TridentItem implements PolymerItem {
                         EntityAttributes.ATTACK_DAMAGE,
                         new EntityAttributeModifier(
                                 BASE_ATTACK_DAMAGE_MODIFIER_ID,
-                                8.0,
+                                11.0,
                                 EntityAttributeModifier.Operation.ADD_VALUE
                         ),
                         AttributeModifierSlot.MAINHAND
@@ -43,10 +50,20 @@ public class Astrape extends TridentItem implements PolymerItem {
                         EntityAttributes.ATTACK_SPEED,
                         new EntityAttributeModifier(
                                 BASE_ATTACK_SPEED_MODIFIER_ID,
-                                -2.9,
+                                1.8,
                                 EntityAttributeModifier.Operation.ADD_VALUE
                         ),
                         AttributeModifierSlot.MAINHAND
+                )
+                .add(
+                        EntityAttributes.SAFE_FALL_DISTANCE,
+                        new EntityAttributeModifier(
+                                Identifier.of("pantheon", "astrape_safe_fall_distance"),
+                                1024.0,
+                                EntityAttributeModifier.Operation.ADD_VALUE
+                        ),
+                        AttributeModifierSlot.ANY
+
                 )
                 .build();
     }
@@ -60,10 +77,11 @@ public class Astrape extends TridentItem implements PolymerItem {
 
     @Override
     public void postHit(ItemStack stack, LivingEntity target, LivingEntity attacker) {
-        if (attacker.getEntityWorld().isClient()) return;
+        StatusEffectInstance conducting =
+                target.getStatusEffect(ModEffects.CONDUCTING);
 
-        net.minecraft.entity.effect.StatusEffectInstance conducting = target.getStatusEffect((RegistryEntry<StatusEffect>) ModItems.CONDUCTING);
         if (conducting == null) return;
+
 
         int level = conducting.getAmplifier() + 1;
         float extraDamage = 2.0f * level;
@@ -93,23 +111,30 @@ public class Astrape extends TridentItem implements PolymerItem {
                     player.getYaw(),
                     0.0F,
                     2.5F,
-                    1.0F
+                    0f
             );
 
-            trident.pickupType = PersistentProjectileEntity.PickupPermission.ALLOWED;
+            trident.pickupType = PersistentProjectileEntity.PickupPermission.DISALLOWED;
 
             world.spawnEntity(trident);
 
-            if (!player.getAbilities().creativeMode) {
-                stack.decrement(1);
-            }
         }
         return false;
     }
-
+    @Override
+    public void inventoryTick(ItemStack stack, ServerWorld world, Entity entity, @Nullable EquipmentSlot slot) {
+        PlayerEntity player = (PlayerEntity) entity;
+        if (stack.contains(DataComponentTypes.CUSTOM_NAME)) {
+            player.sendMessage(Text.translatable("item.anvil.rename").formatted(), true);
+            stack.remove(DataComponentTypes.CUSTOM_NAME);
+        }
+        if (stack.contains(DataComponentTypes.ENCHANTMENTS)) {
+            stack.remove(DataComponentTypes.ENCHANTMENTS);
+        }
+    }
     @Override
     public Item getPolymerItem(ItemStack stack, PacketContext context) {
-        return new ItemStack(Items.TRIDENT).getItem();
+        return Items.STICK;
     }
 
     @Override

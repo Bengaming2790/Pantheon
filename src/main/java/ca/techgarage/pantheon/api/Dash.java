@@ -34,17 +34,6 @@ public class Dash {
         player.fallDistance = 0;
 
 
-        // Particles
-/*        for (int i = 0; i < 40; i++) {
-            player.getEntityWorld().addParticleClient(
-                    ParticleTypes.CLOUD,
-                    player.getX() + random.nextFloat() - 0.5,
-                    player.getY() + random.nextFloat(),
-                    player.getZ() + random.nextFloat() - 0.5,
-                    0, 0.1, 0
-            );
-        }*/
-
         if (player instanceof ServerPlayerEntity serverPlayer) {
             serverPlayer.networkHandler.sendPacket(new EntityVelocityUpdateS2CPacket(player));
         }

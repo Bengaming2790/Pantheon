@@ -2,8 +2,10 @@ package ca.techgarage.pantheon;
 
 import ca.techgarage.pantheon.api.DashState;
 import ca.techgarage.pantheon.api.PeithoTick;
+import ca.techgarage.pantheon.events.AegisEvent;
 import ca.techgarage.pantheon.items.DrachmaItem;
 import ca.techgarage.pantheon.items.ModItems;
+import ca.techgarage.pantheon.status.ModEffects;
 import eu.pb4.polymer.core.api.item.PolymerItemGroupUtils;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.fabricmc.api.ModInitializer;
@@ -43,7 +45,8 @@ public class Pantheon implements ModInitializer {
 
 
         ModItems.registerModItems();
-        logger.info("[Pantheon] Registered Mod Items");
+        ModEffects.register();
+        logger.info("[Pantheon] Registered Assets");
 
         Optional<?> modContainer = FabricLoader.getInstance().getModContainer(MOD_ID);
         if (modContainer.isEmpty()) {
@@ -55,7 +58,7 @@ public class Pantheon implements ModInitializer {
             DashState.tick(server);
         });
         PeithoTick.register();
-
+        AegisEvent.register();
 
         PolymerResourcePackUtils.addModAssets(MOD_ID);
 
@@ -69,7 +72,7 @@ public class Pantheon implements ModInitializer {
                     entries.add(new ItemStack(ModItems.VARATHA));
                     entries.add(new ItemStack(ModItems.ASTRAPE));
                     entries.add(new ItemStack(ModItems.PEITHO));
-
+                    entries.add(new ItemStack(ModItems.KHALKEOUS));
                 }).build()
         );
 

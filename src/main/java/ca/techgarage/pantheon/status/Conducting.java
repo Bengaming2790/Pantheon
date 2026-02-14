@@ -24,7 +24,16 @@ public class Conducting extends StatusEffect implements PolymerStatusEffect {
     public ItemStack getPolymerIcon(StatusEffect effect, ServerPlayerEntity player) {
         return new ItemStack(Items.LIGHTNING_ROD);
     }
+    @Override
+    public boolean canApplyUpdateEffect(int duration, int amplifier) {
+        return true; // run every tick
+    }
 
+    @Override
+    public boolean applyUpdateEffect(ServerWorld world, LivingEntity entity, int amplifier) {
+        // Leave empty if logic is handled elsewhere (like postHit)
+        return true;
+    }
     @Override
     public Text getName() {
         return Text.translatable("effect.pantheon.conducting");

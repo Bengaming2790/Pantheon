@@ -1,6 +1,9 @@
 {
   "item.pantheon.drachma": "Drachma",
   "item.pantheon.varatha": "Varatha",
-  "item.pantheon.peitho": "Peitho",
-  "itemGroup.pantheon.items": "Pantheon"
+  "item.pantheon.peitho": "\u00a7cPeitho",
+  "item.pantheon.astrape": "Astrape",
+  "item.pantheon.khalkeus": "Khalkeus",
+  "itemGroup.pantheon.items": "Pantheon",
+  "item.anvil.rename": "\u00a7eThe Gods have reverted the name of this item to its original form."
 }

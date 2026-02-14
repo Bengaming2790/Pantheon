@@ -8,6 +8,8 @@ import net.minecraft.component.type.AttributeModifierSlot;
 import net.minecraft.component.type.AttributeModifiersComponent;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.Enchantments;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.player.PlayerEntity;
@@ -15,6 +17,7 @@ import net.minecraft.item.*;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
@@ -24,6 +27,7 @@ import net.minecraft.util.Unit;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
 import ca.techgarage.pantheon.api.Dash;
+import org.jspecify.annotations.Nullable;
 import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.Random;
@@ -58,7 +62,7 @@ public class Varatha extends Item implements PolymerItem {
                         EntityAttributes.ATTACK_DAMAGE,
                         new EntityAttributeModifier(
                                 Item.BASE_ATTACK_DAMAGE_MODIFIER_ID,
-                                6.0,
+                                9.0,
                                 EntityAttributeModifier.Operation.ADD_VALUE
                         ),
                         AttributeModifierSlot.MAINHAND
@@ -85,7 +89,7 @@ public class Varatha extends Item implements PolymerItem {
             if (!(user.getGameMode() == GameMode.CREATIVE)) {
                 user.getItemCooldownManager().set(stack, 200); //10 second cooldown
             }
-            user.useRiptide(10, 1.0f, stack);
+            user.useRiptide(10, 5.0f, stack);
             Dash.dashForward(user, 0.75f);
             DashState.start((ServerPlayerEntity) user, 10, ParticleTypes.RAID_OMEN);
         }
@@ -93,21 +97,24 @@ public class Varatha extends Item implements PolymerItem {
     }
 
     @Override
-    public ItemStack getDefaultStack() {
-        ItemStack stack = super.getDefaultStack();
-        stack.addEnchantment((RegistryEntry<Enchantment>) Enchantments.BREACH, 2);
-        stack.addEnchantment((RegistryEntry<Enchantment>) Enchantments.SHARPNESS, 5);
-        return stack;
+    public void inventoryTick(ItemStack stack, ServerWorld world, Entity entity, @Nullable EquipmentSlot slot) {
+        PlayerEntity player = (PlayerEntity) entity;
+        if (stack.contains(DataComponentTypes.CUSTOM_NAME)) {
+            player.sendMessage(Text.translatable("item.anvil.rename").formatted(), true);
+            stack.remove(DataComponentTypes.CUSTOM_NAME);
+        }
+        if (stack.contains(DataComponentTypes.ENCHANTMENTS)) {
+            stack.remove(DataComponentTypes.ENCHANTMENTS);
+        }
     }
-
     @Override
     public Text getName(ItemStack stack) {
-        return Text.translatable("item.pantheon.varatha");
+        return Text.translatable("item.pantheon.varatha").formatted();
     }
 
     @Override
     public Item getPolymerItem(ItemStack stack, PacketContext context) {
-        return Items.DIAMOND_SPEAR;
+        return Items.STICK;
     }
 
     @Override

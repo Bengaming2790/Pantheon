@@ -1,9 +1,7 @@
 package ca.techgarage.pantheon.items;
 
 import ca.techgarage.pantheon.Pantheon;
-import ca.techgarage.pantheon.items.weapons.Astrape;
-import ca.techgarage.pantheon.items.weapons.Peitho;
-import ca.techgarage.pantheon.items.weapons.Varatha;
+import ca.techgarage.pantheon.items.weapons.*;
 import ca.techgarage.pantheon.status.Conducting;
 import net.minecraft.entity.effect.StatusEffectCategory;
 import net.minecraft.item.Item;
@@ -24,8 +22,17 @@ public class ModItems {
     public static final RegistryKey<Item> VARATHA_KEY =
             RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "varatha"));
 
+    public static final RegistryKey<Item> KHALKEOUS_KEY =
+            RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "khalkeous"));
+    public static final RegistryKey<Item> AEGIS_KEY =
+            RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "aegis"));
+
+
     public static Item DRACHMA;
     public static Item VARATHA;
+    public static Item KHALKEOUS;
+    public static Item AEGIS;
+
 
     public static void registerModItems() {
         DRACHMA = Registry.register(
@@ -38,6 +45,17 @@ public class ModItems {
                 VARATHA_KEY,
                 new Varatha(new Item.Settings().registryKey(VARATHA_KEY))
         );
+        KHALKEOUS = Registry.register(
+                Registries.ITEM,
+                KHALKEOUS_KEY,
+                new Khalkeus(new Item.Settings().registryKey(KHALKEOUS_KEY))
+        );
+        AEGIS = Registry.register(
+                Registries.ITEM,
+                AEGIS_KEY,
+                new Aegis(new Item.Settings().registryKey(AEGIS_KEY))
+        );
+
     }
     private static Item register(RegistryKey<Item> key, Item item) {
         return Registry.register(Registries.ITEM, key, item);
@@ -50,12 +68,6 @@ public class ModItems {
     public static final Peitho PEITHO = registerItem("peitho",
             new Peitho(createSettings("peitho")));
 
-    // Status Effects
-    public static final Conducting CONDUCTING = Registry.register(
-            Registries.STATUS_EFFECT,
-            Identifier.of(MOD_ID, "conducting"),
-            new Conducting(StatusEffectCategory.HARMFUL, 0xC5FF00)
-    );
 
     private static Item.Settings createSettings(String name) {
         return new Item.Settings()

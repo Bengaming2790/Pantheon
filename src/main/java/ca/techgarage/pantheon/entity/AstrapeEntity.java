@@ -1,6 +1,7 @@
 package ca.techgarage.pantheon.entity;
 
 import ca.techgarage.pantheon.items.ModItems;
+import ca.techgarage.pantheon.status.ModEffects;
 import eu.pb4.polymer.core.api.entity.PolymerEntity;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
@@ -62,7 +63,7 @@ public class AstrapeEntity extends TridentEntity implements PolymerEntity {
                         livingEntity
                 );
                 livingEntity.setStatusEffect(
-                        new StatusEffectInstance(ModItems.CONDUCTING, 30, 1, true, false, false),
+                        new StatusEffectInstance(ModEffects.CONDUCTING, 30, 1, true, false, false),
                         livingEntity
                 );
             }

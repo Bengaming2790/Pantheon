@@ -1,17 +1,16 @@
 package ca.techgarage.pantheon.items.weapons;
 
 import ca.techgarage.pantheon.api.Cooldowns;
-import ca.techgarage.pantheon.api.Dash;
-import ca.techgarage.pantheon.api.DashState;
 import eu.pb4.polymer.core.api.item.PolymerItem;
+import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.AttributeModifierSlot;
 import net.minecraft.component.type.AttributeModifiersComponent;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
@@ -19,23 +18,26 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.ShieldItem;
-import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.GameMode;
-import net.minecraft.world.World;
-import org.jspecify.annotations.Nullable;
+import net.minecraft.util.Unit;
 import xyz.nucleoid.packettweaker.PacketContext;
 
 public class Aegis extends ShieldItem implements PolymerItem {
+
+    private static final String AEGIS_CD = "aegis_cd";
+    private static final int COOLDOWN = 20 * 60; // 1 minute
+    private static final int DEFLECT_BUFF_TIME = 20 * 5;
+
     public Aegis(Settings settings) {
-        super(settings.component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers()));
+        super(settings
+                .component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers())
+                .component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE)
+                .component(DataComponentTypes.MAX_STACK_SIZE, 1)
+        );
+        registerEvents();
     }
-    private static final String AEGIS_TIMER = "aegis_reflect_timer";
+
 
     public static AttributeModifiersComponent createAttributeModifiers() {
         return AttributeModifiersComponent.builder()
@@ -43,7 +45,7 @@ public class Aegis extends ShieldItem implements PolymerItem {
                         EntityAttributes.ATTACK_DAMAGE,
                         new EntityAttributeModifier(
                                 BASE_ATTACK_DAMAGE_MODIFIER_ID,
-                                10,
+                                7,
                                 EntityAttributeModifier.Operation.ADD_VALUE
                         ),
                         AttributeModifierSlot.MAINHAND
@@ -52,7 +54,7 @@ public class Aegis extends ShieldItem implements PolymerItem {
                         EntityAttributes.ATTACK_SPEED,
                         new EntityAttributeModifier(
                                 BASE_ATTACK_SPEED_MODIFIER_ID,
-                                -2.8,
+                                -2.3,
                                 EntityAttributeModifier.Operation.ADD_VALUE
                         ),
                         AttributeModifierSlot.MAINHAND
@@ -60,41 +62,107 @@ public class Aegis extends ShieldItem implements PolymerItem {
                 .build();
     }
 
-    @Override
-    public void postHit(ItemStack stack, LivingEntity target, LivingEntity attacker) {
-        ServerWorld world = (ServerWorld) target.getEntityWorld();
-        if (Cooldowns.isOnCooldown((PlayerEntity) attacker, AEGIS_TIMER)) {
-            target.damage((ServerWorld) target.getEntityWorld(),
-                    world.getDamageSources().playerAttack((PlayerEntity) attacker),
-                    5f
+    private static void registerEvents() {
+
+        // ABSOLUTE DEFLECT (one-use block)
+        ServerLivingEntityEvents.AFTER_DAMAGE.register(
+                (entity, source, baseDamage, damageTaken, blocked) -> {
+
+                    if (!(entity instanceof ServerPlayerEntity player)) return;
+
+                    if (!blocked) return;
+
+                    boolean holdingAegis =
+                            player.getMainHandStack().getItem() instanceof Aegis
+                                    || player.getOffHandStack().getItem() instanceof Aegis;
+
+                    if (!holdingAegis) return;
+
+                    player.getItemCooldownManager().set(player.getActiveItem(), 20 * 60);
+                    deflect(player, source, baseDamage);
+                    player.addStatusEffect(
+                            new StatusEffectInstance(
+                                    StatusEffects.RESISTANCE,
+                                    40,
+                                    1
+                            )
+                    );
+                }
+        );
+
+
+        // DIVINE PROTECTION (Resistance I while held)
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                if (getHeldAegis(player) == null) continue;
+
+                player.addStatusEffect(
+                        new StatusEffectInstance(
+                                StatusEffects.RESISTANCE,
+                                40,
+                                0,
+                                true,
+                                false,
+                                false
+                        )
+                );
+            }
+        });
+    }
+
+
+
+    private static void deflect(ServerPlayerEntity player, DamageSource source, float damage) {
+
+        // Reflect damage
+        if (source.getAttacker() instanceof LivingEntity attacker) {
+            attacker.damage(player.getEntityWorld(),
+                    player.getEntityWorld().getDamageSources().playerAttack(player),
+                    damage * 1.25f
             );
         }
+
+        // Resistance II
+        player.addStatusEffect(
+                new StatusEffectInstance(
+                        StatusEffects.RESISTANCE,
+                        DEFLECT_BUFF_TIME,
+                        1
+                )
+        );
+
+        player.addStatusEffect(
+                new StatusEffectInstance(
+                        StatusEffects.STRENGTH,
+                        DEFLECT_BUFF_TIME,
+                        0
+                )
+        );
+
+        // Disable shield
+        player.getItemCooldownManager().set(getHeldAegis(player), COOLDOWN);
+
+        // Internal cooldown tracking
+        Cooldowns.start(player, AEGIS_CD, COOLDOWN);
     }
 
-    @Override
-    public void inventoryTick(ItemStack stack, ServerWorld world, Entity entity, @Nullable EquipmentSlot slot) {
-        PlayerEntity player = (PlayerEntity) entity;
 
-        if (player.getItemCooldownManager().isCoolingDown(player.getStackInHand(Hand.MAIN_HAND)) || player.getItemCooldownManager().isCoolingDown(player.getStackInHand(Hand.OFF_HAND))) {
-            player.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 20 * 5, 1, false, true));
-            Cooldowns.start(player, AEGIS_TIMER, 20 * 5);
-        }
-
-        if (stack.contains(DataComponentTypes.CUSTOM_NAME)) {
-            player.sendMessage(Text.translatable("item.anvil.rename").formatted(), true);
-            stack.remove(DataComponentTypes.CUSTOM_NAME);
-        }
-        if (stack.contains(DataComponentTypes.ENCHANTMENTS)) {
-            stack.remove(DataComponentTypes.ENCHANTMENTS);
-        }
+    private static ItemStack getHeldAegis(PlayerEntity player) {
+        if (player.getMainHandStack().getItem() instanceof Aegis)
+            return player.getMainHandStack();
+        if (player.getOffHandStack().getItem() instanceof Aegis)
+            return player.getOffHandStack();
+        return null;
     }
+
 
     @Override
     public Item getPolymerItem(ItemStack itemStack, PacketContext packetContext) {
-        return Items.STICK;
+        return Items.SHIELD;
     }
+
     @Override
     public Text getName(ItemStack stack) {
-        return Text.translatable("item.pantheon.aegis").formatted();
+        return Text.translatable("item.pantheon.aegis");
     }
 }

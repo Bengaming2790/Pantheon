@@ -20,6 +20,38 @@ public class ModEffects {
                     CONDUCTING_EFFECT
             );
 
+    public static final StatusEffect BLEED_EFFECT =
+            new Bleed(StatusEffectCategory.HARMFUL, 0xFF2B00);
+
+    public static final RegistryEntry<StatusEffect> BLEED =
+            Registry.registerReference(
+                    Registries.STATUS_EFFECT,
+                    Identifier.of(Pantheon.MOD_ID, "bleed"),
+                    BLEED_EFFECT
+            );
+
+
+    public static final StatusEffect DROWSY_EFFECT =
+            new Drowsy(StatusEffectCategory.HARMFUL, 0xFF2B00);
+
+    public static final RegistryEntry<StatusEffect> DROWSY =
+            Registry.registerReference(
+                    Registries.STATUS_EFFECT,
+                    Identifier.of(Pantheon.MOD_ID, "drowsy"),
+                    DROWSY_EFFECT
+            );
+
+    public static final StatusEffect SUN_POISONING_EFFECT =
+            new SunPoisoning(StatusEffectCategory.HARMFUL, 0xFFAB00);
+
+    public static final RegistryEntry<StatusEffect> SUN_POISONING =
+            Registry.registerReference(
+                    Registries.STATUS_EFFECT,
+                    Identifier.of(Pantheon.MOD_ID, "sun_poisoning"),
+                    SUN_POISONING_EFFECT
+            );
+
+
     public static void register() {
         Pantheon.log("Registering status effects...");
     }

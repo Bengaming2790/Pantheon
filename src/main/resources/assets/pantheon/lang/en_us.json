@@ -5,5 +5,20 @@
   "item.pantheon.astrape": "Astrape",
   "item.pantheon.khalkeus": "Khalkeus",
   "itemGroup.pantheon.items": "Pantheon",
-  "item.anvil.rename": "\u00a7eThe Gods have reverted the name of this item to its original form."
+  "item.anvil.rename": "\u00a7eThe Gods have reverted the name of this item to its original form.",
+  "effect.pantheon.bleeding": "Bleeding",
+  "effect.pantheon.conducting": "Conducting",
+  "effect.pantheon.drowsy": "Drowsy",
+  "effect.pantheon.sun_poisoning": "Sun Poisoning",
+  "death.attack.sun_poisoning": "%1$s was poisoned by the sun",
+  "death.attack.sun_poisoning.player": "%1$s was poisoned by the sun thanks to %2$s",
+  "death.attack.bleeding": "%1$s bled to death",
+  "death.attack.bleeding.player": "%1$s bled out thanks to %2$s",
+  "item.caduceus.randevu.place": "\u00a7aRandevu point created.",
+  "item.caduceus.randevu.expire": "\u00a7a§cRandevu expired.",
+  "command.pantheon.drachma.balance": "You have %s Drachma in your bank.",
+  "command.pantheon.drachma.deposit.success": "Deposited %s Drachma.",
+  "command.pantheon.drachma.withdraw.success": "Withdrew %s Drachma.",
+  "command.pantheon.drachma.not_enough_inv": "You do not have enough Drachma in your inventory.",
+  "command.pantheon.drachma.not_enough_bank": "You do not have enough Drachma in your bank."
 }

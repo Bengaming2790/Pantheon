@@ -1,0 +1,7 @@
+{
+  "message_id": "bleeding",
+  "exhaustion": 0.1,
+  "scaling": "never",
+  "knockback": 0.0,
+  "death_message_type": "default"
+}

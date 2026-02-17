@@ -34,6 +34,8 @@ repositories {
     // See https://docs.gradle.org/current/userguide/declaring_repositories.html
     // for more information about repositories.
     maven { url 'https://maven.nucleoid.xyz' }
+    maven { url "https://maven.shedaniel.me/" }
+    maven { url "https://maven.terraformersmc.com/releases/" }
 }
 
 dependencies {
@@ -45,6 +47,14 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     modImplementation include("eu.pb4:polymer-core:0.15.2+1.21.11")
     modImplementation include("eu.pb4:polymer-resource-pack:0.15.2+1.21.11")
+    modImplementation include("eu.pb4:sgui:1.12.0+1.21.11")
+    modCompileOnly "net.luckperms:api:5.4"
+    modImplementation "org.xerial:sqlite-jdbc:3.45.1.0"
+
+    modApi("me.shedaniel.cloth:cloth-config-fabric:21.11.153") {
+        exclude(group: "net.fabricmc.fabric-api")
+    }
+
 
 }
 

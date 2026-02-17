@@ -1,6 +1,5 @@
 package ca.techgarage.pantheon.entity;
 
-import ca.techgarage.pantheon.items.ModItems;
 import ca.techgarage.pantheon.status.ModEffects;
 import eu.pb4.polymer.core.api.entity.PolymerEntity;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -20,14 +19,9 @@ import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.world.World;
 import xyz.nucleoid.packettweaker.PacketContext;
 
-public class AstrapeEntity extends TridentEntity implements PolymerEntity {
+import java.util.Objects;
 
-    public AstrapeEntity(EntityType<? extends TridentEntity> entityType, World world) {
-        super(entityType, world);
-    }
-    public AstrapeEntity(World world, double x, double y, double z, ItemStack stack) {
-        super(world, x, y, z, stack);
-    }
+public class AstrapeEntity extends TridentEntity implements PolymerEntity {
 
     public AstrapeEntity(World world, PlayerEntity player, ItemStack stack) {
         super(world, player, stack);
@@ -37,10 +31,10 @@ public class AstrapeEntity extends TridentEntity implements PolymerEntity {
         Entity entity = entityHitResult.getEntity();
         float f = 8.0F;
         Entity entity2 = this.getOwner();
-        DamageSource damageSource = this.getDamageSources().trident(this, (Entity)(entity2 == null ? this : entity2));
+        DamageSource damageSource = this.getDamageSources().trident(this, entity2 == null ? this : entity2);
         World world = this.getEntityWorld();
         if (world instanceof ServerWorld serverWorld) {
-            f = EnchantmentHelper.getDamage(serverWorld, this.getWeaponStack(), entity, damageSource, f);
+            f = EnchantmentHelper.getDamage(serverWorld, Objects.requireNonNull(this.getWeaponStack()), entity, damageSource, f);
         }
 
         if (entity.sidedDamage(damageSource, f)) {
@@ -49,21 +43,19 @@ public class AstrapeEntity extends TridentEntity implements PolymerEntity {
             }
 
             world = this.getEntityWorld();
-            if (world instanceof ServerWorld) {
-                ServerWorld serverWorld = (ServerWorld) world;
+            if (world instanceof ServerWorld serverWorld) {
                 EnchantmentHelper.onTargetDamaged(serverWorld, entity, damageSource, this.getWeaponStack(), (item) -> this.kill(serverWorld));
             }
 
-            if (entity instanceof LivingEntity) {
-                LivingEntity livingEntity = (LivingEntity)entity;
+            if (entity instanceof LivingEntity livingEntity) {
                 this.knockback(livingEntity, damageSource);
                 this.onHit(livingEntity);
                 livingEntity.setStatusEffect(
-                        new StatusEffectInstance(StatusEffects.GLOWING, 30, 1, true, false, false),
+                        new StatusEffectInstance(StatusEffects.GLOWING, 20 * 8, 1, true, false, false),
                         livingEntity
                 );
                 livingEntity.setStatusEffect(
-                        new StatusEffectInstance(ModEffects.CONDUCTING, 30, 1, true, false, false),
+                        new StatusEffectInstance(ModEffects.CONDUCTING, 20 * 8, 1, true, false, false),
                         livingEntity
                 );
             }

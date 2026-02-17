@@ -4,6 +4,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 import java.util.List;
@@ -31,6 +32,25 @@ public class AOEDamage {
                         world.getDamageSources().playerAttack((PlayerEntity) attacker),
                         damageAmount
                 );
+            }
+        }
+    }
+    public static void applyAoeDamage(LivingEntity attacker, ServerWorld world, Vec3d center, float radius, float damageAmount) {
+
+        Box box = new Box(
+                center.x - radius, center.y - radius, center.z - radius,
+                center.x + radius, center.y + radius, center.z + radius
+        );
+
+        List<LivingEntity> entities = world.getEntitiesByClass(
+                LivingEntity.class,
+                box,
+                e -> e != attacker && e.isAlive()
+        );
+
+        for (LivingEntity entity : entities) {
+            if (entity.squaredDistanceTo(center) <= radius * radius) {
+                entity.damage(world, world.getDamageSources().playerAttack((PlayerEntity) attacker), damageAmount);
             }
         }
     }

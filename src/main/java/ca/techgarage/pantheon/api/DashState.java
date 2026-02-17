@@ -4,7 +4,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.particle.ParticleEffect;
-import net.minecraft.particle.ParticleTypes;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -13,10 +12,8 @@ import java.util.UUID;
 
 public class DashState {
 
-    // UUID -> (ticks left + particle)
     public static final Map<UUID, ParticleCast> DASH_TICKS = new HashMap<>();
 
-    /** Call this from Peitho / items / abilities */
     public static void start(ServerPlayerEntity player, int ticks, ParticleEffect particle) {
         DASH_TICKS.put(player.getUuid(), new ParticleCast(ticks, particle));
     }
@@ -47,7 +44,7 @@ public class DashState {
                     player.getX(),
                     player.getY() + 0.5,
                     player.getZ(),
-                    30,
+                    60,
                     0.2,
                     0.25,
                     0.2,

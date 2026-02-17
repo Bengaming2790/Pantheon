@@ -11,6 +11,7 @@ public final class Cooldowns {
     private static final Map<UUID, Map<String, Long>> COOLDOWNS = new HashMap<>();
 
     private Cooldowns() {}
+    private static final Map<UUID, Map<String, Integer>> INT_DATA = new HashMap<>();
 
     public static boolean isOnCooldown(PlayerEntity player, String key) {
         long now = player.getEntityWorld().getTime();
@@ -43,4 +44,26 @@ public final class Cooldowns {
     public static void clearAll(PlayerEntity player) {
         COOLDOWNS.remove(player.getUuid());
     }
+
+    public static int getInt(PlayerEntity player, String key) {
+        return INT_DATA
+                .getOrDefault(player.getUuid(), Map.of())
+                .getOrDefault(key, 0);
+    }
+
+    public static void setInt(PlayerEntity player, String key, int value) {
+        INT_DATA
+                .computeIfAbsent(player.getUuid(), u -> new HashMap<>())
+                .put(key, value);
+    }
+
+    public static void incrementInt(PlayerEntity player, String key) {
+        setInt(player, key, getInt(player, key) + 1);
+    }
+
+    public static void clearInt(PlayerEntity player, String key) {
+        Map<String, Integer> map = INT_DATA.get(player.getUuid());
+        if (map != null) map.remove(key);
+    }
+
 }

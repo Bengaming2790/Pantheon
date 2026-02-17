@@ -26,13 +26,35 @@ public class ModItems {
             RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "khalkeous"));
     public static final RegistryKey<Item> AEGIS_KEY =
             RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "aegis"));
-
+    public static final RegistryKey<Item> KYNTHIA_KEY =
+            RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "kynthia"));
+    public static final RegistryKey<Item> ENYALIOS_KEY =
+            RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "enyalios"));
+    public static final RegistryKey<Item> ASTRAPE_KEY =
+            RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "astrape"));
+    public static final RegistryKey<Item> PEITHO_KEY =
+            RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "peitho"));
+    public static final RegistryKey<Item> TRIAINA_KEY =
+            RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "triaina"));
+    public static final RegistryKey<Item> CADUCEUS_KEY =
+            RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "caduceus"));
+    public static final RegistryKey<Item> PHOEBUS_KEY =
+            RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "phoebus"));
+    public static final RegistryKey<Item> THYRSUS_KEY =
+            RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "thyrsus"));
 
     public static Item DRACHMA;
     public static Item VARATHA;
     public static Item KHALKEOUS;
     public static Item AEGIS;
-
+    public static Item KYNTHIA;
+    public static Item ENYALIOS;
+    public static Item ASTRAPE;
+    public static Item PEITHO;
+    public static Item TRIAINA;
+    public static Item CADUCEUS;
+    public static Item PHOEBUS;
+    public static Item THYRSUS;
 
     public static void registerModItems() {
         DRACHMA = Registry.register(
@@ -55,39 +77,41 @@ public class ModItems {
                 AEGIS_KEY,
                 new Aegis(new Item.Settings().registryKey(AEGIS_KEY))
         );
-
-    }
-    private static Item register(RegistryKey<Item> key, Item item) {
-        return Registry.register(Registries.ITEM, key, item);
-    }
-
-
-    public static final Astrape ASTRAPE = registerItem("astrape",
-            new Astrape(createSettings("astrape")));
-
-    public static final Peitho PEITHO = registerItem("peitho",
-            new Peitho(createSettings("peitho")));
-
-
-    private static Item.Settings createSettings(String name) {
-        return new Item.Settings()
-                .registryKey(RegistryKey.of(
-                        RegistryKeys.ITEM,
-                        Identifier.of(MOD_ID, name)
-                ));
-    }
-
-    private static <T extends Item> T registerItem(String name, T item) {
-        return Registry.register(
+        KYNTHIA = Registry.register(
                 Registries.ITEM,
-                Identifier.of(MOD_ID, name),
-                item
+                KYNTHIA_KEY,
+                new Kynthia(new Item.Settings().registryKey(KYNTHIA_KEY))
         );
-    }
+        ENYALIOS = Registry.register(
+                Registries.ITEM,
+                ENYALIOS_KEY,
+                new Enyalios(new Item.Settings().registryKey(ENYALIOS_KEY))
+        );
+        ASTRAPE = Registry.register(
+                Registries.ITEM,
+                ASTRAPE_KEY,
+                new Astrape(new Item.Settings().registryKey(ASTRAPE_KEY))
+        );
+        PEITHO = Registry.register(
+                Registries.ITEM,
+                PEITHO_KEY,
+                new Peitho(new Item.Settings().registryKey(PEITHO_KEY)));
+        TRIAINA = Registry.register(
+                Registries.ITEM,
+                TRIAINA_KEY,
+                new Triaina(new Item.Settings().registryKey(TRIAINA_KEY)));
+        CADUCEUS = Registry.register(
+                Registries.ITEM,
+                Identifier.of(MOD_ID, "caduceus"),
+                new Caduceus(new Item.Settings().registryKey(CADUCEUS_KEY)));
 
-
-    public static void registerItems() {
-        Pantheon.log("Registering items...");
-
+        PHOEBUS = Registry.register(
+                Registries.ITEM,
+                Identifier.of(MOD_ID, "phoebus"),
+                new Phoebus(new Item.Settings().registryKey(PHOEBUS_KEY)));
+        THYRSUS = Registry.register(
+                Registries.ITEM,
+                Identifier.of(MOD_ID, "thyrsus"),
+                new Thyrsus(new Item.Settings().registryKey(THYRSUS_KEY)));
     }
 }

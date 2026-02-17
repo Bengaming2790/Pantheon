@@ -1,18 +1,15 @@
 package ca.techgarage.pantheon.items.weapons;
 
+import ca.techgarage.pantheon.api.Cooldowns;
 import ca.techgarage.pantheon.entity.AstrapeEntity;
-import ca.techgarage.pantheon.items.ModItems;
 import ca.techgarage.pantheon.status.ModEffects;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.AttributeModifierSlot;
 import net.minecraft.component.type.AttributeModifiersComponent;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.*;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.PersistentProjectileEntity;
@@ -20,7 +17,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.TridentItem;
-import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -34,6 +30,8 @@ public class Astrape extends TridentItem implements PolymerItem {
     public Astrape(Item.Settings settings) {
         super(settings.component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers()).component(DataComponentTypes.MAX_STACK_SIZE, 1) );
     }
+
+    private static final String ASTRAPE_CD = "astrape_lightning_cd";
 
     public static AttributeModifiersComponent createAttributeModifiers() {
         return AttributeModifiersComponent.builder()
@@ -67,27 +65,33 @@ public class Astrape extends TridentItem implements PolymerItem {
                 )
                 .build();
     }
-    @Override
-    public void modifyBasePolymerItemStack(ItemStack out, ItemStack stack, PacketContext context) {
-        out.remove(DataComponentTypes.ATTRIBUTE_MODIFIERS);
-        out.remove(DataComponentTypes.CUSTOM_DATA);
-        out.remove(DataComponentTypes.ITEM_MODEL);
-    }
+
 
 
     @Override
     public void postHit(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+        if (attacker.getEntityWorld().isClient()) return ;
+        if (!(attacker instanceof PlayerEntity player)) return ;
+
         StatusEffectInstance conducting =
                 target.getStatusEffect(ModEffects.CONDUCTING);
 
-        if (conducting == null) return;
+        if (conducting == null) return ;
 
+        if (Cooldowns.isOnCooldown(player, ASTRAPE_CD)) return ;
 
         int level = conducting.getAmplifier() + 1;
         float extraDamage = 2.0f * level;
 
-        // Apply extra damage attributed to the attacker
-        target.damage((ServerWorld) attacker.getEntityWorld(), attacker.getRecentDamageSource(), extraDamage);
+        target.damage((ServerWorld) attacker.getEntityWorld(), attacker.getEntityWorld().getDamageSources().playerAttack(player), extraDamage);
+
+        LightningEntity lightning =
+                new LightningEntity(EntityType.LIGHTNING_BOLT, attacker.getEntityWorld());
+
+        lightning.setPosition(target.getX(), target.getY(), target.getZ());
+        attacker.getEntityWorld().spawnEntity(lightning);
+
+        Cooldowns.start(player, ASTRAPE_CD, 20 * 15);
     }
 
 

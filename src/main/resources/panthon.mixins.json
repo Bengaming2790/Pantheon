@@ -4,6 +4,7 @@
   "package": "ca.techgarage.pantheon.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "SnowballHitMixin"
   ],
   "injectors": {
     "defaultRequire": 1

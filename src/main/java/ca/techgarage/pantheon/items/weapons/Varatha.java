@@ -1,23 +1,25 @@
 package ca.techgarage.pantheon.items.weapons;
 
+import ca.techgarage.pantheon.api.Cooldowns;
 import ca.techgarage.pantheon.api.DashState;
 import ca.techgarage.pantheon.items.material.ModToolMaterials;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.AttributeModifierSlot;
 import net.minecraft.component.type.AttributeModifiersComponent;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.*;
 import net.minecraft.particle.ParticleTypes;
-import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
@@ -35,21 +37,22 @@ import java.util.Random;
 public class Varatha extends Item implements PolymerItem {
 
     private static final Random random = new Random();
+    private static final String STYGIAN = "varatha_stygian";
     private static final Identifier MODEL =
             Identifier.of("pantheon", "varatha");
     public Varatha(Settings settings) {
         super(
                 settings.spear(
                         ModToolMaterials.VARATHA_TOOL_MATERIAL,
-                        3.0f,    // swingAnimationSeconds → attack speed math
+                        1.5f,    // swingAnimationSeconds → attack speed math
                         1.5f,    // chargeDamageMultiplier
-                        0.5f,   // chargeDelaySeconds
+                        0f,   // chargeDelaySeconds
                         0.4f,    // maxDurationForDismountSeconds
-                        0.6f,    // minSpeedForDismount
+                        0.5f,    // minSpeedForDismount
                         0.3f,    // maxDurationForChargeKnockbackInSeconds
-                        0.4f,    // minSpeedForChargeKnockback
-                        0.3f,    // maxDurationForChargeDamageInSeconds
-                        0.3f     // minRelativeSpeedForChargeDamage
+                        0.1f,    // minSpeedForChargeKnockback
+                        0.2f,    // maxDurationForChargeDamageInSeconds
+                        0.1f     // minRelativeSpeedForChargeDamage
                 ).component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, getDefaultAttributeModifiers())
         );
     }
@@ -92,10 +95,31 @@ public class Varatha extends Item implements PolymerItem {
             user.useRiptide(10, 5.0f, stack);
             Dash.dashForward(user, 0.75f);
             DashState.start((ServerPlayerEntity) user, 10, ParticleTypes.RAID_OMEN);
+            world.playSound(
+                    null,
+                    user.getX(), user.getY(), user.getZ(),
+                    SoundEvents.ENTITY_BREEZE_WIND_BURST,
+                    SoundCategory.PLAYERS,
+                    1.0F, // volume
+                    0.5F  // pitch
+            );
         }
         return ActionResult.SUCCESS;
     }
-
+    @Override
+    public void postHit(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+        if (attacker.getEntityWorld().isClient()) return;
+        if (Cooldowns.isOnCooldown((PlayerEntity) attacker, STYGIAN)) return;
+        target.setStatusEffect(
+                new StatusEffectInstance(StatusEffects.BLINDNESS, 20 * 5, 1, true, false, false),
+                target
+        );
+        target.setStatusEffect(
+                new StatusEffectInstance(StatusEffects.WITHER, 20 * 5, 1, true, true, false),
+                target
+        );
+        Cooldowns.start((ServerPlayerEntity) attacker, STYGIAN, 20 * 15);
+    }
     @Override
     public void inventoryTick(ItemStack stack, ServerWorld world, Entity entity, @Nullable EquipmentSlot slot) {
         PlayerEntity player = (PlayerEntity) entity;

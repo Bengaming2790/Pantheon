@@ -21,6 +21,8 @@ import net.minecraft.item.MaceItem;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -29,8 +31,6 @@ import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
 import org.jspecify.annotations.Nullable;
 import xyz.nucleoid.packettweaker.PacketContext;
-
-import java.util.Timer;
 
 public class Khalkeus extends MaceItem implements PolymerItem {
     public Khalkeus(Settings settings) {
@@ -74,6 +74,14 @@ public class Khalkeus extends MaceItem implements PolymerItem {
             user.useRiptide(10, 1.0f, stack);
             Dash.dashForward(user, 0.95f);
             DashState.start((ServerPlayerEntity) user, 10, ParticleTypes.FLAME);
+            world.playSound(
+                    null,
+                    user.getX(), user.getY(), user.getZ(),
+                    SoundEvents.BLOCK_FIRE_AMBIENT,
+                    SoundCategory.PLAYERS,
+                    1.5F, // volume
+                    1.75F  // pitch
+            );
         }
         return ActionResult.SUCCESS;
     }

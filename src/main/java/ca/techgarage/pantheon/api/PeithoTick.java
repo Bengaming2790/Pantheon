@@ -1,14 +1,11 @@
 package ca.techgarage.pantheon.api;
 
 import ca.techgarage.pantheon.items.ModItems;
-import ca.techgarage.pantheon.items.weapons.Peitho;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.minecraft.enchantment.Enchantment;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.particle.ParticleTypes;
 
 public class PeithoTick {
 

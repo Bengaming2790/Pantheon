@@ -46,7 +46,7 @@ public class Thyrsus extends Item implements PolymerItem {
                         EntityAttributes.ATTACK_SPEED,
                         new EntityAttributeModifier(
                                 Item.BASE_ATTACK_SPEED_MODIFIER_ID,
-                                1.8,
+                                -2.2,
                                 EntityAttributeModifier.Operation.ADD_VALUE
                         ),
                         AttributeModifierSlot.MAINHAND

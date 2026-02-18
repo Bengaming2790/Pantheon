@@ -54,7 +54,7 @@ public class Caduceus extends Item implements PolymerItem {
                         EntityAttributes.ATTACK_DAMAGE,
                         new EntityAttributeModifier(
                                 BASE_ATTACK_DAMAGE_MODIFIER_ID,
-                                6,
+                                5,
                                 EntityAttributeModifier.Operation.ADD_VALUE
                         ),
                         AttributeModifierSlot.MAINHAND
@@ -63,7 +63,7 @@ public class Caduceus extends Item implements PolymerItem {
                         EntityAttributes.ATTACK_SPEED,
                         new EntityAttributeModifier(
                                 BASE_ATTACK_SPEED_MODIFIER_ID,
-                                2,
+                                -2,
                                 EntityAttributeModifier.Operation.ADD_VALUE
                         ),
                         AttributeModifierSlot.MAINHAND

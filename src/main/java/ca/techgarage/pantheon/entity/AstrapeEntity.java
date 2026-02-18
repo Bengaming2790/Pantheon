@@ -1,12 +1,10 @@
 package ca.techgarage.pantheon.entity;
 
+import ca.techgarage.pantheon.api.AOEDamage;
 import ca.techgarage.pantheon.status.ModEffects;
 import eu.pb4.polymer.core.api.entity.PolymerEntity;
 import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ProjectileDeflection;
+import net.minecraft.entity.*;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -15,7 +13,9 @@ import net.minecraft.entity.projectile.TridentEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import xyz.nucleoid.packettweaker.PacketContext;
 
@@ -65,6 +65,15 @@ public class AstrapeEntity extends TridentEntity implements PolymerEntity {
         this.setVelocity(this.getVelocity().multiply(0.02, 0.2, 0.02));
         this.playSound(SoundEvents.ITEM_TRIDENT_HIT, 1.0F, 1.0F);
     }
+
+    @Override
+    protected void onBlockHitEnchantmentEffects(ServerWorld world, BlockHitResult blockHitResult, ItemStack weaponStack) {
+        Vec3d vec3d = blockHitResult.getBlockPos().clampToWithin(blockHitResult.getPos());
+
+        AOEDamage.applyAoeDamage(this.getEntity(), world, vec3d, 7f, 0f, 1.5f);
+
+    }
+
     @Override
     public EntityType<?> getPolymerEntityType(PacketContext packetContext) {
         return EntityType.TRIDENT;

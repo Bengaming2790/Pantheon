@@ -30,14 +30,7 @@ public class Kynthia extends BowItem implements PolymerItem {
 
     public void activate(PlayerEntity player) {
         Grapple.fire(player, 32.0);
-        player.getEntityWorld().playSound(
-                null,
-                player.getX(), player.getY(), player.getZ(),
-                SoundEvents.ENTITY_BLAZE_SHOOT,
-                SoundCategory.PLAYERS,
-                1.0F, // volume
-                1.75F  // pitch
-        );
+
     }
 
     public Identifier getPolymerItemModel(ItemStack stack, PacketContext context) {

@@ -7,6 +7,9 @@ import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.AttributeModifierSlot;
 import net.minecraft.component.type.AttributeModifiersComponent;
+import net.minecraft.component.type.ItemEnchantmentsComponent;
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
@@ -17,6 +20,9 @@ import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.*;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.registry.BuiltinRegistries;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -31,6 +37,7 @@ import net.minecraft.world.World;
 import ca.techgarage.pantheon.api.Dash;
 import org.jspecify.annotations.Nullable;
 import xyz.nucleoid.packettweaker.PacketContext;
+import net.minecraft.registry.Registries;
 
 import java.util.Random;
 
@@ -53,9 +60,13 @@ public class Varatha extends Item implements PolymerItem {
                         0.1f,    // minSpeedForChargeKnockback
                         0.2f,    // maxDurationForChargeDamageInSeconds
                         0.1f     // minRelativeSpeedForChargeDamage
-                ).component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, getDefaultAttributeModifiers())
+                )
+                        .component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE)
+                        .component(DataComponentTypes.ATTRIBUTE_MODIFIERS, getDefaultAttributeModifiers())
         );
     }
+
+
 
 
 
@@ -82,6 +93,8 @@ public class Varatha extends Item implements PolymerItem {
                 .build();
     }
 
+
+
     @Override
     public ActionResult use(World world, PlayerEntity user, Hand hand) {
         if (!world.isClient()) {
@@ -92,7 +105,7 @@ public class Varatha extends Item implements PolymerItem {
             if (!(user.getGameMode() == GameMode.CREATIVE)) {
                 user.getItemCooldownManager().set(stack, 200); //10 second cooldown
             }
-            user.useRiptide(10, 5.0f, stack);
+
             Dash.dashForward(user, 0.75f);
             DashState.start((ServerPlayerEntity) user, 10, ParticleTypes.RAID_OMEN);
             world.playSound(
@@ -103,23 +116,33 @@ public class Varatha extends Item implements PolymerItem {
                     1.0F, // volume
                     0.5F  // pitch
             );
+            user.useRiptide(10, 5.0f, stack);
+
         }
         return ActionResult.SUCCESS;
     }
     @Override
     public void postHit(ItemStack stack, LivingEntity target, LivingEntity attacker) {
         if (attacker.getEntityWorld().isClient()) return;
-        if (Cooldowns.isOnCooldown((PlayerEntity) attacker, STYGIAN)) return;
-        target.setStatusEffect(
-                new StatusEffectInstance(StatusEffects.BLINDNESS, 20 * 5, 1, true, false, false),
-                target
+        if (!(attacker instanceof ServerPlayerEntity player)) return;
+        if (Cooldowns.isOnCooldown(player, STYGIAN)) return;
+
+        target.addStatusEffect(
+                new StatusEffectInstance(StatusEffects.BLINDNESS, 20 * 5, 1, true, false, false)
         );
-        target.setStatusEffect(
-                new StatusEffectInstance(StatusEffects.WITHER, 20 * 5, 1, true, true, false),
-                target
+
+        target.addStatusEffect(
+                new StatusEffectInstance(StatusEffects.WITHER, 20 * 5, 1, true, true, false)
         );
-        Cooldowns.start((ServerPlayerEntity) attacker, STYGIAN, 20 * 15);
+
+        // Armor ignoring damage (magic)
+        target.damage((ServerWorld) attacker.getEntityWorld(),
+                attacker.getDamageSources().magic(),
+                8.0f
+        );
+        if (!player.isCreative()) Cooldowns.start(player, STYGIAN, 20 * 15);
     }
+
     @Override
     public void inventoryTick(ItemStack stack, ServerWorld world, Entity entity, @Nullable EquipmentSlot slot) {
         PlayerEntity player = (PlayerEntity) entity;

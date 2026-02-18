@@ -40,7 +40,7 @@ public class SunPoisoning extends StatusEffect implements PolymerStatusEffect {
                 entity.getX(),
                 entity.getY() + 0.5,
                 entity.getZ(),
-                10,
+                2,
                 0.2,
                 0.25,
                 0.2,

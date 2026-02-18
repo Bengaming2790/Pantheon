@@ -50,7 +50,6 @@ public class Peitho extends Item implements PolymerItem {
             if (!(user.getGameMode() == GameMode.CREATIVE)) {
                 user.getItemCooldownManager().set(stack, 300); //15 second cooldown
             }
-            user.useRiptide(10, 0f, stack);
             Dash.dashForward(user, 0.75f);
 
             DashState.start((ServerPlayerEntity) user, 10, ParticleTypes.HEART);
@@ -63,6 +62,7 @@ public class Peitho extends Item implements PolymerItem {
                     1.0F, // volume
                     0.5F  // pitch
             );
+            user.useRiptide(10, 0f, stack);
 
         }
         return ActionResult.SUCCESS;

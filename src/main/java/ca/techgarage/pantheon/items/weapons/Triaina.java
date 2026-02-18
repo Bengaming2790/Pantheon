@@ -45,7 +45,7 @@ public class Triaina extends Item implements PolymerItem {
                         EntityAttributes.ATTACK_DAMAGE,
                         new EntityAttributeModifier(
                                 BASE_ATTACK_DAMAGE_MODIFIER_ID,
-                                14.0,
+                                13.0,
                                 EntityAttributeModifier.Operation.ADD_VALUE
                         ),
                         AttributeModifierSlot.MAINHAND
@@ -54,7 +54,7 @@ public class Triaina extends Item implements PolymerItem {
                         EntityAttributes.ATTACK_SPEED,
                         new EntityAttributeModifier(
                                 BASE_ATTACK_SPEED_MODIFIER_ID,
-                                1.4,
+                                -2.6,
                                 EntityAttributeModifier.Operation.ADD_VALUE
                         ),
                         AttributeModifierSlot.MAINHAND
@@ -72,7 +72,6 @@ public class Triaina extends Item implements PolymerItem {
             if (!(user.getGameMode() == GameMode.CREATIVE)) {
                 user.getItemCooldownManager().set(stack, 200); //10 second cooldown
             }
-            user.useRiptide(10, 5.0f, stack);
             Dash.dashForward(user, 0.75f);
             DashState.start((ServerPlayerEntity) user, 10, ParticleTypes.FALLING_WATER);
 
@@ -84,6 +83,8 @@ public class Triaina extends Item implements PolymerItem {
                     1.0F, // volume
                     1.0F  // pitch
             );
+            user.useRiptide(10, 5.0f, stack);
+
         }
         return ActionResult.SUCCESS;
     }

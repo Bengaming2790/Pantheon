@@ -7,6 +7,8 @@ import net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
@@ -108,6 +110,14 @@ public class Grapple {
         Vec3d hitPos = blockHit.getPos();
 
         spawnChainParticles(world, start, hitPos);
+        player.getEntityWorld().playSound(
+                null,
+                player.getX(), player.getY(), player.getZ(),
+                SoundEvents.ENTITY_BLAZE_SHOOT,
+                SoundCategory.PLAYERS,
+                1.0F, // volume
+                1.75F  // pitch
+        );
         Cooldowns.start(player, Kynthia.KYNTHIA_GRAPPLE_CD, 20 * 15);
         Entity closestEntity = world.getOtherEntities(
                 player,

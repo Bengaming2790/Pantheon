@@ -120,6 +120,14 @@ public class Enyalios extends Item implements PolymerItem {
                 Cooldowns.clear(player, ENYALIOS_BLEED_ACTIVE);
                 Cooldowns.start(player, ENYALIOS_BLEED_CD, 20 * 15);
             }
+
+            if (Math.random() < 0.05) {
+                target.setStatusEffect(
+                        new StatusEffectInstance(ModEffects.BLEED, 20 * 8, 2, true, false, false),
+                        target
+                );
+            }
+
         }
 
     }
@@ -140,12 +148,12 @@ public class Enyalios extends Item implements PolymerItem {
                     (0.5f + 1f) * 1
             );
 
-            user.useRiptide(10, 5.0f, stack);
             Dash.dashForward(user, 0.85f);
             DashState.start((ServerPlayerEntity) user, 10, new DustParticleEffect(
                     16711680,
                     1.0F
             ));
+            user.useRiptide(10, 5.0f, stack);
 
         }
         return ActionResult.SUCCESS;

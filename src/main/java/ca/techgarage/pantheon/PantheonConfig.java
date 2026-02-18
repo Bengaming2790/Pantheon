@@ -8,7 +8,9 @@ import me.shedaniel.autoconfig.annotation.ConfigEntry;
 public class PantheonConfig implements ConfigData {
 
     @ConfigEntry.Gui.Tooltip
-    @ConfigEntry.BoundedDiscrete(min = 1, max = 16)
-    public int NPCLookDistance = 8;
+    public int StartingDrachma = 50;
+
+    @ConfigEntry.Gui.Tooltip
+    public int DroppedDrachmaOnDeath = 5;
 
 }

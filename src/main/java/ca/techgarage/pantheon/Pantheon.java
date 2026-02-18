@@ -106,7 +106,6 @@ public class Pantheon implements ModInitializer {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
 
-                if (!player.isSneaking()) continue;
 
                 if (!player.handSwinging) continue;
                 if (player.handSwingTicks != 1) continue;
@@ -139,7 +138,7 @@ public class Pantheon implements ModInitializer {
             var uuid = player.getUuid();
 
             if (!BankDatabase.hasAccount(uuid)) {
-                BankDatabase.createAccount(uuid, 50);
+                BankDatabase.createAccount(uuid, CONFIG.StartingDrachma);
             }
         });
 
@@ -148,7 +147,7 @@ public class Pantheon implements ModInitializer {
 
             UUID uuid = player.getUuid();
 
-            int needed = 5;
+            int needed = CONFIG.DroppedDrachmaOnDeath;
 
             // Count drachma in inventory
             int invCount = DrachmaItem.countDrachma(player);
@@ -163,7 +162,9 @@ public class Pantheon implements ModInitializer {
             if (remaining > 0) {
                 BankDatabase.remove(uuid, remaining);
             }
-
+            if (BankDatabase.getBalance(player.getUuid()) < 0) {
+                return;
+            }
             // Drop total taken
             DrachmaItem.dropDrachma(player, takenFromInv + remaining);
         });

@@ -37,7 +37,8 @@ public class Astrape extends TridentItem implements PolymerItem {
     public Astrape(Item.Settings settings) {
         super(settings.component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers()).component(DataComponentTypes.MAX_STACK_SIZE, 1) );
     }
-
+    private static final Identifier MODEL =
+            Identifier.of("pantheon", "astrape");
     private static final String ASTRAPE_CD = "astrape_lightning_cd";
     private static final String ASTRAPE_THROW_CD = "astrape_throw_cd";
     public static AttributeModifiersComponent createAttributeModifiers() {
@@ -164,6 +165,10 @@ public class Astrape extends TridentItem implements PolymerItem {
         return Items.STICK;
     }
 
+    @Override
+    public Identifier getPolymerItemModel(ItemStack stack, PacketContext context) {
+        return MODEL;
+    }
     @Override
     public Text getName(ItemStack stack) {
         return Text.translatable("item.pantheon.astrape");

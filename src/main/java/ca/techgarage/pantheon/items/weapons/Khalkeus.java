@@ -30,6 +30,7 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.Unit;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
@@ -44,7 +45,8 @@ public class Khalkeus extends MaceItem implements PolymerItem {
     public Khalkeus(Settings settings) {
         super(settings.component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, getDefaultAttributeModifiers()).component(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true).component(DataComponentTypes.MAX_STACK_SIZE, 1));
     }
-
+    private static final Identifier MODEL =
+            Identifier.of("pantheon", "khalkeus");
     private static final String AOE_CD = "khalkeus_aoe_cd";
     public static AttributeModifiersComponent getDefaultAttributeModifiers() {
         return AttributeModifiersComponent.builder()
@@ -220,4 +222,10 @@ public class Khalkeus extends MaceItem implements PolymerItem {
     public Item getPolymerItem(ItemStack itemStack, PacketContext packetContext) {
         return Items.DIAMOND;
     }
+    @Override
+    public Identifier getPolymerItemModel(ItemStack stack, PacketContext context) {
+        return MODEL;
+    }
+
+
 }

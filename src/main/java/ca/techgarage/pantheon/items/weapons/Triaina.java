@@ -24,6 +24,7 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.Unit;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
@@ -35,8 +36,8 @@ public class Triaina extends Item implements PolymerItem {
         super(settings.component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.MAX_STACK_SIZE, 1).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers()));
         applyEffects();
     }
-
-    private static final String TRIAINA_COMBO_TIMER = "triaina_hit_combo_timer";
+    private static final Identifier MODEL =
+            Identifier.of("pantheon", "triaina");    private static final String TRIAINA_COMBO_TIMER = "triaina_hit_combo_timer";
     private static final String TRIAINA_COMBO_HITS = "triaina_hit_combo_hits";
 
     public static AttributeModifiersComponent createAttributeModifiers() {
@@ -170,6 +171,11 @@ public class Triaina extends Item implements PolymerItem {
             }
         });
     }
+
+    public Identifier getPolymerItemModel(ItemStack stack, PacketContext context) {
+        return MODEL;
+    }
+
     @Override
     public Text getName(ItemStack stack) {
         return Text.translatable("item.pantheon.triaina");

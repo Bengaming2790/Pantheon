@@ -1,6 +1,6 @@
 {
 	"parent": "item/handheld",
 	"textures": {
-		"layer0": "pantheon:item/varatha"
+		"layer0": "pantheon:item/astrape"
 	}
 }

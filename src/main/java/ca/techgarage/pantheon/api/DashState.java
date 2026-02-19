@@ -44,10 +44,10 @@ public class DashState {
                     player.getX(),
                     player.getY() + 0.5,
                     player.getZ(),
-                    60,
-                    0.2,
-                    0.25,
-                    0.2,
+                    80,
+                    1,
+                    1,
+                    1,
                     0.0
             );
 

@@ -32,7 +32,7 @@ public class Dash {
         player.addVelocity(velocity);
 
         player.fallDistance = 0;
-
+        player.velocityDirty = true;
 
         if (player instanceof ServerPlayerEntity serverPlayer) {
             serverPlayer.networkHandler.sendPacket(new EntityVelocityUpdateS2CPacket(player));

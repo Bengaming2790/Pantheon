@@ -8,6 +8,7 @@ import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectCategory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket;
 import net.minecraft.particle.DustParticleEffect;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -33,6 +34,7 @@ public class Bleed extends StatusEffect implements PolymerStatusEffect {
                 ModDamageSources.bleeding(world),
                 (0.5f + 1f) * amplifier
         );
+
 
         DustParticleEffect dust = new DustParticleEffect(
                 16711680,

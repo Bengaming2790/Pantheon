@@ -7,6 +7,7 @@ import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectCategory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -32,8 +33,6 @@ public class SunPoisoning extends StatusEffect implements PolymerStatusEffect {
                 ModDamageSources.sunPoisoning(world),
                 1.66f
         );
-
-
 
         world.spawnParticles(
                 ParticleTypes.FIREFLY,

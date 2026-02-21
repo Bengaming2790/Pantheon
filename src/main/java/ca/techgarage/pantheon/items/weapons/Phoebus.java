@@ -14,10 +14,14 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.particle.ParticleTypes;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.Unit;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
@@ -27,6 +31,10 @@ public class Phoebus extends Item implements PolymerItem {
     public Phoebus(Settings settings) {
         super(settings.component(DataComponentTypes.MAX_STACK_SIZE, 1).component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers()));
     }
+
+    private static final Identifier MODEL =
+            Identifier.of("pantheon", "phoebus");
+
     public static final String PHOEBUS_SONG_CD = "phoebus_song_cd";
     public static final String PHOEBUS_SONG_ACTIVE = "phoebus_song_active_timer";
 
@@ -45,7 +53,7 @@ public class Phoebus extends Item implements PolymerItem {
                         EntityAttributes.ATTACK_SPEED,
                         new EntityAttributeModifier(
                                 BASE_ATTACK_SPEED_MODIFIER_ID,
-                                1.6,
+                                1.6 - 4.0,
                                 EntityAttributeModifier.Operation.ADD_VALUE
                         ),
                         AttributeModifierSlot.MAINHAND
@@ -94,9 +102,27 @@ public class Phoebus extends Item implements PolymerItem {
                     1.0F, // volume
                     1.0F  // pitch
             );
+            ServerWorld serverWorld = (ServerWorld) world;
+            serverWorld.spawnParticles(
+                    ParticleTypes.NOTE,
+                    user.getX(),
+                    user.getY() + 0.5,
+                    user.getZ(),
+                    80,
+                    1,
+                    1,
+                    1,
+                    0.0
+            );
 
         }
         return ActionResult.SUCCESS;
+    }
+    public Identifier getPolymerItemModel(ItemStack stack, PacketContext context) {
+        return MODEL;
+    }
+    public Text getName(ItemStack stack) {
+        return Text.translatable("item.pantheon.pheobus").formatted();
     }
 
     @Override

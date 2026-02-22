@@ -23,5 +23,10 @@
   "command.pantheon.drachma.deposit.success": "Deposited %s Drachma.",
   "command.pantheon.drachma.withdraw.success": "Withdrew %s Drachma.",
   "command.pantheon.drachma.not_enough_inv": "You do not have enough Drachma in your inventory.",
-  "command.pantheon.drachma.not_enough_bank": "You do not have enough Drachma in your bank."
+  "command.pantheon.drachma.not_enough_bank": "You do not have enough Drachma in your bank.",
+
+  "item.pantheon.peitho.primary": "[Heartbreak] deals 7.5% damage",
+  "item.pantheon.peitho.shift-primary": "[Sorrowful Rose] deals 25% damage. Cooldown: 45 seconds",
+  "item.pantheon.peitho.secondary": "[Heart Race] Dash forward and gain Regeneration",
+  "item.pantheon.peitho.trait": "[Love's Favor] While in inventory gain more HP"
 }

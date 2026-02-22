@@ -22,7 +22,6 @@ import xyz.nucleoid.packettweaker.PacketContext;
 import java.util.Objects;
 
 public class AstrapeEntity extends TridentEntity implements PolymerEntity {
-
     public AstrapeEntity(World world, PlayerEntity player, ItemStack stack) {
         super(world, player, stack);
     }

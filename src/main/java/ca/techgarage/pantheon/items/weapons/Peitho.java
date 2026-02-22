@@ -7,6 +7,7 @@ import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.AttributeModifierSlot;
 import net.minecraft.component.type.AttributeModifiersComponent;
+import net.minecraft.component.type.LoreComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
@@ -33,13 +34,27 @@ import net.minecraft.world.World;
 import org.jspecify.annotations.Nullable;
 import xyz.nucleoid.packettweaker.PacketContext;
 
+import java.util.List;
+
 public class Peitho extends Item implements PolymerItem {
     public Peitho(Settings settings) {
-        super(settings.component(DataComponentTypes.UNBREAKABLE,  Unit.INSTANCE).component(DataComponentTypes.MAX_STACK_SIZE, 1).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, getDefaultAttributeModifiers()));
+        super(settings.component(DataComponentTypes.UNBREAKABLE,  Unit.INSTANCE)
+                .component(DataComponentTypes.MAX_STACK_SIZE, 1)
+                .component(DataComponentTypes.ATTRIBUTE_MODIFIERS, getDefaultAttributeModifiers())
+                .component(DataComponentTypes.LORE, lore)
+        );
     }
     private static final String PEITHO_25_CD = "peitho_25_cd";
     private static final Identifier MODEL =
             Identifier.of("pantheon", "peitho");
+
+    private static LoreComponent lore = new LoreComponent(List.of(
+            Text.translatable("item.pantheon.peitho.primary").formatted(),
+            Text.translatable("item.pantheon.peitho.shift-primary").formatted(),
+            Text.translatable("item.pantheon.peitho.secondary").formatted(),
+            Text.translatable("item.pantheon.peitho.trait").formatted()
+    ));
+
     @Override
     public ActionResult use(World world, PlayerEntity user, Hand hand) {
         if (!world.isClient()) {

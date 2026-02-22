@@ -4,12 +4,14 @@ import ca.techgarage.pantheon.api.AOEDamage;
 import ca.techgarage.pantheon.api.Cooldowns;
 import ca.techgarage.pantheon.status.ModEffects;
 import eu.pb4.polymer.core.api.item.PolymerItem;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.AttributeModifierSlot;
 import net.minecraft.component.type.AttributeModifiersComponent;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -33,7 +35,7 @@ import java.util.*;
 
 public class Caduceus extends Item implements PolymerItem {
     public Caduceus(Settings settings) {
-        super(settings.component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.MAX_STACK_SIZE, 1).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers()));
+        super(settings.component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.MAX_STACK_SIZE, 1).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers())); applyEffects();
     }
     private static final String CADUCEUS_DROWSY_CD = "caduceus_drowsy_cd";
     private static final String CADUCEUS_RENDEZVOUS_CD = "caduceus_rendezvous_cd";
@@ -141,6 +143,30 @@ public class Caduceus extends Item implements PolymerItem {
     @Override
     public Item getPolymerItem(ItemStack itemStack, PacketContext packetContext) {
         return Items.STICK;
+    }
+    private static ItemStack getHeldCaduceus(PlayerEntity player) {
+        if (player.getMainHandStack().getItem() instanceof Caduceus)
+            return player.getMainHandStack();
+        return null;
+    }
+    public static void applyEffects(){
+        // Swift Travel
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                if (getHeldCaduceus(player) == null) continue;
+
+                player.addStatusEffect(
+                        new StatusEffectInstance(
+                                StatusEffects.SPEED,
+                                40,
+                                0,
+                                true,
+                                false,
+                                false
+                        )
+                );
+            }
+        });
     }
 
     /**

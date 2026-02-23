@@ -29,6 +29,8 @@ public class IcarusWings extends Item implements PolymerItem {
         super(settings.maxDamage(232).component(DataComponentTypes.GLIDER, Unit.INSTANCE).component(DataComponentTypes.MAX_STACK_SIZE, 1).component(DataComponentTypes.EQUIPPABLE, EquippableComponent.builder(EquipmentSlot.CHEST).equipSound(SoundEvents.ITEM_ARMOR_EQUIP_ELYTRA).model(EquipmentAssetKeys.ELYTRA).damageOnHurt(false).build()).repairable(Items.HONEYCOMB).fireproof());
     }
     private static final String ICARUS_BREAK_CD = "icarus_break_cd";
+    private static final String ICARUS_RECHARGE_INTERVAL = "icarus_recharge_interval";
+
     public static void icarusFall() {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
 
@@ -42,7 +44,13 @@ public class IcarusWings extends Item implements PolymerItem {
                 boolean onCooldown = Cooldowns.isOnCooldown(player, ICARUS_BREAK_CD);
 
                 if (!onCooldown && chest.isDamaged()) {
-                    chest.setDamage(0);
+                    int maxDamage = chest.getMaxDamage();
+                    for (int i = 0; i < maxDamage; i++) {
+                        if (chest.getDamage() > 0 && !Cooldowns.isOnCooldown(player, ICARUS_RECHARGE_INTERVAL) && player.isOnGround()) {
+                            chest.setDamage(chest.getDamage() - 5);
+                            Cooldowns.start(player, ICARUS_RECHARGE_INTERVAL, 1);
+                        }
+                    }
                     world.playSound(
                             null,
                             player.getX(), player.getY(), player.getZ(),

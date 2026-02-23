@@ -2,9 +2,10 @@ package ca.techgarage.pantheon;
 
 import ca.techgarage.pantheon.api.DashState;
 import ca.techgarage.pantheon.api.PeithoTick;
-import ca.techgarage.pantheon.bank.BankDatabase;
-import ca.techgarage.pantheon.blocks.ModAltarBlocks;
-import ca.techgarage.pantheon.blocks.ModBlockEntities;
+import ca.techgarage.pantheon.commands.TempBanCommand;
+import ca.techgarage.pantheon.database.BanDatabase;
+import ca.techgarage.pantheon.database.BankDatabase;
+import ca.techgarage.pantheon.events.JoinListener;
 import ca.techgarage.pantheon.items.DrachmaItem;
 import ca.techgarage.pantheon.items.ModItems;
 import ca.techgarage.pantheon.items.weapons.*;
@@ -16,6 +17,7 @@ import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -60,8 +62,11 @@ public class Pantheon implements ModInitializer {
 
         ModItems.registerModItems();
         ModEffects.register();
-
-//        ModAltarBlocks.register();
+        CommandRegistrationCallback.EVENT.register(
+                (dispatcher, registryAccess, environment) ->
+                        TempBanCommand.register(dispatcher)
+        );
+        //        ModAltarBlocks.register();
 //        ModBlockEntities.register();
 
         logger.info("[Pantheon] Registered Assets");
@@ -250,7 +255,10 @@ public class Pantheon implements ModInitializer {
             );
 
         });
-
+            ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+                BanDatabase.init(server);
+                JoinListener.register();
+            });
 
     }
 

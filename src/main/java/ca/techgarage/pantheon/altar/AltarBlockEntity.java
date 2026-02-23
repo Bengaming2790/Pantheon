@@ -1,6 +1,6 @@
 package ca.techgarage.pantheon.altar;
 
-import ca.techgarage.pantheon.bank.BankDatabase;
+import ca.techgarage.pantheon.database.BankDatabase;
 import ca.techgarage.pantheon.blocks.ModBlockEntities;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -8,7 +8,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 
 import java.util.Map;
 import java.util.UUID;

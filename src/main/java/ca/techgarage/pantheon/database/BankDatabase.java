@@ -1,4 +1,4 @@
-package ca.techgarage.pantheon.bank;
+package ca.techgarage.pantheon.database;
 
 import java.sql.*;
 import java.util.UUID;

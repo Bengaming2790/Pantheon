@@ -57,7 +57,7 @@ public class Enyalios extends Item implements PolymerItem {
                         5.1F,
                         10.0F,
                         4.6F
-                ).component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, getDefaultAttributeModifiers())
+                ).component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, getDefaultAttributeModifiers()).fireproof()
         );
         applyEffects();
 

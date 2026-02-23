@@ -35,7 +35,7 @@ import java.util.Random;
 public class Astrape extends TridentItem implements PolymerItem {
 
     public Astrape(Item.Settings settings) {
-        super(settings.component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers()).component(DataComponentTypes.MAX_STACK_SIZE, 1) );
+        super(settings.component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers()).component(DataComponentTypes.MAX_STACK_SIZE, 1).fireproof());
     }
     private static final Identifier MODEL =
             Identifier.of("pantheon", "astrape");

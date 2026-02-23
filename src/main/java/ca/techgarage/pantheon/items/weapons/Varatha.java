@@ -62,7 +62,7 @@ public class Varatha extends Item implements PolymerItem {
                         0.1f     // minRelativeSpeedForChargeDamage
                 )
                         .component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE)
-                        .component(DataComponentTypes.ATTRIBUTE_MODIFIERS, getDefaultAttributeModifiers())
+                        .component(DataComponentTypes.ATTRIBUTE_MODIFIERS, getDefaultAttributeModifiers()).fireproof()
         );
     }
 

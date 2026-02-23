@@ -27,7 +27,7 @@ import xyz.nucleoid.packettweaker.PacketContext;
 
 public class Thyrsus extends Item implements PolymerItem {
     public Thyrsus(Settings settings) {
-        super(settings.component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.MAX_STACK_SIZE, 1).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers()));
+        super(settings.component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.MAX_STACK_SIZE, 1).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers()).fireproof());
     }
     public static final String THYRUS_SNOWBALL_CD = "thyrsus_snowball_cd";
 

@@ -24,7 +24,7 @@ public class Kynthia extends BowItem implements PolymerItem {
     public Kynthia(Settings settings) {
         super(settings.component(DataComponentTypes.MAX_STACK_SIZE, 1)
                 .component(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true)
-                .component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE));
+                .component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).fireproof());
     }
 
 

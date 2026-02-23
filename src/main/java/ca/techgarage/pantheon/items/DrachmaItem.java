@@ -21,7 +21,7 @@ public class DrachmaItem extends Item implements PolymerItem {
             Identifier.of("pantheon", "drachma");
 
     public DrachmaItem(Settings settings) {
-        super(settings);
+        super(settings.fireproof());
     }
 
     @Override

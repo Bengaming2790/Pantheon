@@ -29,7 +29,7 @@ import xyz.nucleoid.packettweaker.PacketContext;
 
 public class Phoebus extends Item implements PolymerItem {
     public Phoebus(Settings settings) {
-        super(settings.component(DataComponentTypes.MAX_STACK_SIZE, 1).component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers()));
+        super(settings.component(DataComponentTypes.MAX_STACK_SIZE, 1).component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers()).fireproof());
     }
 
     private static final Identifier MODEL =

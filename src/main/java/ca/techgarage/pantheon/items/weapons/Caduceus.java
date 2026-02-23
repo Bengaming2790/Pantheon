@@ -35,7 +35,7 @@ import java.util.*;
 
 public class Caduceus extends Item implements PolymerItem {
     public Caduceus(Settings settings) {
-        super(settings.component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.MAX_STACK_SIZE, 1).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers())); applyEffects();
+        super(settings.component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.MAX_STACK_SIZE, 1).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers()).fireproof()); applyEffects();
     }
     private static final String CADUCEUS_DROWSY_CD = "caduceus_drowsy_cd";
     private static final String CADUCEUS_RENDEZVOUS_CD = "caduceus_rendezvous_cd";

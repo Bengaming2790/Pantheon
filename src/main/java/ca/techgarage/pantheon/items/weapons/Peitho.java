@@ -41,7 +41,7 @@ public class Peitho extends Item implements PolymerItem {
         super(settings.component(DataComponentTypes.UNBREAKABLE,  Unit.INSTANCE)
                 .component(DataComponentTypes.MAX_STACK_SIZE, 1)
                 .component(DataComponentTypes.ATTRIBUTE_MODIFIERS, getDefaultAttributeModifiers())
-                .component(DataComponentTypes.LORE, lore)
+                .component(DataComponentTypes.LORE, lore).fireproof()
         );
     }
     private static final String PEITHO_25_CD = "peitho_25_cd";

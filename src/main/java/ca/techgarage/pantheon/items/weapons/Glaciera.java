@@ -40,7 +40,7 @@ public class Glaciera extends Item implements PolymerItem {
         super(settings
                 .component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE)
                 .component(DataComponentTypes.MAX_STACK_SIZE, 1)
-                .component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers())
+                .component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers()).fireproof()
         );
     }
     public static AttributeModifiersComponent createAttributeModifiers() {

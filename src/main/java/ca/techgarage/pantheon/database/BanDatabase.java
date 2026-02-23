@@ -1,5 +1,6 @@
 package ca.techgarage.pantheon.database;
 
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
 
 import java.nio.file.Path;
@@ -11,7 +12,10 @@ public class BanDatabase {
 
     public static void init(MinecraftServer server) {
         try {
-            Path dbPath = server.getRunDirectory().toAbsolutePath().resolve("tempbans.db");
+            Path dbPath = Path.of(FabricLoader.getInstance()
+                    .getGameDir()
+                    .resolve("pantheon-temp-ban.db")
+                    .toString());
             connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
 
             try (Statement stmt = connection.createStatement()) {

@@ -3,6 +3,7 @@ package ca.techgarage.pantheon;
 import ca.techgarage.pantheon.api.DashState;
 import ca.techgarage.pantheon.api.PeithoTick;
 import ca.techgarage.pantheon.commands.TempBanCommand;
+import ca.techgarage.pantheon.commands.TempBanListCommand;
 import ca.techgarage.pantheon.database.BanDatabase;
 import ca.techgarage.pantheon.database.BankDatabase;
 import ca.techgarage.pantheon.events.JoinListener;
@@ -65,6 +66,10 @@ public class Pantheon implements ModInitializer {
         CommandRegistrationCallback.EVENT.register(
                 (dispatcher, registryAccess, environment) ->
                         TempBanCommand.register(dispatcher)
+        );
+        CommandRegistrationCallback.EVENT.register(
+                (dispatcher, registryAccess, environment) ->
+                        TempBanListCommand.register(dispatcher)
         );
         //        ModAltarBlocks.register();
 //        ModBlockEntities.register();

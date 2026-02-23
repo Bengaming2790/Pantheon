@@ -43,7 +43,7 @@ import java.util.function.Predicate;
 
 public class Khalkeus extends MaceItem implements PolymerItem {
     public Khalkeus(Settings settings) {
-        super(settings.component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, getDefaultAttributeModifiers()).component(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true).component(DataComponentTypes.MAX_STACK_SIZE, 1).fireproof());
+        super(settings.component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, getDefaultAttributeModifiers()).component(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, false).component(DataComponentTypes.MAX_STACK_SIZE, 1).fireproof());
     }
     private static final Identifier MODEL =
             Identifier.of("pantheon", "khalkeus");

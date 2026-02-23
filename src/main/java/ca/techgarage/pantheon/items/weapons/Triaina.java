@@ -37,7 +37,8 @@ public class Triaina extends Item implements PolymerItem {
         applyEffects();
     }
     private static final Identifier MODEL =
-            Identifier.of("pantheon", "triaina");    private static final String TRIAINA_COMBO_TIMER = "triaina_hit_combo_timer";
+            Identifier.of("pantheon", "triaina");
+    private static final String TRIAINA_COMBO_TIMER = "triaina_hit_combo_timer";
     private static final String TRIAINA_COMBO_HITS = "triaina_hit_combo_hits";
 
     public static AttributeModifiersComponent createAttributeModifiers() {

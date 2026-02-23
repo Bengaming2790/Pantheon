@@ -1,6 +1,6 @@
 {
-	"parent": "item/handheld",
+	"gui_light": "front",
 	"textures": {
-		"layer0": "pantheon:item/aegis"
+		"particle": "pantheon:item/aegis"
 	}
 }

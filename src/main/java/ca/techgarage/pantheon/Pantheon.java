@@ -9,6 +9,7 @@ import ca.techgarage.pantheon.items.DrachmaItem;
 import ca.techgarage.pantheon.items.ModItems;
 import ca.techgarage.pantheon.items.weapons.Caduceus;
 import ca.techgarage.pantheon.items.weapons.Enyalios;
+import ca.techgarage.pantheon.items.weapons.Glaciera;
 import ca.techgarage.pantheon.items.weapons.Kynthia;
 import ca.techgarage.pantheon.status.ModEffects;
 import eu.pb4.polymer.core.api.item.PolymerItemGroupUtils;
@@ -77,6 +78,7 @@ public class Pantheon implements ModInitializer {
         ServerTickEvents.END_SERVER_TICK.register(DashState::tick);
         PeithoTick.register();
         Enyalios.registerKillEffect();
+        Glaciera.registerFrostWalkerTrait();
 
         PolymerResourcePackUtils.addModAssets(MOD_ID);
 

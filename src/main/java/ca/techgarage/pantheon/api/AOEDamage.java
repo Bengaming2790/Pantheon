@@ -1,5 +1,6 @@
 package ca.techgarage.pantheon.api;
 
+import ca.techgarage.pantheon.items.weapons.Glaciera;
 import ca.techgarage.pantheon.status.ModEffects;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LightningEntity;
@@ -42,6 +43,38 @@ public class AOEDamage {
             }
         }
     }
+
+    public static void applyAoeDamage(LivingEntity attacker, float radius, float damageAmount, boolean freeze) {
+        if (!freeze) return;
+
+        World world = attacker.getEntityWorld();
+
+        Box box = new Box(
+                attacker.getX() - radius, attacker.getY() - radius, attacker.getZ() - radius,
+                attacker.getX() + radius, attacker.getY() + radius, attacker.getZ() + radius
+        );
+
+        List<LivingEntity> entities = world.getEntitiesByClass(
+                LivingEntity.class,
+                box,
+                e -> e != attacker && e.isAlive()
+        );
+
+        for (LivingEntity entity : entities) {
+            if (entity.squaredDistanceTo(attacker) <= radius * radius) {
+
+                entity.damage(
+                        (ServerWorld) world,
+                        world.getDamageSources().playerAttack((PlayerEntity) attacker),
+                        damageAmount
+                );
+
+                Glaciera.applyFreeze(entity);
+            }
+        }
+    }
+
+
     public static void applyAoeDamage(LivingEntity attacker, ServerWorld world, Vec3d center, float radius, float damageAmount) {
 
         Box box = new Box(

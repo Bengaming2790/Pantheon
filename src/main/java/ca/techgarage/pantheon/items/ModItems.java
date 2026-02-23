@@ -42,6 +42,8 @@ public class ModItems {
             RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "phoebus"));
     public static final RegistryKey<Item> THYRSUS_KEY =
             RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "thyrsus"));
+    public static final RegistryKey<Item> GLACIERA_KEY =
+            RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "glaciera"));
 
     public static Item DRACHMA;
     public static Item VARATHA;
@@ -55,6 +57,7 @@ public class ModItems {
     public static Item CADUCEUS;
     public static Item PHOEBUS;
     public static Item THYRSUS;
+    private static Item GLACIERA;
 
     public static void registerModItems() {
         DRACHMA = Registry.register(
@@ -113,5 +116,9 @@ public class ModItems {
                 Registries.ITEM,
                 Identifier.of(MOD_ID, "thyrsus"),
                 new Thyrsus(new Item.Settings().registryKey(THYRSUS_KEY)));
+        GLACIERA = Registry.register(
+                Registries.ITEM,
+                Identifier.of(MOD_ID, "glaciera"),
+                new Glaciera(new Item.Settings().registryKey(GLACIERA_KEY)));
     }
 }

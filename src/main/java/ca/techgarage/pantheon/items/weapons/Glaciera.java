@@ -180,4 +180,9 @@ public class Glaciera extends Item implements PolymerItem {
     public Item getPolymerItem(ItemStack itemStack, PacketContext packetContext) {
         return Items.STICK;
     }
+
+        @Override
+    public Text getName(ItemStack stack) {
+        return Text.translatable("item.pantheon.glaceria");
+    }
 }

@@ -54,5 +54,9 @@ public class Kynthia extends BowItem implements PolymerItem {
 
         return arrow;
     }
+    @Override
+    public Text getName(ItemStack stack) {
+        return Text.translatable("item.pantheon.kynthia").formatted();
+    }
 
 }

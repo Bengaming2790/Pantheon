@@ -115,6 +115,12 @@ public class IcarusWings extends Item implements PolymerItem {
             }
         });
     }
+
+    @Override
+    public Text getName(ItemStack stack) {
+        return Text.translatable("item.pantheon.icurus_wings");
+    }
+    
     @Override
     public Item getPolymerItem(ItemStack itemStack, PacketContext packetContext) {
         return Items.ELYTRA;

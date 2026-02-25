@@ -10,7 +10,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import ca.techgarage.pantheon.api.Cooldowns;
 import java.util.UUID;
-
+// Todo store player uuids in a hashmap then check if that player name is on the server every tick, if not, temp ban
 public class CombatLogAutoBan {
 
     private static final String COMBAT_TAG = "combat_tag";

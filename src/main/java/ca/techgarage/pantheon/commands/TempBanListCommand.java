@@ -2,6 +2,7 @@ package ca.techgarage.pantheon.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
 import ca.techgarage.pantheon.database.BanDatabase;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
@@ -15,6 +16,7 @@ public class TempBanListCommand {
 
         dispatcher.register(
                 CommandManager.literal("tempbanlist")
+                        .requires(Permissions.require("pantheon.tempban"))
                         .executes(ctx -> {
 
                             long now = System.currentTimeMillis();
@@ -28,6 +30,7 @@ public class TempBanListCommand {
                                 while (rs.next()) {
 
                                     String uuidString = rs.getString("player_uuid");
+                                    String playerName = rs.getString("player_name");
                                     long expires = rs.getLong("ban_expires_at");
 
                                     // Remove expired bans automatically
@@ -48,7 +51,7 @@ public class TempBanListCommand {
 
                                     ctx.getSource().sendFeedback(
                                             () -> Text.literal(
-                                                    uuidString + " - Unbans in: " + timeFormatted
+                                                    playerName + " - Unbans in: " + timeFormatted
                                             ),
                                             false
                                     );

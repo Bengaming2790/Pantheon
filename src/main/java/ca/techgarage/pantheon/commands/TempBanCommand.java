@@ -3,6 +3,7 @@ package ca.techgarage.pantheon.commands;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import ca.techgarage.pantheon.database.BanManager;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -15,7 +16,8 @@ public class TempBanCommand {
 
         dispatcher.register(
                 CommandManager.literal("tempban")
-                        .then(CommandManager.argument("player", EntityArgumentType.player()) // <-- this gives autofill
+                        .requires(Permissions.require("pantheon.tempban"))
+                        .then(CommandManager.argument("player", EntityArgumentType.player())
                                 .then(CommandManager.argument("days", IntegerArgumentType.integer(0))
                                         .then(CommandManager.argument("hours", IntegerArgumentType.integer(0))
                                                 .then(CommandManager.argument("minutes", IntegerArgumentType.integer(0))
@@ -42,7 +44,7 @@ public class TempBanCommand {
                                                                         return 0;
                                                                     }
 
-                                                                    BanManager.ban(target.getUuid(), duration);
+                                                                    BanManager.ban(target.getUuid(), target.getName().toString(), duration);
 
                                                                     target.networkHandler.disconnect(
                                                                             Text.literal("You have been temporarily banned.")

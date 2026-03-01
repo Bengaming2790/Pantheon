@@ -9,7 +9,8 @@ import java.util.UUID;
 public class JoinListener {
 
     public static void register() {
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+
+        ServerPlayConnectionEvents.INIT.register((handler, server) -> {
 
             UUID uuid = handler.player.getUuid();
 
@@ -18,10 +19,12 @@ public class JoinListener {
                 long remaining = BanManager.getRemainingTime(uuid);
 
                 if (remaining > 0) {
+
                     handler.disconnect(Text.literal(
                             "You are temporarily banned.\n" +
                                     "Time remaining: " + formatDuration(remaining)
                     ));
+
                 } else {
                     BanManager.remove(uuid);
                 }

@@ -36,8 +36,7 @@ public class BankDatabase {
             ps.setString(1, uuid.toString());
             ResultSet rs = ps.executeQuery();
             return rs.next();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException ignored) {
         }
         return false;
     }
@@ -48,8 +47,7 @@ public class BankDatabase {
             ps.setString(1, uuid.toString());
             ps.setInt(2, startingBalance);
             ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException ignored) {
         }
     }
 
@@ -61,8 +59,7 @@ public class BankDatabase {
             if (rs.next()) {
                 return rs.getInt("balance");
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException ignored) {
         }
         return 0;
     }
@@ -73,9 +70,7 @@ public class BankDatabase {
             ps.setInt(1, amount);
             ps.setString(2, uuid.toString());
             ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        } catch (SQLException ignored) {}
     }
 
     public static void remove(UUID uuid, int amount) {
@@ -84,8 +79,8 @@ public class BankDatabase {
             ps.setInt(1, amount);
             ps.setString(2, uuid.toString());
             ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException ignored) {
+
         }
     }
 }

@@ -6,18 +6,22 @@ import java.util.UUID;
 
 public class BanManager {
 
-    public static void ban(UUID uuid, long durationMillis) {
+    public static void ban(UUID uuid, String playerName, long durationMillis) {
         long now = Instant.now().toEpochMilli();
         long expires = now + durationMillis;
 
         try (PreparedStatement ps = BanDatabase.getConnection().prepareStatement("""
-                INSERT OR REPLACE INTO temp_bans (player_uuid, banned_at, ban_expires_at)
-                VALUES (?, ?, ?);
-        """)) {
+            INSERT OR REPLACE INTO temp_bans
+            (player_uuid, player_name, banned_at, ban_expires_at)
+            VALUES (?, ?, ?, ?);
+    """)) {
+
             ps.setString(1, uuid.toString());
-            ps.setLong(2, now);
-            ps.setLong(3, expires);
+            ps.setString(2, playerName);
+            ps.setLong(3, now);
+            ps.setLong(4, expires);
             ps.executeUpdate();
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -58,6 +62,25 @@ public class BanManager {
         }
 
         return 0;
+    }
+
+    public static String getStoredName(UUID uuid) {
+        try (PreparedStatement ps = BanDatabase.getConnection().prepareStatement("""
+            SELECT player_name FROM temp_bans WHERE player_uuid = ?;
+    """)) {
+
+            ps.setString(1, uuid.toString());
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return rs.getString("player_name");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return "Unknown";
     }
 
     public static void remove(UUID uuid) {

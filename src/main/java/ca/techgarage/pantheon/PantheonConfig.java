@@ -1,16 +1,22 @@
 package ca.techgarage.pantheon;
 
-import me.shedaniel.autoconfig.ConfigData;
-import me.shedaniel.autoconfig.annotation.Config;
-import me.shedaniel.autoconfig.annotation.ConfigEntry;
+public class PantheonConfig {
+    //Amount of Drachma player can start with [Integer]
+    public static int StartingDrachma = 50;
+    //Amount of Drachma dropper on death
+    public static int DroppedDrachmaOnDeath = 5;
 
-@Config(name = "pantheon")
-public class PantheonConfig implements ConfigData {
+    public static boolean diableNetheriteUpgrade = true;
 
-    @ConfigEntry.Gui.Tooltip
-    public int StartingDrachma = 50;
+    public static boolean noCobwebSlow = true;
+    public static boolean disableDripstoneDamage = false;
+    public static double enderPearlCooldown = 30;
 
-    @ConfigEntry.Gui.Tooltip
-    public int DroppedDrachmaOnDeath = 5;
+    //Wind Charge Cooldown in seconds
+    public static double windChargeCooldown = 15;
+    //Disable Totem of Undying {true/false}
+    public static boolean disableTotemOfUndying = true;
+
+    public static int timeBannedFromCombatLogInMinutes = 60;
 
 }

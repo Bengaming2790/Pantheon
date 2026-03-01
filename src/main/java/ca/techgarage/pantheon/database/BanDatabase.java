@@ -20,10 +20,11 @@ public class BanDatabase {
 
             try (Statement stmt = connection.createStatement()) {
                 stmt.execute("""
-                    CREATE TABLE IF NOT EXISTS temp_bans (
-                        player_uuid TEXT PRIMARY KEY,
-                        banned_at INTEGER NOT NULL,
-                        ban_expires_at INTEGER NOT NULL
+                CREATE TABLE IF NOT EXISTS temp_bans (
+                    player_uuid TEXT PRIMARY KEY,
+                    player_name TEXT NOT NULL,
+                    banned_at INTEGER NOT NULL,
+                    ban_expires_at INTEGER NOT NULL
                     );
                 """);
             }
@@ -31,6 +32,12 @@ public class BanDatabase {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute("""
+        ALTER TABLE temp_bans
+        ADD COLUMN player_name TEXT
+    """);
+        } catch (SQLException ignored) {}
     }
 
     public static Connection getConnection() {

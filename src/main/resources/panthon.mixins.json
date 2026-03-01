@@ -4,9 +4,14 @@
   "package": "ca.techgarage.pantheon.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "DisableDripstoneDamageMixin",
+    "DisableTotemMixin",
+    "LivingEntityMixin",
+    "NetheriteArmorCancelMixin",
+    "NoCobwebSlowMixin",
+    "ShieldBlockMixin",
     "SnowballHitMixin",
-    "PlayerEntityMixin",
-    "LivingEntityMixin"
+    "ThrowableCooldownMixin"
   ],
   "injectors": {
     "defaultRequire": 1

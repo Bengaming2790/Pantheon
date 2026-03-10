@@ -22,6 +22,7 @@ public class TempBanCommand {
                                         .then(CommandManager.argument("hours", IntegerArgumentType.integer(0))
                                                 .then(CommandManager.argument("minutes", IntegerArgumentType.integer(0))
                                                         .then(CommandManager.argument("seconds", IntegerArgumentType.integer(0))
+                                                              .then(CommandManager.argument("reason", StringArgumentType.greedyString())
                                                                 .executes(ctx -> {
 
                                                                     ServerPlayerEntity target =
@@ -31,6 +32,7 @@ public class TempBanCommand {
                                                                     int hours = IntegerArgumentType.getInteger(ctx, "hours");
                                                                     int minutes = IntegerArgumentType.getInteger(ctx, "minutes");
                                                                     int seconds = IntegerArgumentType.getInteger(ctx, "seconds");
+                                                                    String reason = StringArgumentType.getGreedyString(ctx, "reason");
 
                                                                     long duration =
                                                                             days * 86400000L +
@@ -44,7 +46,7 @@ public class TempBanCommand {
                                                                         return 0;
                                                                     }
 
-                                                                    BanManager.ban(target.getUuid(), target.getName().toString(), duration);
+                                                                    BanManager.ban(target.getUuid(), target.getName().toString(), duration, reason);
 
                                                                     target.networkHandler.disconnect(
                                                                             Text.literal("You have been temporarily banned.")
@@ -57,6 +59,6 @@ public class TempBanCommand {
                                                                     );
 
                                                                     return 1;
-                                                                })))))));
+                                                                }))))))));
     }
 }

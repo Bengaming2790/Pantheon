@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public class BanManager {
 
-    public static void ban(UUID uuid, String playerName, long durationMillis) {
+    public static void ban(UUID uuid, String playerName, long durationMillis, String reason) {
         long now = Instant.now().toEpochMilli();
         long expires = now + durationMillis;
 

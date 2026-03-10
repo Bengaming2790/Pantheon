@@ -7,7 +7,7 @@ import java.nio.file.Path;
 import java.sql.*;
 
 public class BanDatabase {
-
+//Todo Add ban reasons
     private static Connection connection;
 
     public static void init(MinecraftServer server) {
@@ -24,7 +24,8 @@ public class BanDatabase {
                     player_uuid TEXT PRIMARY KEY,
                     player_name TEXT NOT NULL,
                     banned_at INTEGER NOT NULL,
-                    ban_expires_at INTEGER NOT NULL
+                    ban_expires_at INTEGER NOT NULL,
+                    ban_reason TEXT NOT NULL
                     );
                 """);
             }

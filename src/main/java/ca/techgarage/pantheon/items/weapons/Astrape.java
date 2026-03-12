@@ -1,14 +1,13 @@
 package ca.techgarage.pantheon.items.weapons;
 
 import ca.techgarage.pantheon.api.Cooldowns;
-import ca.techgarage.pantheon.api.Grapple;
 import ca.techgarage.pantheon.entity.AstrapeEntity;
 import ca.techgarage.pantheon.status.ModEffects;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.AttributeModifierSlot;
 import net.minecraft.component.type.AttributeModifiersComponent;
-import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.component.type.CustomModelDataComponent;
 import net.minecraft.entity.*;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
@@ -23,19 +22,24 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Unit;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jspecify.annotations.Nullable;
 import xyz.nucleoid.packettweaker.PacketContext;
 
-import java.util.Random;
+import java.util.List;
 
 public class Astrape extends TridentItem implements PolymerItem {
 
     public Astrape(Item.Settings settings) {
-        super(settings.component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers()).component(DataComponentTypes.MAX_STACK_SIZE, 1).fireproof());
+        super(settings.component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE)
+                .component(DataComponentTypes.CUSTOM_MODEL_DATA, new CustomModelDataComponent(
+                        List.of(1f),
+                        List.of(),
+                        List.of(),
+                        List.of()
+                ))
+                .component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers())
+                .component(DataComponentTypes.MAX_STACK_SIZE, 1).fireproof());
     }
     private static final Identifier MODEL =
             Identifier.of("pantheon", "astrape");

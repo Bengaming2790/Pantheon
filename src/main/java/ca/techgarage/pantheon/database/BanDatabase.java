@@ -7,18 +7,20 @@ import java.nio.file.Path;
 import java.sql.*;
 
 public class BanDatabase {
-//Todo Add ban reasons
+
     private static Connection connection;
 
     public static void init(MinecraftServer server) {
         try {
-            Path dbPath = Path.of(FabricLoader.getInstance()
+
+            Path dbPath = FabricLoader.getInstance()
                     .getGameDir()
-                    .resolve("pantheon-temp-ban.db")
-                    .toString());
+                    .resolve("database/pantheon-temp-ban.db");
+
             connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
 
             try (Statement stmt = connection.createStatement()) {
+
                 stmt.execute("""
                 CREATE TABLE IF NOT EXISTS temp_bans (
                     player_uuid TEXT PRIMARY KEY,
@@ -26,18 +28,21 @@ public class BanDatabase {
                     banned_at INTEGER NOT NULL,
                     ban_expires_at INTEGER NOT NULL,
                     ban_reason TEXT NOT NULL
-                    );
+                );
                 """);
+
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        // Migration for old databases
         try (Statement stmt = connection.createStatement()) {
             stmt.execute("""
-        ALTER TABLE temp_bans
-        ADD COLUMN player_name TEXT
-    """);
+            ALTER TABLE temp_bans
+            ADD COLUMN ban_reason TEXT DEFAULT 'No reason specified'
+            """);
         } catch (SQLException ignored) {}
     }
 

@@ -8,7 +8,6 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 
 import java.sql.*;
-import java.util.UUID;
 
 public class TempBanListCommand {
 
@@ -31,15 +30,18 @@ public class TempBanListCommand {
 
                                     String uuidString = rs.getString("player_uuid");
                                     String playerName = rs.getString("player_name");
+                                    String reason = rs.getString("ban_reason");
                                     long expires = rs.getLong("ban_expires_at");
 
-                                    // Remove expired bans automatically
                                     if (expires <= now) {
+
                                         try (PreparedStatement delete = BanDatabase.getConnection().prepareStatement(
                                                 "DELETE FROM temp_bans WHERE player_uuid = ?")) {
+
                                             delete.setString(1, uuidString);
                                             delete.executeUpdate();
                                         }
+
                                         continue;
                                     }
 
@@ -51,7 +53,7 @@ public class TempBanListCommand {
 
                                     ctx.getSource().sendFeedback(
                                             () -> Text.literal(
-                                                    playerName + " - Unbans in: " + timeFormatted
+                                                    playerName + " - Reason: " + reason + " - Unbans in: " + timeFormatted
                                             ),
                                             false
                                     );

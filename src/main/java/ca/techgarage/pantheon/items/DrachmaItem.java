@@ -1,5 +1,6 @@
 package ca.techgarage.pantheon.items;
 
+import ca.techgarage.pantheon.database.BankDatabase;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.Entity;
@@ -11,7 +12,10 @@ import net.minecraft.item.Items;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
+import net.minecraft.world.World;
 import org.jspecify.annotations.Nullable;
 import xyz.nucleoid.packettweaker.PacketContext;
 
@@ -38,6 +42,16 @@ public class DrachmaItem extends Item implements PolymerItem {
         if (stack.contains(DataComponentTypes.ENCHANTMENTS)) {
             stack.remove(DataComponentTypes.ENCHANTMENTS);
         }
+    }
+
+    @Override
+    public ActionResult use(World world, PlayerEntity user, Hand hand) {
+
+        int drachmaInHand = user.getStackInHand(hand).getCount();
+
+        BankDatabase.add(user.getUuid(), drachmaInHand);
+        removeDrachmaFromInventory((ServerPlayerEntity) user, drachmaInHand);
+        return ActionResult.SUCCESS;
     }
 
     public static int countDrachma(ServerPlayerEntity player) {

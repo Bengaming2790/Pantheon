@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:item/trident_throwing",
+  "overrides": [
+    {
+      "predicate": { "custom_model_data": 1 },
+      "model": "pantheon:item/astrape"
+    }
+  ]
+}

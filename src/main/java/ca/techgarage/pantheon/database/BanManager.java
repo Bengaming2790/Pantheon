@@ -12,14 +12,16 @@ public class BanManager {
 
         try (PreparedStatement ps = BanDatabase.getConnection().prepareStatement("""
             INSERT OR REPLACE INTO temp_bans
-            (player_uuid, player_name, banned_at, ban_expires_at)
-            VALUES (?, ?, ?, ?);
-    """)) {
+            (player_uuid, player_name, banned_at, ban_expires_at, ban_reason)
+            VALUES (?, ?, ?, ?, ?);
+        """)) {
 
             ps.setString(1, uuid.toString());
             ps.setString(2, playerName);
             ps.setLong(3, now);
             ps.setLong(4, expires);
+            ps.setString(5, reason);
+
             ps.executeUpdate();
 
         } catch (SQLException e) {
@@ -67,7 +69,7 @@ public class BanManager {
     public static String getStoredName(UUID uuid) {
         try (PreparedStatement ps = BanDatabase.getConnection().prepareStatement("""
             SELECT player_name FROM temp_bans WHERE player_uuid = ?;
-    """)) {
+        """)) {
 
             ps.setString(1, uuid.toString());
             ResultSet rs = ps.executeQuery();
@@ -81,6 +83,25 @@ public class BanManager {
         }
 
         return "Unknown";
+    }
+
+    public static String getReason(UUID uuid) {
+        try (PreparedStatement ps = BanDatabase.getConnection().prepareStatement("""
+            SELECT ban_reason FROM temp_bans WHERE player_uuid = ?;
+        """)) {
+
+            ps.setString(1, uuid.toString());
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return rs.getString("ban_reason");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return "No reason specified";
     }
 
     public static void remove(UUID uuid) {

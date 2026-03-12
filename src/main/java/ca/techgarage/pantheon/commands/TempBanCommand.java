@@ -3,6 +3,7 @@ package ca.techgarage.pantheon.commands;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import ca.techgarage.pantheon.database.BanManager;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.CommandManager;
@@ -32,7 +33,7 @@ public class TempBanCommand {
                                                                     int hours = IntegerArgumentType.getInteger(ctx, "hours");
                                                                     int minutes = IntegerArgumentType.getInteger(ctx, "minutes");
                                                                     int seconds = IntegerArgumentType.getInteger(ctx, "seconds");
-                                                                    String reason = StringArgumentType.getGreedyString(ctx, "reason");
+                                                                    String reason = StringArgumentType.getString(ctx, "reason");
 
                                                                     long duration =
                                                                             days * 86400000L +
@@ -49,7 +50,7 @@ public class TempBanCommand {
                                                                     BanManager.ban(target.getUuid(), target.getName().toString(), duration, reason);
 
                                                                     target.networkHandler.disconnect(
-                                                                            Text.literal("You have been temporarily banned.")
+                                                                            Text.literal("You have been temporarily banned. \n For: " + reason)
                                                                     );
 
                                                                     ctx.getSource().sendFeedback(

@@ -1,6 +1,8 @@
 package ca.techgarage.pantheon;
 
 import ca.techgarage.pantheon.api.DashState;
+import ca.techgarage.pantheon.api.InventoryBlocker;
+import ca.techgarage.pantheon.api.ItemFrameBlocker;
 import ca.techgarage.pantheon.api.PeithoTick;
 import ca.techgarage.pantheon.commands.TempBanCommand;
 import ca.techgarage.pantheon.commands.TempBanListCommand;
@@ -22,6 +24,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -77,7 +80,8 @@ public class Pantheon implements ModInitializer {
 //        ModBlockEntities.register();
 
         logger.info("[Pantheon] Registered Assets");
-
+        ItemFrameBlocker.register();
+        InventoryBlocker.register();
         Optional<?> modContainer = FabricLoader.getInstance().getModContainer(MOD_ID);
         if (modContainer.isEmpty()) {
             logger.error("[Pantheon] Mod container '{}' not found. Check that `fabric.mod.json` contains the matching mod id.", MOD_ID);
@@ -95,7 +99,7 @@ public class Pantheon implements ModInitializer {
         BankDatabase.init(
                 FabricLoader.getInstance()
                         .getGameDir()
-                        .resolve("pantheon-bank.db")
+                        .resolve("database/pantheon-bank.db")
                         .toString()
         );
 

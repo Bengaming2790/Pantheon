@@ -21,8 +21,9 @@ public class JoinListener {
                 if (remaining > 0) {
 
                     handler.disconnect(Text.literal(
-                            "You are temporarily banned.\n" +
-                                    "Time remaining: " + formatDuration(remaining)
+                            "You are temporarily banned.\n For: " +
+                                    BanManager.getReason(uuid) + "\n"
+                                    + "Time remaining: " + formatDuration(remaining)
                     ));
 
                 } else {

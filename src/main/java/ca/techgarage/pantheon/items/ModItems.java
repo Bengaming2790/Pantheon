@@ -1,15 +1,16 @@
 package ca.techgarage.pantheon.items;
 
-import ca.techgarage.pantheon.Pantheon;
 import ca.techgarage.pantheon.items.weapons.*;
-import ca.techgarage.pantheon.status.Conducting;
-import net.minecraft.entity.effect.StatusEffectCategory;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.util.Identifier;
+
+import java.lang.reflect.Field;
+import java.util.HashSet;
+import java.util.Set;
 
 import static ca.techgarage.pantheon.Pantheon.MOD_ID;
 
@@ -128,4 +129,27 @@ public class ModItems {
                 Identifier.of(MOD_ID, "icarus_wings"),
                 new IcarusWings(new Item.Settings().registryKey(ICARUS_WINGS_KEY)));
     }
+
+    public static Set<Item> getAllItems() {
+        Set<Item> items = new HashSet<>();
+
+        try {
+            for (Field field : ModItems.class.getDeclaredFields()) {
+
+                if (field.getType() == Item.class) {
+
+                    Item item = (Item) field.get(null);
+
+                    if (item != null) {
+                        items.add(item);
+                    }
+                }
+            }
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        return items;
+    }
+
 }

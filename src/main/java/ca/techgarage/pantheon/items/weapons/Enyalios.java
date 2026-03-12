@@ -65,14 +65,14 @@ public class Enyalios extends Item implements PolymerItem {
 
     public static void registerHitCheck() {
         ServerLivingEntityEvents.AFTER_DAMAGE.register(
-                (entity, source, baseamount, amount, check) -> {
+                (entity, source, baseAmount, amount, blocked) -> {
 
                     if (!(entity instanceof ServerPlayerEntity player)) return;
 
-                    // Only if holding Enyalios
                     if (!(player.getMainHandStack().getItem() instanceof Enyalios)) return;
 
-                    // === PLAYER GOT HIT ===
+                    if (source.getAttacker() == player) return;
+
                     onEnyaliosHit(player, source, amount);
                 }
         );
@@ -85,7 +85,6 @@ public class Enyalios extends Item implements PolymerItem {
             // Only trigger if player is holding Enyalios
             if (!(player.getMainHandStack().getItem() instanceof Enyalios)) return;
 
-            // Don’t trigger on suicide
             if (player == entity) return;
 
             applyKillBuff(player);
@@ -105,12 +104,14 @@ public class Enyalios extends Item implements PolymerItem {
     }
 
     private static void onEnyaliosHit(ServerPlayerEntity player, DamageSource source, float amount) {
-        if (!Cooldowns.isOnCooldown(player, ENYALIOS_BLEED_CD)) Cooldowns.start(player, ENYALIOS_BLEED_ACTIVE, 20 * 8);
+
+        if (!Cooldowns.isOnCooldown(player, ENYALIOS_BLEED_CD)) {
+            Cooldowns.start(player, ENYALIOS_BLEED_ACTIVE, 20 * 8);
+        }
     }
 
     @Override
     public void postHit(ItemStack stack, LivingEntity target, LivingEntity attacker) {
-
         if (attacker instanceof PlayerEntity player) {
             if (Cooldowns.isOnCooldown(player, ENYALIOS_BLEED_ACTIVE)) {
                 target.setStatusEffect(
@@ -186,7 +187,6 @@ public class Enyalios extends Item implements PolymerItem {
     }
 
     public static void applyEffects(){
-        // DIVINE PROTECTION (Resistance I while held)
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
                 if (getHeldEnyalios(player) == null) continue;

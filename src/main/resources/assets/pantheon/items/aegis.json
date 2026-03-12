@@ -3,17 +3,13 @@
     "type": "minecraft:condition",
     "property": "minecraft:using_item",
     "on_false": {
-      "type": "minecraft:special",
-      "base": "pantheon:item/aegis",
       "model": {
-        "type": "minecraft:shield"
+        "type": "pantheon:item/aegis"
       }
     },
     "on_true": {
-      "type": "minecraft:special",
-      "base": "pantheon:item/aegis_blocking",
       "model": {
-        "type": "minecraft:shield"
+        "type": "pantheon:item/aegis_blocking"
       }
     }
   }

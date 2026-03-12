@@ -26,7 +26,12 @@ public class AltarBlock extends Block implements PolymerBlock, BlockEntityProvid
     }
 
     public Block getPolymerBlock(BlockState state) {
-        return Blocks.ENCHANTING_TABLE; // client-side appearance
+        return Blocks.ENCHANTING_TABLE;
+    }
+
+    @Override
+    public BlockState getPolymerBlockState(BlockState state, PacketContext context) {
+        return Blocks.ENCHANTING_TABLE.getDefaultState();
     }
 
     @Override
@@ -34,12 +39,12 @@ public class AltarBlock extends Block implements PolymerBlock, BlockEntityProvid
         return new AltarBlockEntity(pos, state);
     }
 
+    @Override
     public ActionResult onUse(
             BlockState state,
             World world,
             BlockPos pos,
             PlayerEntity player,
-            Hand hand,
             BlockHitResult hit
     ) {
         if (world.isClient()) return ActionResult.SUCCESS;
@@ -51,12 +56,6 @@ public class AltarBlock extends Block implements PolymerBlock, BlockEntityProvid
                     : ActionResult.FAIL;
         }
 
-
         return ActionResult.FAIL;
     }
-    @Override
-    public BlockState getPolymerBlockState(BlockState state, PacketContext context) {
-        return Blocks.ENCHANTING_TABLE.getDefaultState();
-    }
-
 }

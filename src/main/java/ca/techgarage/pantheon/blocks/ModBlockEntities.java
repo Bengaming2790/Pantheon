@@ -1,6 +1,7 @@
 package ca.techgarage.pantheon.blocks;
 
 import ca.techgarage.pantheon.altar.AltarBlockEntity;
+import eu.pb4.polymer.core.api.block.PolymerBlockUtils;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.registry.Registries;
@@ -18,9 +19,11 @@ public class ModBlockEntities {
                 FabricBlockEntityTypeBuilder.create(
                         AltarBlockEntity::new,
                         ModAltarBlocks.FIRE_ALTAR
+
                 ).build()
         );
+
+
+        PolymerBlockUtils.registerBlockEntity(ALTAR);
     }
 }
-
-

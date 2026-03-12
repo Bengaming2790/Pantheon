@@ -22,28 +22,28 @@ public class BanDatabase {
             try (Statement stmt = connection.createStatement()) {
 
                 stmt.execute("""
-                CREATE TABLE IF NOT EXISTS temp_bans (
-                    player_uuid TEXT PRIMARY KEY,
-                    player_name TEXT NOT NULL,
-                    banned_at INTEGER NOT NULL,
-                    ban_expires_at INTEGER NOT NULL,
-                    ban_reason TEXT NOT NULL
-                );
+            CREATE TABLE IF NOT EXISTS temp_bans (
+                player_uuid TEXT PRIMARY KEY,
+                player_name TEXT NOT NULL,
+                banned_at INTEGER NOT NULL,
+                ban_expires_at INTEGER NOT NULL,
+                ban_reason TEXT NOT NULL
+            );
+            """);
+
+                // Migration for old databases
+                try {
+                    stmt.execute("""
+                ALTER TABLE temp_bans
+                ADD COLUMN ban_reason TEXT DEFAULT 'No reason specified'
                 """);
+                } catch (SQLException ignored) {}
 
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        // Migration for old databases
-        try (Statement stmt = connection.createStatement()) {
-            stmt.execute("""
-            ALTER TABLE temp_bans
-            ADD COLUMN ban_reason TEXT DEFAULT 'No reason specified'
-            """);
-        } catch (SQLException ignored) {}
     }
 
     public static Connection getConnection() {

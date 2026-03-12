@@ -4,6 +4,8 @@ import ca.techgarage.pantheon.api.DashState;
 import ca.techgarage.pantheon.api.InventoryBlocker;
 import ca.techgarage.pantheon.api.ItemFrameBlocker;
 import ca.techgarage.pantheon.api.PeithoTick;
+import ca.techgarage.pantheon.blocks.ModAltarBlocks;
+import ca.techgarage.pantheon.blocks.ModBlockEntities;
 import ca.techgarage.pantheon.commands.TempBanCommand;
 import ca.techgarage.pantheon.commands.TempBanListCommand;
 import ca.techgarage.pantheon.commands.TempBanRemoveCommand;
@@ -76,8 +78,8 @@ public class Pantheon implements ModInitializer {
                 (dispatcher, registryAccess, environment) ->
                         TempBanRemoveCommand.register(dispatcher)
         );
-        //        ModAltarBlocks.register();
-//        ModBlockEntities.register();
+        ModAltarBlocks.register();
+        ModBlockEntities.register();
 
         logger.info("[Pantheon] Registered Assets");
         ItemFrameBlocker.register();

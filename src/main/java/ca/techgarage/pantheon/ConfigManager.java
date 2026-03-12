@@ -54,7 +54,6 @@ public class ConfigManager {
                 }
             }
 
-            // If we added new values reload so everything is consistent
             if (updated) {
                 load(configClass);
             }

@@ -76,7 +76,7 @@ public class Varatha extends Item implements PolymerItem {
                         EntityAttributes.ATTACK_DAMAGE,
                         new EntityAttributeModifier(
                                 Item.BASE_ATTACK_DAMAGE_MODIFIER_ID,
-                                9.0,
+                                11.0,
                                 EntityAttributeModifier.Operation.ADD_VALUE
                         ),
                         AttributeModifierSlot.MAINHAND
@@ -106,7 +106,7 @@ public class Varatha extends Item implements PolymerItem {
                 user.getItemCooldownManager().set(stack, 200); //10 second cooldown
             }
 
-            Dash.dashForward(user, 0.75f);
+            Dash.dashForward(user, 1f);
             DashState.start((ServerPlayerEntity) user, 10, ParticleTypes.RAID_OMEN);
             world.playSound(
                     null,

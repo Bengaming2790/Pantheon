@@ -165,7 +165,7 @@ public class Enyalios extends Item implements PolymerItem {
                         EntityAttributes.ATTACK_DAMAGE,
                         new EntityAttributeModifier(
                                 Item.BASE_ATTACK_DAMAGE_MODIFIER_ID,
-                                14.0,
+                                18.0 - 1,
                                 EntityAttributeModifier.Operation.ADD_VALUE
                         ),
                         AttributeModifierSlot.MAINHAND

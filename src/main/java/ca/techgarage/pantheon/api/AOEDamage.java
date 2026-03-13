@@ -138,8 +138,7 @@ public class AOEDamage {
                         );
                     }
                 }
-
-                if (entity instanceof PlayerEntity player && player != attacker) {
+                if (entity instanceof PlayerEntity player && player.isCreative()) {
                     continue;
                 }
 
@@ -156,8 +155,6 @@ public class AOEDamage {
                         new StatusEffectInstance(ModEffects.CONDUCTING, 20 * 8, 1, true, true, false),
                         entity
                 );
-
-
 
             }
         }

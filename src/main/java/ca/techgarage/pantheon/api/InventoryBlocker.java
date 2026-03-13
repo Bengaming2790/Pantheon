@@ -40,6 +40,7 @@ public class InventoryBlocker {
                         || handler instanceof StonecutterScreenHandler
                         || handler instanceof SmithingScreenHandler
                         || handler instanceof CrafterScreenHandler
+                        || handler instanceof MountScreenHandler
                         )) {
                     continue;
                 }

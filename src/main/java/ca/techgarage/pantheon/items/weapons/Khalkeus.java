@@ -8,11 +8,13 @@ import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.AttributeModifierSlot;
 import net.minecraft.component.type.AttributeModifiersComponent;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -54,7 +56,7 @@ public class Khalkeus extends MaceItem implements PolymerItem {
                         EntityAttributes.ATTACK_DAMAGE,
                         new EntityAttributeModifier(
                                 Item.BASE_ATTACK_DAMAGE_MODIFIER_ID,
-                                5,
+                                8 - 1,
                                 EntityAttributeModifier.Operation.ADD_VALUE
                         ),
                         AttributeModifierSlot.MAINHAND
@@ -118,7 +120,9 @@ public class Khalkeus extends MaceItem implements PolymerItem {
                 serverPlayerEntity.setIgnoreFallDamageFromCurrentExplosion(true);
                 serverPlayerEntity.networkHandler.sendPacket(new EntityVelocityUpdateS2CPacket(serverPlayerEntity));
             }
-
+            if ((attacker instanceof PlayerEntity player)) {
+                target.damage((ServerWorld) target.getEntityWorld(), attacker.getDamageSources().playerAttack(player), getBonusAttackDamage(target, 7, player));
+            }
             if (target.isOnGround()) {
                 if (attacker instanceof ServerPlayerEntity serverPlayerEntity) {
                     serverPlayerEntity.setSpawnExtraParticlesOnFall(true);
@@ -139,6 +143,34 @@ public class Khalkeus extends MaceItem implements PolymerItem {
                 Cooldowns.start((PlayerEntity) attacker, AOE_CD, 20 * 15);
             }
 
+    }
+
+    public float getBonusAttackDamage(Entity target, float baseAttackDamage, PlayerEntity player) {
+        PlayerEntity player1 = player;
+        if (player1 instanceof LivingEntity livingEntity) {
+            if (!shouldDealAdditionalDamage(livingEntity)) {
+                return 0.0F;
+            } else {
+                double f = livingEntity.fallDistance;
+                double g;
+                if (f <= (double)3.0F) {
+                    g = (double)4.0F * f;
+                } else if (f <= (double)8.0F) {
+                    g = (double)12.0F + (double)2.5F * (f - (double)3.0F);
+                } else {
+                    g = (double)22.0F + f - (double)8.0F;
+                }
+
+                World var14 = livingEntity.getEntityWorld();
+                if (var14 instanceof ServerWorld serverWorld) {
+                } else {
+                    return (float)g;
+                }
+            }
+        } else {
+            return 0.0F;
+        }
+        return 0;
     }
 
     private Vec3d getCurrentExplosionImpactPos(ServerPlayerEntity player) {

@@ -19,6 +19,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
@@ -116,7 +117,7 @@ public class Triaina extends Item implements PolymerItem {
         // Third hit → knockback
         if (hits >= 3) {
             applyComboKnockback(player, target);
-
+            target.damage((ServerWorld) player.getEntityWorld(), player.getDamageSources().playerAttack(player), 5);
             // Reset combo
             Cooldowns.clear(player, TRIAINA_COMBO_TIMER);
             Cooldowns.clear(player, TRIAINA_COMBO_HITS);

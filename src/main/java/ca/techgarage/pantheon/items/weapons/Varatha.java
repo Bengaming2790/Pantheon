@@ -125,6 +125,13 @@ public class Varatha extends Item implements PolymerItem {
     public void postHit(ItemStack stack, LivingEntity target, LivingEntity attacker) {
         if (attacker.getEntityWorld().isClient()) return;
         if (!(attacker instanceof ServerPlayerEntity player)) return;
+
+        // Armor ignoring damage (magic)
+        target.damage((ServerWorld) attacker.getEntityWorld(),
+                attacker.getDamageSources().magic(),
+                25f
+        );
+
         if (Cooldowns.isOnCooldown(player, STYGIAN)) return;
 
         target.addStatusEffect(
@@ -135,11 +142,7 @@ public class Varatha extends Item implements PolymerItem {
                 new StatusEffectInstance(StatusEffects.WITHER, 20 * 5, 1, true, true, false)
         );
 
-        // Armor ignoring damage (magic)
-        target.damage((ServerWorld) attacker.getEntityWorld(),
-                attacker.getDamageSources().magic(),
-                8.0f
-        );
+
         if (!player.isCreative()) Cooldowns.start(player, STYGIAN, 20 * 15);
     }
 

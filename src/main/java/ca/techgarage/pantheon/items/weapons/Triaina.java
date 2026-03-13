@@ -48,7 +48,7 @@ public class Triaina extends Item implements PolymerItem {
                         EntityAttributes.ATTACK_DAMAGE,
                         new EntityAttributeModifier(
                                 BASE_ATTACK_DAMAGE_MODIFIER_ID,
-                                13.0,
+                                11.0,
                                 EntityAttributeModifier.Operation.ADD_VALUE
                         ),
                         AttributeModifierSlot.MAINHAND

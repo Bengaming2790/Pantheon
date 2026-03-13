@@ -56,7 +56,7 @@ public class Khalkeus extends MaceItem implements PolymerItem {
                         EntityAttributes.ATTACK_DAMAGE,
                         new EntityAttributeModifier(
                                 Item.BASE_ATTACK_DAMAGE_MODIFIER_ID,
-                                8 - 1,
+                                10 - 1,
                                 EntityAttributeModifier.Operation.ADD_VALUE
                         ),
                         AttributeModifierSlot.MAINHAND
@@ -65,7 +65,7 @@ public class Khalkeus extends MaceItem implements PolymerItem {
                         EntityAttributes.ATTACK_SPEED,
                         new EntityAttributeModifier(
                                 Item.BASE_ATTACK_SPEED_MODIFIER_ID,
-                                -3.2,
+                                -3.0,
                                 EntityAttributeModifier.Operation.ADD_VALUE
                         ),
                         AttributeModifierSlot.MAINHAND
@@ -93,7 +93,7 @@ public class Khalkeus extends MaceItem implements PolymerItem {
                     1.5F, // volume
                     1.75F  // pitch
             );
-            user.useRiptide(10, 1.0f, stack);
+            user.useRiptide(10, 20.0f, stack);
 
         }
         return ActionResult.SUCCESS;

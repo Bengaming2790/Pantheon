@@ -30,6 +30,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Unit;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
 import xyz.nucleoid.packettweaker.PacketContext;
@@ -49,14 +50,14 @@ public class Enyalios extends Item implements PolymerItem {
                 settings.spear(
                         ModToolMaterials.VARATHA_TOOL_MATERIAL,
                         1.05F,
-                        1.075F,
-                        0.5F,
+                        1.5F,
+                        0.0F,
                         3.0F,
-                        7.5F,
-                        6.5F,
-                        5.1F,
-                        10.0F,
-                        4.6F
+                        0.1F,
+                        3.0F,
+                        0.1F,
+                        3.0F,
+                        0.1F
                 ).component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, getDefaultAttributeModifiers()).fireproof()
         );
         applyEffects();
@@ -113,6 +114,23 @@ public class Enyalios extends Item implements PolymerItem {
     @Override
     public void postHit(ItemStack stack, LivingEntity target, LivingEntity attacker) {
         if (attacker instanceof PlayerEntity player) {
+            float damage = 31f;
+
+            // Check for Strength effect
+            if (attacker.hasStatusEffect(StatusEffects.STRENGTH)) {
+                StatusEffectInstance effect = attacker.getStatusEffect(StatusEffects.STRENGTH);
+
+                int level = effect.getAmplifier() + 1; // convert amplifier → level
+                damage += level * 3f; // +3 damage per level
+            }
+
+            // Armor ignoring damage (magic)
+            target.damage(
+                    (ServerWorld) attacker.getEntityWorld(),
+                    attacker.getDamageSources().playerAttack(player),
+                    damage
+            );
+
             if (Cooldowns.isOnCooldown(player, ENYALIOS_BLEED_ACTIVE)) {
                 target.setStatusEffect(
                         new StatusEffectInstance(ModEffects.BLEED, 20 * 8, 2, true, false, false),
@@ -144,17 +162,17 @@ public class Enyalios extends Item implements PolymerItem {
                 user.getItemCooldownManager().set(stack, 200); //10 second cooldown
             }
             user.damage(
-                    (ServerWorld) world,
-                    ModDamageSources.bleeding((ServerWorld) world),
-                    (0.5f + 1f) * 1
+                    (ServerWorld) user.getEntityWorld(),
+                    user.getDamageSources().magic(),
+                    (8f) * 1
             );
 
-            Dash.dashForward(user, 0.85f);
-            DashState.start((ServerPlayerEntity) user, 10, new DustParticleEffect(
+            Dash.dashForward(user, 1.5f);
+            DashState.start((ServerPlayerEntity) user, 15, new DustParticleEffect(
                     16711680,
                     1.0F
             ));
-            user.useRiptide(10, 5.0f, stack);
+            user.useRiptide(15, 40, stack);
 
         }
         return ActionResult.SUCCESS;
@@ -165,7 +183,7 @@ public class Enyalios extends Item implements PolymerItem {
                         EntityAttributes.ATTACK_DAMAGE,
                         new EntityAttributeModifier(
                                 Item.BASE_ATTACK_DAMAGE_MODIFIER_ID,
-                                18.0 - 1,
+                                8.0 - 1,
                                 EntityAttributeModifier.Operation.ADD_VALUE
                         ),
                         AttributeModifierSlot.MAINHAND

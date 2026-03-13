@@ -51,7 +51,7 @@ public class Astrape extends TridentItem implements PolymerItem {
                         EntityAttributes.ATTACK_DAMAGE,
                         new EntityAttributeModifier(
                                 BASE_ATTACK_DAMAGE_MODIFIER_ID,
-                                11.0,
+                                9.0,
                                 EntityAttributeModifier.Operation.ADD_VALUE
                         ),
                         AttributeModifierSlot.MAINHAND
@@ -105,7 +105,7 @@ public class Astrape extends TridentItem implements PolymerItem {
         if (Cooldowns.isOnCooldown(player, ASTRAPE_CD)) return ;
 
         int level = conducting.getAmplifier() + 1;
-        float extraDamage = 2.0f * level;
+        float extraDamage = 3.0f * level;
 
         target.damage((ServerWorld) attacker.getEntityWorld(), attacker.getEntityWorld().getDamageSources().playerAttack(player), extraDamage);
         for (int i = 0; i < 5; i ++) {

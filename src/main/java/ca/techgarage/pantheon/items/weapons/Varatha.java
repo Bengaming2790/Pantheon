@@ -32,6 +32,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Unit;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
 import ca.techgarage.pantheon.api.Dash;
@@ -54,11 +55,11 @@ public class Varatha extends Item implements PolymerItem {
                         1.5f,    // swingAnimationSeconds → attack speed math
                         1.5f,    // chargeDamageMultiplier
                         0f,   // chargeDelaySeconds
-                        0.4f,    // maxDurationForDismountSeconds
-                        0.5f,    // minSpeedForDismount
-                        0.3f,    // maxDurationForChargeKnockbackInSeconds
+                        3.0f,    // maxDurationForDismountSeconds
+                        0.1f,    // minSpeedForDismount
+                        3.0f,    // maxDurationForChargeKnockbackInSeconds
                         0.1f,    // minSpeedForChargeKnockback
-                        0.2f,    // maxDurationForChargeDamageInSeconds
+                        3.0f,    // maxDurationForChargeDamageInSeconds
                         0.1f     // minRelativeSpeedForChargeDamage
                 )
                         .component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE)
@@ -76,7 +77,7 @@ public class Varatha extends Item implements PolymerItem {
                         EntityAttributes.ATTACK_DAMAGE,
                         new EntityAttributeModifier(
                                 Item.BASE_ATTACK_DAMAGE_MODIFIER_ID,
-                                11.0,
+                                7.0,
                                 EntityAttributeModifier.Operation.ADD_VALUE
                         ),
                         AttributeModifierSlot.MAINHAND
@@ -106,8 +107,8 @@ public class Varatha extends Item implements PolymerItem {
                 user.getItemCooldownManager().set(stack, 200); //10 second cooldown
             }
 
-            Dash.dashForward(user, 1f);
-            DashState.start((ServerPlayerEntity) user, 10, ParticleTypes.RAID_OMEN);
+            Dash.dashForward(user, 1.5f);
+            DashState.start((ServerPlayerEntity) user, 15, ParticleTypes.RAID_OMEN);
             world.playSound(
                     null,
                     user.getX(), user.getY(), user.getZ(),
@@ -116,7 +117,7 @@ public class Varatha extends Item implements PolymerItem {
                     1.0F, // volume
                     0.5F  // pitch
             );
-            user.useRiptide(10, 5.0f, stack);
+            user.useRiptide(15,0, stack);
 
         }
         return ActionResult.SUCCESS;
@@ -126,10 +127,21 @@ public class Varatha extends Item implements PolymerItem {
         if (attacker.getEntityWorld().isClient()) return;
         if (!(attacker instanceof ServerPlayerEntity player)) return;
 
+        float damage = 19f;
+
+        // Check for Strength effect
+        if (attacker.hasStatusEffect(StatusEffects.STRENGTH)) {
+            StatusEffectInstance effect = attacker.getStatusEffect(StatusEffects.STRENGTH);
+
+            int level = effect.getAmplifier() + 1; // convert amplifier → level
+            damage += level * 3f; // +3 damage per level
+        }
+
         // Armor ignoring damage (magic)
-        target.damage((ServerWorld) attacker.getEntityWorld(),
+        target.damage(
+                (ServerWorld) attacker.getEntityWorld(),
                 attacker.getDamageSources().magic(),
-                25f
+                damage
         );
 
         if (Cooldowns.isOnCooldown(player, STYGIAN)) return;

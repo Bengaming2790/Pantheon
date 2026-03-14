@@ -3,6 +3,7 @@ package ca.techgarage.pantheon.items.weapons;
 import ca.techgarage.pantheon.api.Cooldowns;
 import ca.techgarage.pantheon.api.Dash;
 import ca.techgarage.pantheon.api.DashState;
+import ca.techgarage.pantheon.items.GlowItem;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.component.DataComponentTypes;
@@ -32,7 +33,7 @@ import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
 import xyz.nucleoid.packettweaker.PacketContext;
 
-public class Triaina extends Item implements PolymerItem {
+public class Triaina extends Item implements PolymerItem, GlowItem {
     public Triaina(Settings settings) {
         super(settings.component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.MAX_STACK_SIZE, 1).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers()).fireproof());
         applyEffects();
@@ -187,4 +188,8 @@ public class Triaina extends Item implements PolymerItem {
         return Items.STICK;
     }
 
+    @Override
+    public String getGlowColor() {
+        return "#55FFFF";
+    }
 }

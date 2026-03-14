@@ -1,6 +1,8 @@
 package ca.techgarage.pantheon.items;
 
+import ca.techgarage.pantheon.api.DroppedItemGlow;
 import ca.techgarage.pantheon.items.weapons.*;
+import net.minecraft.entity.ItemEntity;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -151,5 +153,12 @@ public class ModItems {
 
         return items;
     }
+    public static void applyGlowToAllDrops(ItemEntity itemEntity) {
+        Item item = itemEntity.getStack().getItem();
 
+        // Only process items belonging to this mod
+        if (!(item instanceof GlowItem glowItem)) return;
+
+        DroppedItemGlow.applyGlow(itemEntity, glowItem.getGlowColor());
+    }
 }

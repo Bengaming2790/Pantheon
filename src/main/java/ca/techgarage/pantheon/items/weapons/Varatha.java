@@ -2,6 +2,7 @@ package ca.techgarage.pantheon.items.weapons;
 
 import ca.techgarage.pantheon.api.Cooldowns;
 import ca.techgarage.pantheon.api.DashState;
+import ca.techgarage.pantheon.items.GlowItem;
 import ca.techgarage.pantheon.items.material.ModToolMaterials;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.minecraft.component.DataComponentTypes;
@@ -42,7 +43,7 @@ import net.minecraft.registry.Registries;
 
 import java.util.Random;
 
-public class Varatha extends Item implements PolymerItem {
+public class Varatha extends Item implements PolymerItem, GlowItem {
 
     private static final Random random = new Random();
     private static final String STYGIAN = "varatha_stygian";
@@ -133,6 +134,7 @@ public class Varatha extends Item implements PolymerItem {
         if (attacker.hasStatusEffect(StatusEffects.STRENGTH)) {
             StatusEffectInstance effect = attacker.getStatusEffect(StatusEffects.STRENGTH);
 
+            assert effect != null;
             int level = effect.getAmplifier() + 1; // convert amplifier → level
             damage += level * 3f; // +3 damage per level
         }
@@ -182,5 +184,10 @@ public class Varatha extends Item implements PolymerItem {
     @Override
     public Identifier getPolymerItemModel(ItemStack stack, PacketContext context) {
         return MODEL;
+    }
+
+    @Override
+    public String getGlowColor() {
+        return "#FF5555";
     }
 }

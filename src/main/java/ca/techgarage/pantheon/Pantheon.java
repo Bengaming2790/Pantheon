@@ -13,6 +13,7 @@ import ca.techgarage.pantheon.database.BanDatabase;
 import ca.techgarage.pantheon.database.BankDatabase;
 import ca.techgarage.pantheon.events.JoinListener;
 import ca.techgarage.pantheon.items.DrachmaItem;
+import ca.techgarage.pantheon.items.GlowItem;
 import ca.techgarage.pantheon.items.ModItems;
 import ca.techgarage.pantheon.items.weapons.*;
 import ca.techgarage.pantheon.status.ModEffects;
@@ -21,11 +22,13 @@ import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.entity.ItemEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -138,6 +141,14 @@ public class Pantheon implements ModInitializer {
             Caduceus.RandevuManager.tickAll();
 
 
+        });
+        ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
+            if (entity instanceof ItemEntity itemEntity) {
+                Item item = itemEntity.getStack().getItem();
+                if (item instanceof GlowItem) {
+                    ModItems.applyGlowToAllDrops(itemEntity);
+                }
+            }
         });
         AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
             if (world.isClient()) return ActionResult.PASS;

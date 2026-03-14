@@ -3,6 +3,7 @@ package ca.techgarage.pantheon.items.weapons;
 import ca.techgarage.pantheon.api.Cooldowns;
 import ca.techgarage.pantheon.api.Dash;
 import ca.techgarage.pantheon.api.DashState;
+import ca.techgarage.pantheon.items.GlowItem;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.AttributeModifierSlot;
@@ -36,7 +37,7 @@ import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.List;
 
-public class Peitho extends Item implements PolymerItem {
+public class Peitho extends Item implements PolymerItem, GlowItem {
     public Peitho(Settings settings) {
         super(settings.component(DataComponentTypes.UNBREAKABLE,  Unit.INSTANCE)
                 .component(DataComponentTypes.MAX_STACK_SIZE, 1)
@@ -149,5 +150,10 @@ public class Peitho extends Item implements PolymerItem {
     @Override
     public Text getName(ItemStack stack) {
         return Text.translatable("item.pantheon.peitho");
+    }
+
+    @Override
+    public String getGlowColor() {
+        return "#AA0000";
     }
 }

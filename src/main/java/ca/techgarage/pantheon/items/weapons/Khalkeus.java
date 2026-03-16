@@ -8,6 +8,7 @@ import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.AttributeModifierSlot;
 import net.minecraft.component.type.AttributeModifiersComponent;
+import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
@@ -41,11 +42,23 @@ import net.minecraft.world.World;
 import org.jspecify.annotations.Nullable;
 import xyz.nucleoid.packettweaker.PacketContext;
 
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.function.Predicate;
 
 public class Khalkeus extends MaceItem implements PolymerItem {
+    private static final String KH_SLAM_CD = "kh_slam_timer";
+
+
     public Khalkeus(Settings settings) {
-        super(settings.component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, getDefaultAttributeModifiers()).component(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, false).component(DataComponentTypes.MAX_STACK_SIZE, 1).fireproof());
+        super(settings.component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, getDefaultAttributeModifiers())
+                .component(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, false)
+                .component(DataComponentTypes.MAX_STACK_SIZE, 1).fireproof()
+                .component(DataComponentTypes.TOOLTIP_DISPLAY, new TooltipDisplayComponent(false, new LinkedHashSet<>(List.of(
+                        DataComponentTypes.ATTRIBUTE_MODIFIERS,
+                        DataComponentTypes.UNBREAKABLE
+                ))))
+        );
     }
     private static final Identifier MODEL =
             Identifier.of("pantheon", "khalkeus");
@@ -56,7 +69,7 @@ public class Khalkeus extends MaceItem implements PolymerItem {
                         EntityAttributes.ATTACK_DAMAGE,
                         new EntityAttributeModifier(
                                 Item.BASE_ATTACK_DAMAGE_MODIFIER_ID,
-                                10 - 1,
+                                8 - 1,
                                 EntityAttributeModifier.Operation.ADD_VALUE
                         ),
                         AttributeModifierSlot.MAINHAND
@@ -112,7 +125,14 @@ public class Khalkeus extends MaceItem implements PolymerItem {
     @Override
     public void postHit(ItemStack stack, LivingEntity target, LivingEntity attacker) {
             if (attacker.getEntityWorld().isClient()) return;
+        target.setOnFireForTicks(20 * 4);
+        if (!Cooldowns.isOnCooldown((PlayerEntity) attacker, AOE_CD)) {
+            AOEDamage.applyAoeDamage(attacker, target, 6.0f, 2.5f, true, 4);
+            Cooldowns.start((PlayerEntity) attacker, AOE_CD, 20 * 15);
+        }
         if (shouldDealAdditionalDamage(attacker)) {
+
+            if (Cooldowns.isOnCooldown((PlayerEntity) attacker, KH_SLAM_CD)) return;
             ServerWorld serverWorld = (ServerWorld)attacker.getEntityWorld();
             attacker.setVelocity(attacker.getVelocity().withAxis(Direction.Axis.Y, 0.01F));
             if (attacker instanceof ServerPlayerEntity serverPlayerEntity) {
@@ -121,7 +141,20 @@ public class Khalkeus extends MaceItem implements PolymerItem {
                 serverPlayerEntity.networkHandler.sendPacket(new EntityVelocityUpdateS2CPacket(serverPlayerEntity));
             }
             if ((attacker instanceof PlayerEntity player)) {
-                target.damage((ServerWorld) target.getEntityWorld(), attacker.getDamageSources().playerAttack(player), getBonusAttackDamage(target, 7, player));
+                float baseDamage = 7f;
+                float bonusDamage = getBonusAttackDamage(target, baseDamage, player);
+
+                float totalDamage = baseDamage + bonusDamage;
+
+                if (totalDamage > 14f) {
+                    totalDamage = 14f;
+                }
+
+                target.damage(
+                        (ServerWorld) target.getEntityWorld(),
+                        attacker.getDamageSources().playerAttack(player),
+                        totalDamage
+                );
             }
             if (target.isOnGround()) {
                 if (attacker instanceof ServerPlayerEntity serverPlayerEntity) {
@@ -136,18 +169,13 @@ public class Khalkeus extends MaceItem implements PolymerItem {
 
             knockbackNearbyEntities(serverWorld, attacker, target);
         }
-        target.setOnFireForTicks(20 * 4);
-
-        if (!Cooldowns.isOnCooldown((PlayerEntity) attacker, AOE_CD)) {
-                AOEDamage.applyAoeDamage(attacker, target, 6.0f, 2.5f, true, 4);
-                Cooldowns.start((PlayerEntity) attacker, AOE_CD, 20 * 15);
-            }
 
     }
 
     public float getBonusAttackDamage(Entity target, float baseAttackDamage, PlayerEntity player) {
         PlayerEntity player1 = player;
         if (player1 instanceof LivingEntity livingEntity) {
+            if (Cooldowns.isOnCooldown(player, KH_SLAM_CD)) return 0;
             if (!shouldDealAdditionalDamage(livingEntity)) {
                 return 0.0F;
             } else {

@@ -9,6 +9,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.AttributeModifierSlot;
 import net.minecraft.component.type.AttributeModifiersComponent;
+import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
@@ -31,6 +32,9 @@ import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
 import xyz.nucleoid.packettweaker.PacketContext;
 
+import java.util.LinkedHashSet;
+import java.util.List;
+
 public class Glaciera extends Item implements PolymerItem {
 
     private static final String GLACIERA_COMBO_TIMER = "glaciera_hit_combo_timer";
@@ -42,6 +46,10 @@ public class Glaciera extends Item implements PolymerItem {
                 .component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE)
                 .component(DataComponentTypes.MAX_STACK_SIZE, 1)
                 .component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers()).fireproof()
+                .component(DataComponentTypes.TOOLTIP_DISPLAY, new TooltipDisplayComponent(false, new LinkedHashSet<>(List.of(
+                        DataComponentTypes.ATTRIBUTE_MODIFIERS,
+                        DataComponentTypes.UNBREAKABLE
+                ))))
         );
     }
     public static AttributeModifiersComponent createAttributeModifiers() {

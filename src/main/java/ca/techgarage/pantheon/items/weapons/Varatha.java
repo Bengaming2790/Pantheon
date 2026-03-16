@@ -5,42 +5,38 @@ import ca.techgarage.pantheon.api.DashState;
 import ca.techgarage.pantheon.items.GlowItem;
 import ca.techgarage.pantheon.items.material.ModToolMaterials;
 import eu.pb4.polymer.core.api.item.PolymerItem;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.AttributeModifierSlot;
-import net.minecraft.component.type.AttributeModifiersComponent;
-import net.minecraft.component.type.ItemEnchantmentsComponent;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.Enchantments;
+import net.minecraft.component.type.*;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.effect.StatusEffect;
+import net.minecraft.entity.effect.StatusEffectCategory;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.*;
 import net.minecraft.particle.ParticleTypes;
-import net.minecraft.registry.BuiltinRegistries;
-import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Style;
 import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Unit;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.*;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
 import ca.techgarage.pantheon.api.Dash;
 import org.jspecify.annotations.Nullable;
 import xyz.nucleoid.packettweaker.PacketContext;
-import net.minecraft.registry.Registries;
 
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Random;
 
 public class Varatha extends Item implements PolymerItem, GlowItem {
@@ -65,11 +61,48 @@ public class Varatha extends Item implements PolymerItem, GlowItem {
                 )
                         .component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE)
                         .component(DataComponentTypes.ATTRIBUTE_MODIFIERS, getDefaultAttributeModifiers()).fireproof()
+                        .component(DataComponentTypes.TOOLTIP_DISPLAY, new TooltipDisplayComponent(false, new LinkedHashSet<>(List.of(
+                                DataComponentTypes.ATTRIBUTE_MODIFIERS,
+                                DataComponentTypes.UNBREAKABLE
+                        )))).component(DataComponentTypes.LORE, lore)
         );
+        registerEvents();
     }
 
 
+    private static final LoreComponent lore = new LoreComponent(List.of(
+            Text.literal("A Bident Wielded by ")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.RED).withBold(false))
+                    .append(Text.literal("Hades")
+                            .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.RED).withBold(true))),
+            Text.literal("Piercing Blows")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GOLD).withBold(true)),
+            Text.literal("  Ignores a portion of opponent's armor")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)),
+            Text.literal("Stygian Wound")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GOLD).withBold(true)),
+            Text.literal("   On Hitting an enemy inflict ").setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY))
+                    .append(Text.literal("Withering & Blidness").setStyle(Style.EMPTY.withItalic(true).withColor(Formatting.AQUA).withBold(false))),
+            Text.literal("   Cooldown: ")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)).append(Text.literal("15s").setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GREEN))),
 
+            Text.literal("Gravebound Charge")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GOLD).withBold(true))
+                    .append(Text.literal(" - Right Click")
+                            .setStyle(Style.EMPTY.withItalic(true).withColor(Formatting.GRAY).withBold(false))),
+            Text.literal("   Charge forward and leave a Trail that harms opponents")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)),
+            Text.literal("   Cooldown: 15s")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)),
+            Text.literal("Abyssal Recovery")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GOLD).withBold(true)),
+            Text.literal("   Recover Health on slaying an enemy")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)),
+            Text.literal("Hellish Immunity")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GOLD).withBold(true)),
+            Text.literal("   Grants Immunity to Debuffs")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY))
+    ));
 
 
     public static AttributeModifiersComponent getDefaultAttributeModifiers() {
@@ -96,7 +129,29 @@ public class Varatha extends Item implements PolymerItem, GlowItem {
     }
 
 
+    private static void registerEvents() {
 
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                if (getHeldVaratha(player) == null) continue;
+
+                for (StatusEffectInstance status : List.copyOf(player.getStatusEffects())) {
+                    RegistryEntry<StatusEffect> effectEntry = status.getEffectType();
+
+                    if (effectEntry.value().getCategory() == StatusEffectCategory.HARMFUL) {
+                        player.removeStatusEffect(effectEntry);
+                    }
+                }
+            }
+        });
+    }
+    private static ItemStack getHeldVaratha(PlayerEntity player) {
+        if (player.getMainHandStack().getItem() instanceof Varatha)
+            return player.getMainHandStack();
+        if (player.getOffHandStack().getItem() instanceof Varatha)
+            return player.getOffHandStack();
+        return null;
+    }
     @Override
     public ActionResult use(World world, PlayerEntity user, Hand hand) {
         if (!world.isClient()) {

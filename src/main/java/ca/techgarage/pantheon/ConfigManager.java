@@ -23,23 +23,18 @@ public class ConfigManager {
 
             Map<String, String> values = readFile();
 
-            boolean updated = false;
-
             for (Field field : configClass.getDeclaredFields()) {
                 if (!java.lang.reflect.Modifier.isStatic(field.getModifiers())) continue;
 
+                field.setAccessible(true);
                 String key = field.getName();
 
-                field.setAccessible(true);
-
-                // If key missing → append to file
                 if (!values.containsKey(key)) {
                     appendMissingField(field);
-                    updated = true;
                     continue;
                 }
 
-                // Otherwise load existing value
+                // Otherwise load existing value from file
                 String raw = values.get(key);
                 Class<?> type = field.getType();
 
@@ -54,10 +49,6 @@ public class ConfigManager {
                 }
             }
 
-            if (updated) {
-                load(configClass);
-            }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -67,19 +58,20 @@ public class ConfigManager {
         Files.createDirectories(CONFIG_PATH.getParent());
 
         try (BufferedWriter writer = Files.newBufferedWriter(CONFIG_PATH)) {
-
             for (Field field : configClass.getDeclaredFields()) {
                 if (!java.lang.reflect.Modifier.isStatic(field.getModifiers())) continue;
 
                 field.setAccessible(true);
 
-                // Write placeholder comment
-                writer.write("# " + field.getName());
+                Comment comment = field.getAnnotation(Comment.class);
+                if (comment != null) {
+                    writer.write("# " + comment.value());
+                } else {
+                    writer.write("# " + field.getName());
+                }
                 writer.newLine();
 
-                Object value = field.get(null);
-
-                writer.write(field.getName() + ": " + value);
+                writer.write(field.getName() + ": " + field.get(null));
                 writer.newLine();
                 writer.newLine();
             }
@@ -117,17 +109,10 @@ public class ConfigManager {
                 CONFIG_PATH,
                 java.nio.file.StandardOpenOption.APPEND
         )) {
-
             writer.newLine();
-
-            Comment comment = field.getAnnotation(Comment.class);
-            if (comment != null) {
-                writer.write("# " + comment.value());
-                writer.newLine();
-            }
-
-            Object value = field.get(null);
-            writer.write(field.getName() + ": " + value);
+            writer.write("# " + field.getName());
+            writer.newLine();
+            writer.write(field.getName() + ": " + field.get(null));
             writer.newLine();
         }
     }

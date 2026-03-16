@@ -6,7 +6,9 @@
   "mixins": [
     "DisableDripstoneDamageMixin",
     "DisableTotemMixin",
+    "ItemDropMixin",
     "LivingEntityMixin",
+    "MaceDamageCapMixin",
     "NetheriteArmorCancelMixin",
     "NoCobwebSlowMixin",
     "ShieldBlockMixin",

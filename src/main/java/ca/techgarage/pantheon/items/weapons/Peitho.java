@@ -9,6 +9,7 @@ import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.AttributeModifierSlot;
 import net.minecraft.component.type.AttributeModifiersComponent;
 import net.minecraft.component.type.LoreComponent;
+import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
@@ -25,16 +26,14 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Style;
 import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Unit;
+import net.minecraft.util.*;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
 import org.jspecify.annotations.Nullable;
 import xyz.nucleoid.packettweaker.PacketContext;
-
+import java.util.LinkedHashSet;
 import java.util.List;
 
 public class Peitho extends Item implements PolymerItem, GlowItem {
@@ -42,7 +41,10 @@ public class Peitho extends Item implements PolymerItem, GlowItem {
         super(settings.component(DataComponentTypes.UNBREAKABLE,  Unit.INSTANCE)
                 .component(DataComponentTypes.MAX_STACK_SIZE, 1)
                 .component(DataComponentTypes.ATTRIBUTE_MODIFIERS, getDefaultAttributeModifiers())
-                .component(DataComponentTypes.LORE, lore).fireproof()
+                .component(DataComponentTypes.LORE, lore).fireproof().component(DataComponentTypes.TOOLTIP_DISPLAY, new TooltipDisplayComponent(false, new LinkedHashSet<>(List.of(
+                        DataComponentTypes.ATTRIBUTE_MODIFIERS,
+                        DataComponentTypes.UNBREAKABLE
+                ))))
         );
     }
     private static final String PEITHO_25_CD = "peitho_25_cd";
@@ -50,10 +52,35 @@ public class Peitho extends Item implements PolymerItem, GlowItem {
             Identifier.of("pantheon", "peitho");
 
     private static LoreComponent lore = new LoreComponent(List.of(
-            Text.translatable("item.pantheon.peitho.primary").formatted(),
-            Text.translatable("item.pantheon.peitho.shift-primary").formatted(),
-            Text.translatable("item.pantheon.peitho.secondary").formatted(),
-            Text.translatable("item.pantheon.peitho.trait").formatted()
+            Text.literal("A Dagger Wielded By ")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.LIGHT_PURPLE).withBold(false))
+                    .append(Text.literal("Aphrodite")
+                            .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.LIGHT_PURPLE).withBold(true))),
+            Text.literal("Heartbreak")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GOLD).withBold(true)),
+            Text.literal("   Deal 7.5% instead of traditional damage")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)),
+            Text.literal("Sorrowful Rose")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GOLD).withBold(true))
+                    .append(Text.literal(" - Crouch + Left Click")
+                            .setStyle(Style.EMPTY.withItalic(true).withColor(Formatting.GRAY).withBold(false))),
+            Text.literal("   Launch a powerful attack forward that deals")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)),
+            Text.literal("   35% of Current Health of those hit")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)),
+
+            Text.literal("Lovestuck Lunge")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GOLD).withBold(true))
+                    .append(Text.literal(" - Right Click")
+                            .setStyle(Style.EMPTY.withItalic(true).withColor(Formatting.GRAY).withBold(false))),
+            Text.literal("   Charge forward and gain Regeneration")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)),
+            Text.literal("   Cooldown: 10s")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)),
+            Text.literal("Love's Favor")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GOLD).withBold(true)),
+            Text.literal("   Grants Health Boost")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY))
     ));
 
     @Override

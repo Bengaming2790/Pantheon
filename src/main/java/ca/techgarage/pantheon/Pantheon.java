@@ -1,9 +1,7 @@
 package ca.techgarage.pantheon;
 
-import ca.techgarage.pantheon.api.DashState;
-import ca.techgarage.pantheon.api.InventoryBlocker;
-import ca.techgarage.pantheon.api.ItemFrameBlocker;
-import ca.techgarage.pantheon.api.PeithoTick;
+import ca.techgarage.pantheon.api.*;
+import ca.techgarage.pantheon.blocks.AltarBlock;
 import ca.techgarage.pantheon.blocks.ModAltarBlocks;
 import ca.techgarage.pantheon.blocks.ModBlockEntities;
 import ca.techgarage.pantheon.commands.TempBanCommand;
@@ -31,6 +29,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
@@ -39,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import net.minecraft.util.Identifier;
 import static net.minecraft.server.command.CommandManager.literal;
 import static net.minecraft.server.command.CommandManager.argument;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 
@@ -63,9 +63,11 @@ public class Pantheon implements ModInitializer {
             logger.error("[Pantheon] Mod failed to initialize properly due to not being the official server.");
             return;
         }
+
         ConfigManager.load(PantheonConfig.class);
-
-
+        ItemDenyList.deny(
+                Items.TRIDENT
+        );
 
         ModItems.registerModItems();
         ModEffects.register();
@@ -150,6 +152,7 @@ public class Pantheon implements ModInitializer {
                 }
             }
         });
+
         AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
             if (world.isClient()) return ActionResult.PASS;
             if (!player.isSneaking()) return ActionResult.PASS;
@@ -169,7 +172,21 @@ public class Pantheon implements ModInitializer {
                 BankDatabase.createAccount(uuid, PantheonConfig.StartingDrachma);
             }
         });
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            if (!PantheonConfig.dropBannedItems) return;
+            if (server.getTicks() % 100 != 0) return; // every 100 ticks = 5 seconds
 
+            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+                for (int i = 0; i < player.getInventory().size(); i++) {
+                    ItemStack stack = player.getInventory().getStack(i);
+                    if (!stack.isEmpty() && ItemDenyList.isDenied(stack.getItem())) {
+                        player.sendMessage(Text.translatable("item.anvil.rename").formatted(), true);
+                        player.getInventory().removeStack(i);
+                        player.dropItem(stack, false, false);
+                    }
+                }
+            }
+        });
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
             if (!(entity instanceof ServerPlayerEntity player)) return;
 

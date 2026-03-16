@@ -8,6 +8,7 @@ import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.AttributeModifierSlot;
 import net.minecraft.component.type.AttributeModifiersComponent;
 import net.minecraft.component.type.CustomModelDataComponent;
+import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.entity.*;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
@@ -26,6 +27,7 @@ import net.minecraft.world.World;
 import org.jspecify.annotations.Nullable;
 import xyz.nucleoid.packettweaker.PacketContext;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 
 public class Astrape extends TridentItem implements PolymerItem {
@@ -39,7 +41,12 @@ public class Astrape extends TridentItem implements PolymerItem {
                         List.of()
                 ))
                 .component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers())
-                .component(DataComponentTypes.MAX_STACK_SIZE, 1).fireproof());
+                .component(DataComponentTypes.MAX_STACK_SIZE, 1).fireproof()
+                .component(DataComponentTypes.TOOLTIP_DISPLAY, new TooltipDisplayComponent(false, new LinkedHashSet<>(List.of(
+                        DataComponentTypes.ATTRIBUTE_MODIFIERS,
+                        DataComponentTypes.UNBREAKABLE
+                )))));
+
     }
     private static final Identifier MODEL =
             Identifier.of("pantheon", "astrape");

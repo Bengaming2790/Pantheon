@@ -1,9 +1,9 @@
 package ca.techgarage.pantheon;
 
 public class PantheonConfig {
-    //Amount of Drachma player can start with [Integer]
+    @Comment("Amount of Drachma player can start with [Integer]")
     public static int StartingDrachma = 50;
-    //Amount of Drachma dropper on death
+    @Comment("Amount of Drachma dropper on death [Integer]")
     public static int DroppedDrachmaOnDeath = 5;
 
     public static boolean diableNetheriteUpgrade = true;
@@ -18,5 +18,7 @@ public class PantheonConfig {
     public static boolean disableTotemOfUndying = true;
 
     public static int timeBannedFromCombatLogInMinutes = 60;
+
+    public static boolean dropBannedItems = true;
 
 }

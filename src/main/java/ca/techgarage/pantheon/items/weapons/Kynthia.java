@@ -2,6 +2,7 @@ package ca.techgarage.pantheon.items.weapons;
 
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.TooltipDisplayComponent;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.PersistentProjectileEntity;
@@ -16,6 +17,9 @@ import net.minecraft.world.World;
 import xyz.nucleoid.packettweaker.PacketContext;
 import ca.techgarage.pantheon.api.Grapple;
 
+import java.util.LinkedHashSet;
+import java.util.List;
+
 public class Kynthia extends BowItem implements PolymerItem {
     public static final String KYNTHIA_GRAPPLE_CD = "kynthia_grapple_cd";
 
@@ -25,7 +29,12 @@ public class Kynthia extends BowItem implements PolymerItem {
     public Kynthia(Settings settings) {
         super(settings.component(DataComponentTypes.MAX_STACK_SIZE, 1)
                 .component(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true)
-                .component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).fireproof());
+                .component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).fireproof()
+                .component(DataComponentTypes.TOOLTIP_DISPLAY, new TooltipDisplayComponent(false, new LinkedHashSet<>(List.of(
+                        DataComponentTypes.ATTRIBUTE_MODIFIERS,
+                        DataComponentTypes.UNBREAKABLE
+                ))))
+        );
     }
 
 

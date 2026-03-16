@@ -1,0 +1,25 @@
+package ca.techgarage.pantheon.mixin;
+
+import net.minecraft.entity.Entity;
+import net.minecraft.item.MaceItem;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.damage.DamageSource;
+
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+@Mixin(MaceItem.class)
+public class MaceDamageCapMixin {
+
+    @Inject(method = "getBonusAttackDamage", at = @At("RETURN"), cancellable = true)
+    private void capMaceDamage(Entity target, float baseAttackDamage, DamageSource damageSource, CallbackInfoReturnable<Float> cir) {
+        float damage = cir.getReturnValue();
+
+        if (damage > 6.5f) {
+            cir.setReturnValue(6.5f);
+        }
+    }
+}

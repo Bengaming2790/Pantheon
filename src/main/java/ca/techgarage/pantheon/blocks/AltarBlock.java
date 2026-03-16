@@ -4,10 +4,7 @@ import ca.techgarage.pantheon.blocks.altar.AltarBlockEntity;
 import ca.techgarage.pantheon.blocks.altar.AltarRecipe;
 import com.mojang.serialization.MapCodec;
 import eu.pb4.polymer.core.api.block.PolymerBlock;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.BlockWithEntity;
-import net.minecraft.block.Blocks;
+import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
@@ -30,13 +27,9 @@ public class AltarBlock extends BlockWithEntity implements PolymerBlock {
         this.recipe = recipe;
     }
 
-    public net.minecraft.block.Block getPolymerBlock(BlockState state) {
-        return Blocks.ENCHANTING_TABLE;
-    }
-
     @Override
     public BlockState getPolymerBlockState(BlockState state, PacketContext context) {
-        return Blocks.ENCHANTING_TABLE.getDefaultState();
+        return Blocks.BARRIER.getDefaultState();
     }
 
     @Override
@@ -48,6 +41,7 @@ public class AltarBlock extends BlockWithEntity implements PolymerBlock {
     public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
         return new AltarBlockEntity(pos, state);
     }
+
     @SuppressWarnings("unchecked")
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(
@@ -56,7 +50,10 @@ public class AltarBlock extends BlockWithEntity implements PolymerBlock {
         if (type != ModBlockEntities.ALTAR) return null;
         AltarRecipe capturedRecipe = this.recipe;
         return (BlockEntityTicker<T>) (BlockEntityTicker<AltarBlockEntity>)
-                (w, p, s, be) -> be.spawnDisplayIfNeeded((net.minecraft.server.world.ServerWorld) w, capturedRecipe);
+                (w, p, s, be) -> {
+                    be.spawnDisplayIfNeeded((ServerWorld) w, capturedRecipe);
+                    be.tickDisplay();
+                };
     }
 
     @Override
@@ -67,20 +64,9 @@ public class AltarBlock extends BlockWithEntity implements PolymerBlock {
                 altar.removeDisplay();
             }
         }
-        super.onBreak(world, pos, state, player);
-        return state;
+        return super.onBreak(world, pos, state, player);
     }
 
-    public void onStateReplaced(BlockState state, World world, BlockPos pos,
-                                BlockState newState, boolean moved) {
-        if (!state.isOf(newState.getBlock())) {
-            BlockEntity be = world.getBlockEntity(pos);
-            if (be instanceof AltarBlockEntity altar) {
-                altar.removeDisplay();
-            }
-        }
-        super.onStateReplaced(state, (ServerWorld) world, pos, moved);
-    }
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos,
                               PlayerEntity player, BlockHitResult hit) {
@@ -89,33 +75,20 @@ public class AltarBlock extends BlockWithEntity implements PolymerBlock {
         BlockEntity be = world.getBlockEntity(pos);
         if (be instanceof AltarBlockEntity altar) {
             if (altar.tryCraft(player, this.recipe)) {
-
-                world.playSound(
-                        null,
-                        pos.getX(), pos.getY(), pos.getZ(),
+                world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
                         SoundEvents.UI_TOAST_CHALLENGE_COMPLETE,
-                        SoundCategory.PLAYERS,
-                        1.0F, // volume
-                        0.75F  // pitch
-                );
+                        SoundCategory.PLAYERS, 1.0F, 0.75F);
                 return ActionResult.SUCCESS;
             } else {
-                world.playSound(
-                        null,
-                        pos.getX(), pos.getY(), pos.getZ(),
+                world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
                         SoundEvents.ENTITY_ITEM_BREAK,
-                        SoundCategory.PLAYERS,
-                        1.0F, // volume
-                        0F  // pitch
-                );
+                        SoundCategory.PLAYERS, 1.0F, 0F);
                 return ActionResult.FAIL;
             }
         }
 
         return ActionResult.FAIL;
     }
-
-
 
     @Override
     protected MapCodec<? extends BlockWithEntity> getCodec() {

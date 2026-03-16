@@ -20,10 +20,7 @@ public abstract class ShieldBlockMixin {
             method = "damage(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/entity/damage/DamageSource;F)Z",
             at = @At("HEAD")
     )
-    private void disableShieldAfterFirstBlock(ServerWorld world,
-                                              DamageSource source,
-                                              float amount,
-                                              CallbackInfoReturnable<Boolean> cir) {
+    private void disableShieldAfterFirstBlock(ServerWorld world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
 
         PlayerEntity player = (PlayerEntity)(Object)this;
 

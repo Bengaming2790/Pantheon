@@ -13,7 +13,7 @@ public class HomingTracker {
 
     private static final int MAX_AGE = 200;
     private static final double SPEED = 1.25;
-    private static final double TURN = 0.25;
+    private static final double TURN = 0.35;
     private static final double RANGE = 12.0;
 
     public static void attach(SnowballEntity projectile, LivingEntity owner) {

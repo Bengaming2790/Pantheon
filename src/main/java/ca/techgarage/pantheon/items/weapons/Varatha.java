@@ -71,37 +71,33 @@ public class Varatha extends Item implements PolymerItem, GlowItem {
 
 
     private static final LoreComponent lore = new LoreComponent(List.of(
+            Text.literal(""),
             Text.literal("A Bident Wielded by ")
-                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.RED).withBold(false))
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.DARK_RED).withBold(true))
                     .append(Text.literal("Hades")
-                            .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.RED).withBold(true))),
+                            .setStyle(Style.EMPTY.withItalic(true).withColor(Formatting.DARK_RED).withBold(true))),
+            Text.literal(""),
             Text.literal("Piercing Blows")
                     .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GOLD).withBold(true)),
             Text.literal("  Ignores a portion of opponent's armor")
                     .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)),
+            Text.literal(""),
             Text.literal("Stygian Wound")
                     .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GOLD).withBold(true)),
-            Text.literal("   On Hitting an enemy inflict ").setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY))
-                    .append(Text.literal("Withering & Blidness").setStyle(Style.EMPTY.withItalic(true).withColor(Formatting.AQUA).withBold(false))),
-            Text.literal("   Cooldown: ")
-                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)).append(Text.literal("15s").setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GREEN))),
-
-            Text.literal("Gravebound Charge")
-                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GOLD).withBold(true))
-                    .append(Text.literal(" - Right Click")
-                            .setStyle(Style.EMPTY.withItalic(true).withColor(Formatting.GRAY).withBold(false))),
-            Text.literal("   Charge forward and leave a Trail that harms opponents")
-                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)),
-            Text.literal("   Cooldown: 15s")
-                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)),
+            Text.literal("   §r§7On hitting an enemy inflict §8§l§oWithering §r§7& §r§8§l§oBlindness"),
+            Text.literal("   §r§7Cooldown: §2§l15s"),
+            Text.literal(""),
+            Text.literal("§r§6§lGravebound Charge §f§l(Right Click)"),
+            Text.literal("   §r§7Charge forward and leave a trail that §8§l§oHarms"),
+            Text.literal("   §r§7Cooldown: §2§l15s"),
+            Text.literal(""),
             Text.literal("Abyssal Recovery")
                     .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GOLD).withBold(true)),
-            Text.literal("   Recover Health on slaying an enemy")
-                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)),
+            Text.literal("   §r§8§l§oRecover Health §r§7on slaying an enemy"),
+            Text.literal(""),
             Text.literal("Hellish Immunity")
                     .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GOLD).withBold(true)),
-            Text.literal("   Grants Immunity to Debuffs")
-                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY))
+            Text.literal("   §r§7Grants §8§l§oDebuff Immunity")
     ));
 
 

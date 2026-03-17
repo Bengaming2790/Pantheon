@@ -66,7 +66,7 @@ public class Triaina extends Item implements PolymerItem, GlowItem {
                         EntityAttributes.ATTACK_SPEED,
                         new EntityAttributeModifier(
                                 BASE_ATTACK_SPEED_MODIFIER_ID,
-                                -2.6,
+                                -2.4,
                                 EntityAttributeModifier.Operation.ADD_VALUE
                         ),
                         AttributeModifierSlot.MAINHAND
@@ -84,8 +84,8 @@ public class Triaina extends Item implements PolymerItem, GlowItem {
             if (!(user.getGameMode() == GameMode.CREATIVE)) {
                 user.getItemCooldownManager().set(stack, 200); //10 second cooldown
             }
-            Dash.dashForward(user, 0.75f);
-            DashState.start((ServerPlayerEntity) user, 10, ParticleTypes.FALLING_WATER);
+            Dash.dashForward(user, 1.5f);
+            DashState.start((ServerPlayerEntity) user, 15, ParticleTypes.FALLING_WATER);
 
             world.playSound(
                     null,
@@ -95,7 +95,7 @@ public class Triaina extends Item implements PolymerItem, GlowItem {
                     1.0F, // volume
                     1.0F  // pitch
             );
-            user.useRiptide(10, 5.0f, stack);
+            user.useRiptide(15, 5.0f, stack);
 
         }
         return ActionResult.SUCCESS;

@@ -25,8 +25,8 @@ public class MaceDamageCapMixin {
             return;
         }
 
-        if (damage > 6.5f) {
-            cir.setReturnValue(6.5f);
+        if (damage > 12f) {
+            cir.setReturnValue(12f);
         }
     }
 }

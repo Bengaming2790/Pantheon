@@ -94,7 +94,7 @@ public class Astrape extends TridentItem implements PolymerItem {
 
         double randomConduct = Math.random();
 
-        if (randomConduct <= 0.1) {
+        if (randomConduct <= 0.25) {
             for (int i = 0; i < 5; i ++) {
                 LightningEntity lightning =
                         new LightningEntity(EntityType.LIGHTNING_BOLT, attacker.getEntityWorld());
@@ -112,7 +112,7 @@ public class Astrape extends TridentItem implements PolymerItem {
         if (Cooldowns.isOnCooldown(player, ASTRAPE_CD)) return ;
 
         int level = conducting.getAmplifier() + 1;
-        float extraDamage = 3.0f * level;
+        float extraDamage = 5.0f * level;
 
         target.damage((ServerWorld) attacker.getEntityWorld(), attacker.getEntityWorld().getDamageSources().playerAttack(player), extraDamage);
         for (int i = 0; i < 5; i ++) {

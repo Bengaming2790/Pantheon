@@ -69,7 +69,7 @@ public class AstrapeEntity extends TridentEntity implements PolymerEntity {
     protected void onBlockHitEnchantmentEffects(ServerWorld world, BlockHitResult blockHitResult, ItemStack weaponStack) {
         Vec3d vec3d = blockHitResult.getBlockPos().clampToWithin(blockHitResult.getPos());
 
-        AOEDamage.applyAoeDamage(this.getEntity(), world, vec3d, 7f, 0f, 1.5f);
+        AOEDamage.applyAoeDamage(this.getEntity(), world, vec3d, 7f, 15f, 1.5f);
 
     }
 

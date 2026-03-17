@@ -51,6 +51,7 @@ dependencies {
     modCompileOnly "net.luckperms:api:5.4"
     implementation include("org.xerial:sqlite-jdbc:3.45.1.0")
     include(modImplementation('me.lucko:fabric-permissions-api:0.6.1'))
+    implementation "com.zaxxer:HikariCP:5.1.0"
 
 }
 

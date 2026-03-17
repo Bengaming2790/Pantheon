@@ -2,7 +2,6 @@ package ca.techgarage.pantheon.mixin;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.item.MaceItem;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.damage.DamageSource;
 
@@ -16,7 +15,15 @@ public class MaceDamageCapMixin {
 
     @Inject(method = "getBonusAttackDamage", at = @At("RETURN"), cancellable = true)
     private void capMaceDamage(Entity target, float baseAttackDamage, DamageSource damageSource, CallbackInfoReturnable<Float> cir) {
+
         float damage = cir.getReturnValue();
+
+        if (!(damageSource.getAttacker() instanceof PlayerEntity player)) return;
+
+        if (player.getItemCooldownManager().isCoolingDown(player.getMainHandStack())) {
+            cir.setReturnValue(-1f);
+            return;
+        }
 
         if (damage > 6.5f) {
             cir.setReturnValue(6.5f);

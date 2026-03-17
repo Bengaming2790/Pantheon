@@ -43,6 +43,7 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 
 
+import java.nio.file.Path;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -103,12 +104,11 @@ public class Pantheon implements ModInitializer {
         PolymerResourcePackUtils.addModAssets(MOD_ID);
         CombatLogAutoBan.register();
         PolymerResourcePackUtils.markAsRequired();
-        BankDatabase.init(
-                FabricLoader.getInstance()
-                        .getGameDir()
-                        .resolve("database/pantheon-bank.db")
-                        .toString()
-        );
+        Path db = FabricLoader.getInstance()
+                .getGameDir()
+                .resolve("database/bank.db");
+
+        BankDatabase.init(db);
 
         PolymerItemGroupUtils.registerPolymerItemGroup(Identifier.of(MOD_ID, "items"), PolymerItemGroupUtils.builder()
                 .icon(() -> new ItemStack(ModItems.DRACHMA))

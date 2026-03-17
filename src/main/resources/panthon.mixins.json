@@ -9,6 +9,7 @@
     "ItemDropMixin",
     "LivingEntityMixin",
     "MaceDamageCapMixin",
+    "MaceItemMixin",
     "NetheriteArmorCancelMixin",
     "NoCobwebSlowMixin",
     "ShieldBlockMixin",

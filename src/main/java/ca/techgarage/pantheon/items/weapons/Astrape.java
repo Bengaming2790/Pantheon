@@ -1,5 +1,6 @@
 package ca.techgarage.pantheon.items.weapons;
 
+import ca.techgarage.pantheon.Pantheon;
 import ca.techgarage.pantheon.api.Cooldowns;
 import ca.techgarage.pantheon.entity.AstrapeEntity;
 import ca.techgarage.pantheon.status.ModEffects;
@@ -21,12 +22,15 @@ import net.minecraft.item.Items;
 import net.minecraft.item.TridentItem;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Unit;
 import net.minecraft.world.World;
 import org.jspecify.annotations.Nullable;
 import xyz.nucleoid.packettweaker.PacketContext;
 
+import javax.swing.*;
 import java.util.LinkedHashSet;
 import java.util.List;
 
@@ -124,41 +128,21 @@ public class Astrape extends TridentItem implements PolymerItem {
         }
         Cooldowns.start(player, ASTRAPE_CD, 10);
     }
-
-
     @Override
-    public boolean onStoppedUsing(ItemStack stack, World world, LivingEntity user, int remainingUseTicks) {
-        if (!(user instanceof PlayerEntity player)) return false;
+    public ActionResult use(World world, PlayerEntity user, Hand hand) {
+        ItemStack stack = user.getStackInHand(hand);
 
-        int useTime = this.getMaxUseTime(stack, user) - remainingUseTicks;
-        if (useTime < 10) return false;
-        if (!world.isClient() && !Cooldowns.isOnCooldown(player, ASTRAPE_THROW_CD)) {
+        if (!world.isClient()) {
+            AstrapeEntity entity = new AstrapeEntity(world, user, stack);
 
+            entity.setPosition(user.getX(), user.getEyeY(), user.getZ());
+            entity.setVelocity(user, user.getPitch(), user.getYaw(), 0.0F, 3.5f, 1.0F);
 
-            AstrapeEntity trident = new AstrapeEntity(
-                    world,
-                    player,
-                    stack
-            );
-
-            trident.setVelocity(
-                    player,
-                    player.getPitch(),
-                    player.getYaw(),
-                    0.0F,
-                    2.5F,
-                    0f
-            );
-
-            trident.pickupType = PersistentProjectileEntity.PickupPermission.DISALLOWED;
-
-            world.spawnEntity(trident);
-            if (!player.isCreative()) Cooldowns.start(player, ASTRAPE_THROW_CD, 20 * 15);
+            world.spawnEntity(entity);
         }
-        return false;
+
+        return ActionResult.SUCCESS;
     }
-
-
 
     @Override
     public void inventoryTick(ItemStack stack, ServerWorld world, Entity entity, @Nullable EquipmentSlot slot) {

@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "pantheon:item/astrape"
-  }
+    "model": "pantheon:item/bolt"
+  } 
 }

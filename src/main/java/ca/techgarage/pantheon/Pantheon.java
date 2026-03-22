@@ -4,11 +4,13 @@ import ca.techgarage.pantheon.api.*;
 import ca.techgarage.pantheon.blocks.AltarBlock;
 import ca.techgarage.pantheon.blocks.ModAltarBlocks;
 import ca.techgarage.pantheon.blocks.ModBlockEntities;
+import ca.techgarage.pantheon.commands.ResetCooldownsCommand;
 import ca.techgarage.pantheon.commands.TempBanCommand;
 import ca.techgarage.pantheon.commands.TempBanListCommand;
 import ca.techgarage.pantheon.commands.TempBanRemoveCommand;
 import ca.techgarage.pantheon.database.BanDatabase;
 import ca.techgarage.pantheon.database.BankDatabase;
+import ca.techgarage.pantheon.entity.ModEntities;
 import ca.techgarage.pantheon.events.JoinListener;
 import ca.techgarage.pantheon.items.DrachmaItem;
 import ca.techgarage.pantheon.items.GlowItem;
@@ -84,9 +86,13 @@ public class Pantheon implements ModInitializer {
                 (dispatcher, registryAccess, environment) ->
                         TempBanRemoveCommand.register(dispatcher)
         );
+        CommandRegistrationCallback.EVENT.register(
+                (dispatcher, registryAccess, environment) ->
+                        ResetCooldownsCommand.register(dispatcher)
+        );
         ModAltarBlocks.register();
         ModBlockEntities.register();
-
+        ModEntities.init();
         logger.info("[Pantheon] Registered Assets");
         ItemFrameBlocker.register();
         InventoryBlocker.register();
@@ -174,7 +180,7 @@ public class Pantheon implements ModInitializer {
         });
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             if (!PantheonConfig.dropBannedItems) return;
-            if (server.getTicks() % 100 != 0) return; // every 100 ticks = 5 seconds
+            if (server.getTicks() % 100 != 0) return;
 
             for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
                 for (int i = 0; i < player.getInventory().size(); i++) {
@@ -194,7 +200,6 @@ public class Pantheon implements ModInitializer {
 
             int needed = PantheonConfig.DroppedDrachmaOnDeath;
 
-            // Count drachma in inventory
             int invCount = DrachmaItem.countDrachma(player);
 
             int takenFromInv = Math.min(invCount, needed);
@@ -210,7 +215,6 @@ public class Pantheon implements ModInitializer {
             if (BankDatabase.getBalance(player.getUuid()) < 0) {
                 return;
             }
-            // Drop total taken
             DrachmaItem.dropDrachma(player, takenFromInv + remaining);
         });
 

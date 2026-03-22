@@ -12,11 +12,11 @@ public class PantheonConfig {
     public static boolean disableDripstoneDamage = false;
     public static double enderPearlCooldown = 30;
 
-    //Wind Charge Cooldown in seconds
+    @Comment("Wind Charge Cooldown in seconds")
     public static double windChargeCooldown = 15;
-    //Disable Totem of Undying {true/false}
+    @Comment("Disable Totem of Undying {true/false}")
     public static boolean disableTotemOfUndying = true;
-
+    @Comment("Time banned in mins default: 60 [Integer]")
     public static int timeBannedFromCombatLogInMinutes = 60;
 
     public static boolean dropBannedItems = true;

@@ -42,6 +42,7 @@ public final class Cooldowns {
     }
 
     public static void clearAll(PlayerEntity player) {
+        if (player == null) return;
         COOLDOWNS.remove(player.getUuid());
     }
 

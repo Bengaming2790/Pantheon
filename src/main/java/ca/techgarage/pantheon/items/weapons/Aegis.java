@@ -23,6 +23,7 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.Unit;
 import xyz.nucleoid.packettweaker.PacketContext;
 
@@ -170,7 +171,11 @@ public class Aegis extends ShieldItem implements PolymerItem {
             return player.getOffHandStack();
         return null;
     }
-
+    private static final Identifier MODEL =
+            Identifier.of("pantheon", "aegis");
+    public Identifier getPolymerItemModel(ItemStack stack, PacketContext context) {
+        return MODEL;
+    }
 
     @Override
     public Item getPolymerItem(ItemStack itemStack, PacketContext packetContext) {

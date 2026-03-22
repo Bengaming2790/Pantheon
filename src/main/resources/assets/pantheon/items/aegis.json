@@ -1,16 +1,5 @@
 {
   "model": {
-    "type": "minecraft:condition",
-    "property": "minecraft:using_item",
-    "on_false": {
-      "model": {
-        "type": "pantheon:item/aegis"
-      }
-    },
-    "on_true": {
-      "model": {
-        "type": "pantheon:item/aegis_blocking"
-      }
-    }
+    "type": "pantheon:item/aegis"
   }
 }

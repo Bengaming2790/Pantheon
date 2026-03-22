@@ -3,7 +3,7 @@
 	"credit": "Made with Blockbench",
 	"texture_size": [64, 64],
 	"textures": {
-		"7": "pantheon:item/aegis"
+		"7": "pantheon:item/shield-texture"
 	},
 	"elements": [
 		{
@@ -1881,7 +1881,7 @@
 		{
 			"from": [9.0105, 4.47807, 7.377],
 			"to": [10.0105, 8.47807, 7.627],
-			"rotation": {"x": 0, "y": 0, "z": 45, "origin": [10.83725, 6.74231, 7.5]},
+			"rotation": {"angle": 45, "axis": "z", "origin": [10.83725, 6.74231, 7.5]},
 			"faces": {
 				"north": {"uv": [3.5, 6.25, 3.75, 7.25], "texture": "#7"},
 				"east": {"uv": [8.75, 6.25, 8.875, 7.25], "texture": "#7"},

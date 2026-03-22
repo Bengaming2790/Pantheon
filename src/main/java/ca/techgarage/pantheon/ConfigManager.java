@@ -4,8 +4,8 @@ import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.*;
 import java.lang.reflect.Field;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.lang.reflect.Modifier;
+import java.nio.file.*;
 import java.util.*;
 
 public class ConfigManager {
@@ -17,103 +17,86 @@ public class ConfigManager {
 
     public static void load(Class<?> configClass) {
         try {
-            if (!Files.exists(CONFIG_PATH)) {
-                createDefault(configClass);
-            }
+            Map<String, String> existing = Files.exists(CONFIG_PATH)
+                    ? readFile()
+                    : Collections.emptyMap();
 
-            Map<String, String> values = readFile();
 
-            for (Field field : configClass.getDeclaredFields()) {
-                if (!java.lang.reflect.Modifier.isStatic(field.getModifiers())) continue;
-
+            for (Field field : declaredStaticFields(configClass)) {
                 field.setAccessible(true);
                 String key = field.getName();
+                String raw = existing.get(key);
 
-                if (!values.containsKey(key)) {
-                    appendMissingField(field);
-                    continue;
-                }
-
-                // Otherwise load existing value from file
-                String raw = values.get(key);
-                Class<?> type = field.getType();
-
-                if (type == boolean.class) {
-                    field.setBoolean(null, Boolean.parseBoolean(raw));
-                } else if (type == int.class) {
-                    field.setInt(null, Integer.parseInt(raw));
-                } else if (type == double.class) {
-                    field.setDouble(null, Double.parseDouble(raw));
-                } else if (type == String.class) {
-                    field.set(null, raw);
+                if (raw != null) {
+                    applyValue(field, raw);
                 }
             }
+
+            writeFile(configClass);
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private static void createDefault(Class<?> configClass) throws IOException {
+    private static void applyValue(Field field, String raw) {
+        try {
+            Class<?> type = field.getType();
+            if      (type == boolean.class) field.setBoolean(null, Boolean.parseBoolean(raw));
+            else if (type == int.class)     field.setInt    (null, Integer.parseInt(raw));
+            else if (type == double.class)  field.setDouble (null, Double.parseDouble(raw));
+            else if (type == float.class)   field.setFloat  (null, Float.parseFloat(raw));
+            else if (type == long.class)    field.setLong   (null, Long.parseLong(raw));
+            else if (type == String.class)  field.set       (null, raw);
+        } catch (IllegalArgumentException | IllegalAccessException e) {
+            System.err.println("[Pantheon] Could not parse value for '" + field.getName()
+                    + "': \"" + raw + "\" — using default.");
+        }
+    }
+
+    private static void writeFile(Class<?> configClass) throws IOException, IllegalAccessException {
         Files.createDirectories(CONFIG_PATH.getParent());
 
         try (BufferedWriter writer = Files.newBufferedWriter(CONFIG_PATH)) {
-            for (Field field : configClass.getDeclaredFields()) {
-                if (!java.lang.reflect.Modifier.isStatic(field.getModifiers())) continue;
-
+            for (Field field : declaredStaticFields(configClass)) {
                 field.setAccessible(true);
 
                 Comment comment = field.getAnnotation(Comment.class);
-                if (comment != null) {
-                    writer.write("# " + comment.value());
-                } else {
-                    writer.write("# " + field.getName());
-                }
-                writer.newLine();
+                String commentText = (comment != null) ? comment.value() : field.getName();
 
+                writer.write("# " + commentText);
+                writer.newLine();
                 writer.write(field.getName() + ": " + field.get(null));
                 writer.newLine();
                 writer.newLine();
             }
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
         }
     }
 
     private static Map<String, String> readFile() throws IOException {
-        Map<String, String> map = new HashMap<>();
+        // LinkedHashMap preserves file order, though we don't rely on it here
+        Map<String, String> map = new LinkedHashMap<>();
 
-        List<String> lines = Files.readAllLines(CONFIG_PATH);
-
-        for (String line : lines) {
+        for (String line : Files.readAllLines(CONFIG_PATH)) {
             line = line.trim();
+            if (line.isEmpty() || line.startsWith("#") || !line.contains(":")) continue;
 
-            if (line.isEmpty()) continue;
-            if (line.startsWith("#")) continue;
-
-            if (!line.contains(":")) continue;
-
-            String[] split = line.split(":", 2);
-
-            String key = split[0].trim();
-            String value = split[1].trim();
-
-            map.put(key, value);
+            String[] parts = line.split(":", 2);
+            map.put(parts[0].trim(), parts[1].trim());
         }
 
         return map;
     }
 
-    private static void appendMissingField(Field field) throws IOException, IllegalAccessException {
-        try (BufferedWriter writer = Files.newBufferedWriter(
-                CONFIG_PATH,
-                java.nio.file.StandardOpenOption.APPEND
-        )) {
-            writer.newLine();
-            writer.write("# " + field.getName());
-            writer.newLine();
-            writer.write(field.getName() + ": " + field.get(null));
-            writer.newLine();
+    /** Returns only the public static fields in declaration order. */
+    private static List<Field> declaredStaticFields(Class<?> clazz) {
+        List<Field> result = new ArrayList<>();
+        for (Field f : clazz.getDeclaredFields()) {
+            int mod = f.getModifiers();
+            if (Modifier.isStatic(mod) && !Modifier.isFinal(mod)) {
+                result.add(f);
+            }
         }
+        return result;
     }
 }

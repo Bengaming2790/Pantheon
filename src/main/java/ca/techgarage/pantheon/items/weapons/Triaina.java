@@ -136,7 +136,7 @@ public class Triaina extends Item implements PolymerItem, GlowItem {
         Vec3d direction = target.getEntityPos()
                 .subtract(player.getEntityPos())
                 .normalize();
-
+        target.damage((ServerWorld) target.getEntityWorld(), target.getDamageSources().playerAttack(player), 2f);
         Vec3d velocity = new Vec3d(
                 direction.x * 1.2,
                 0.45,

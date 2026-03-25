@@ -9,9 +9,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+// TODO(Ravel): can not resolve target class LivingEntity
 @Mixin(LivingEntity.class)
 public abstract class LightningImmunityMixin {
 
+    // TODO(Ravel): no target class
     @Inject(method = "damage", at = @At("HEAD"), cancellable = true)
     private void pantheon$astrapeLightningImmunity(ServerWorld world,
                                                    DamageSource source,

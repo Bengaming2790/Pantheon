@@ -12,9 +12,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+// TODO(Ravel): can not resolve target class SmithingScreenHandler
 @Mixin(SmithingScreenHandler.class)
 public abstract class NetheriteArmorCancelMixin {
 
+    // TODO(Ravel): no target class
     @Inject(method = "updateResult", at = @At("TAIL"))
     private void preventNetheriteArmor(CallbackInfo ci) {
 
@@ -31,6 +33,7 @@ public abstract class NetheriteArmorCancelMixin {
 
         }
     }
+    // TODO(Ravel): no target class
     @Inject(method = "onTakeOutput", at = @At("HEAD"), cancellable = true)
     private void preventTaking(PlayerEntity player, ItemStack stack, CallbackInfo ci) {
         if (!PantheonConfig.diableNetheriteUpgrade) return;

@@ -10,8 +10,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+// TODO(Ravel): can not resolve target class ItemEntity
 @Mixin(ItemEntity.class)
 public class ItemDropMixin {
+    // TODO(Ravel): no target class
     @Inject(method = "onPlayerCollision", at = @At("HEAD"), cancellable = true)
     private void onPickup(PlayerEntity player, CallbackInfo ci) {
         if (!PantheonConfig.dropBannedItems) return;

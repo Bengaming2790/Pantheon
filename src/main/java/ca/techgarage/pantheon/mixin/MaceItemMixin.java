@@ -13,12 +13,14 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+// TODO(Ravel): can not resolve target class MaceItem
 @Mixin(MaceItem.class)
 public class MaceItemMixin {
 
     @Unique
     private static final int SLAM_COOLDOWN_TICKS = 160;
 
+    // TODO(Ravel): no target class
     @Inject(method = "postHit", at = @At("HEAD"))
     private void pantheon$applySlamCooldown(ItemStack stack, LivingEntity target, LivingEntity attacker, CallbackInfo ci) {
 

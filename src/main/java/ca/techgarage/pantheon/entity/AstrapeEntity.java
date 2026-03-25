@@ -167,6 +167,7 @@ public class AstrapeEntity extends PersistentProjectileEntity implements Polymer
             display.discard();
             display = null;
         }
+        this.discard();
     }
 
     @Override

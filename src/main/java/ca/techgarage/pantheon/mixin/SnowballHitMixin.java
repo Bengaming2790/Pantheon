@@ -10,9 +10,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+// TODO(Ravel): can not resolve target class SnowballEntity
 @Mixin(SnowballEntity.class)
 public class SnowballHitMixin {
 
+    // TODO(Ravel): no target class
     @Inject(method = "onEntityHit", at = @At("HEAD"))
     private void pantheon$partyFoul(EntityHitResult hit, CallbackInfo ci) {
         if (!(hit.getEntity() instanceof LivingEntity living)) return;

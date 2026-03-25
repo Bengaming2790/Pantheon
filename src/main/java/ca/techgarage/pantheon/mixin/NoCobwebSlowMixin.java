@@ -13,9 +13,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+// TODO(Ravel): can not resolve target class CobwebBlock
 @Mixin(CobwebBlock.class)
 public abstract class NoCobwebSlowMixin {
 
+    // TODO(Ravel): no target class
     @Inject(
             method = "onEntityCollision",
             at = @At("HEAD"),

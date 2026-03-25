@@ -13,9 +13,11 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 
+// TODO(Ravel): can not resolve target class PlayerEntity
 @Mixin(PlayerEntity.class)
 public abstract class ShieldBlockMixin {
 
+    // TODO(Ravel): no target class
     @Inject(
             method = "damage(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/entity/damage/DamageSource;F)Z",
             at = @At("HEAD")

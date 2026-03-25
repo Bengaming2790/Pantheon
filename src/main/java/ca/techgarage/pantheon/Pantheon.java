@@ -98,7 +98,7 @@ public class Pantheon implements ModInitializer {
         InventoryBlocker.register();
         Optional<?> modContainer = FabricLoader.getInstance().getModContainer(MOD_ID);
         if (modContainer.isEmpty()) {
-            logger.error("[Pantheon] Mod container '{}' not found. Check that `fabric.mod.json` contains the matching mod id.", MOD_ID);
+            logger.error("[Pantheon] Mod container '{}' not found. Check that fabric.mod.json contains the matching mod id.", MOD_ID);
             return;
         }
 
@@ -171,7 +171,7 @@ public class Pantheon implements ModInitializer {
             return ActionResult.FAIL;
         });
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            var player = handler.getPlayer();
+            var player = handler.player;
             var uuid = player.getUuid();
 
             if (!BankDatabase.hasAccount(uuid)) {
@@ -299,10 +299,10 @@ public class Pantheon implements ModInitializer {
                                 )
                         )
         ));
-            ServerLifecycleEvents.SERVER_STARTED.register(server -> {
-                BanDatabase.init(server);
-                JoinListener.register();
-            });
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            BanDatabase.init(server);
+            JoinListener.register();
+        });
 
     }
 

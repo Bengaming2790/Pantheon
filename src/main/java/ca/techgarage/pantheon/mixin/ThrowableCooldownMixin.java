@@ -10,9 +10,11 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
+// TODO(Ravel): can not resolve target class ItemStack
 @Mixin(ItemStack.class)
 public abstract class ThrowableCooldownMixin {
 
+    // TODO(Ravel): no target class
     @Redirect(
             method = "applyRemainderAndCooldown",
             at = @At(

@@ -133,12 +133,15 @@ public class Astrape extends TridentItem implements PolymerItem {
         ItemStack stack = user.getStackInHand(hand);
 
         if (!world.isClient()) {
+
+
             AstrapeEntity entity = new AstrapeEntity(world, user, stack);
 
             entity.setPosition(user.getX(), user.getEyeY(), user.getZ());
             entity.setVelocity(user, user.getPitch(), user.getYaw(), 0.0F, 3.5f, 1.0F);
 
             world.spawnEntity(entity);
+            if (!user.isCreative()) user.getItemCooldownManager().set(stack, 15 * 20);
         }
 
         return ActionResult.SUCCESS;

@@ -10,9 +10,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+// TODO(Ravel): can not resolve target class MaceItem
 @Mixin(MaceItem.class)
 public class MaceDamageCapMixin {
 
+    // TODO(Ravel): no target class
     @Inject(method = "getBonusAttackDamage", at = @At("RETURN"), cancellable = true)
     private void capMaceDamage(Entity target, float baseAttackDamage, DamageSource damageSource, CallbackInfoReturnable<Float> cir) {
 

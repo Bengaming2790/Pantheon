@@ -118,7 +118,7 @@ public class Enyalios extends Item implements PolymerItem {
     }
 
     @Override
-    public void postHurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+    public void hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
         if (attacker instanceof Player player) {
             float damage = 31f;
 

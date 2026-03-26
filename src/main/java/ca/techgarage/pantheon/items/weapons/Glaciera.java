@@ -78,7 +78,7 @@ public class Glaciera extends Item implements PolymerItem {
     }
 
     @Override
-    public void postHurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+    public void hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
         if (attacker.level().isClientSide()) return;
 
         if (!(attacker instanceof Player player)) {

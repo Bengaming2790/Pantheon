@@ -11,36 +11,53 @@ import java.util.Comparator;
 
 public class HomingTracker {
 
-    private static final int MAX_AGE = 200;
-    private static final double SPEED = 1.25;
-    private static final double TURN = 0.35;
-    private static final double RANGE = 12.0;
+    private static final double SPEED = 1.5;
+    private static final double TURN = 0.25;       // lower = smoother arc, higher = snappier
+    private static final double RANGE = 24.0;
+    private static final double LOCK_RANGE = 2.5;  // teleport-correct if this close and about to miss
 
-    /**
-     * Note: In a production mod, it is better to handle this via a Mixin
-     * in Snowball#tick or a TickEvent that iterates projectiles rather
-     * than registering a new event listener per snowball.
-     */
     public static void attach(Snowball projectile, LivingEntity owner) {
+        // Lock onto the nearest target at launch, don't re-acquire
+        final LivingEntity[] lockedTarget = {null};
+
         ServerTickEvents.END_WORLD_TICK.register(level -> {
-            if (projectile.isRemoved() || projectile.tickCount > MAX_AGE) return;
+            if (projectile.isRemoved()) return;
 
-            LivingEntity target = findTarget((ServerLevel) level, projectile, owner);
-            if (target == null) return;
+            ServerLevel serverLevel = (ServerLevel) level;
 
-            // target.getEyePosition() is the Mojang equivalent for centering on the head/chest
+            // Acquire lock on first tick
+            if (lockedTarget[0] == null || !lockedTarget[0].isAlive()) {
+                lockedTarget[0] = findTarget(serverLevel, projectile, owner);
+            }
+
+            LivingEntity target = lockedTarget[0];
+            if (target == null || !target.isAlive()) return;
+
             Vec3 targetPos = target.getEyePosition(1.0f);
             Vec3 currentPos = projectile.position();
-            Vec3 dir = targetPos.subtract(currentPos).normalize();
+            Vec3 toTarget = targetPos.subtract(currentPos);
+            double dist = toTarget.length();
 
-            // getDeltaMovement() is the Mojang equivalent for getVelocity()
+            if (dist < LOCK_RANGE) {
+                projectile.setDeltaMovement(toTarget.normalize().scale(SPEED));
+                return;
+            }
+
+            // Predict where target will be next tick based on their velocity
+            Vec3 targetVelocity = target.getDeltaMovement();
+            Vec3 predictedPos = targetPos.add(targetVelocity);
+            Vec3 dir = predictedPos.subtract(currentPos).normalize();
+
+            // Blend current velocity toward target direction
             Vec3 vel = projectile.getDeltaMovement()
+                    .normalize()
                     .scale(1.0 - TURN)
                     .add(dir.scale(TURN))
                     .normalize()
                     .scale(SPEED);
 
             projectile.setDeltaMovement(vel);
+            projectile.setNoGravity(true); // prevent gravity from pulling it off course
         });
     }
 

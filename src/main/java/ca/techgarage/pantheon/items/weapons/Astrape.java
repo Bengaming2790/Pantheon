@@ -7,6 +7,7 @@ import ca.techgarage.pantheon.status.ModEffects;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
@@ -15,12 +16,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.EquipmentSlotGroup;
-import net.minecraft.world.entity.LightningBolt;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
@@ -37,8 +33,9 @@ import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.logging.Logger;
 
-public class Astrape extends TridentItem implements PolymerItem {
+public class Astrape extends Item implements PolymerItem {
 
     public Astrape(Item.Properties settings) {
         super(settings.component(DataComponents.UNBREAKABLE, Unit.INSTANCE)
@@ -59,7 +56,6 @@ public class Astrape extends TridentItem implements PolymerItem {
     private static final Identifier MODEL =
             Identifier.fromNamespaceAndPath("pantheon", "astrape");
     private static final String ASTRAPE_CD = "astrape_lightning_cd";
-    private static final String ASTRAPE_THROW_CD = "astrape_throw_cd";
 
     public static ItemAttributeModifiers createAttributeModifiers() {
         return ItemAttributeModifiers.builder()
@@ -95,39 +91,38 @@ public class Astrape extends TridentItem implements PolymerItem {
 
     @Override
     public void hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
-        if (attacker.level().isClientSide()) return;
         if (!(attacker instanceof Player player)) return;
+        if (!(attacker.level() instanceof ServerLevel serverLevel)) return;
 
-        double randomConduct = Math.random();
+        if (Math.random() <= 0.25) {
+            spawnLightning(serverLevel, target);
+        }
 
-        if (randomConduct <= 0.25) {
-            for (int i = 0; i < 5; i++) {
-                LightningBolt lightning =
-                        new LightningBolt(EntityType.LIGHTNING_BOLT, attacker.level());
+        boolean conducting = target.hasEffect(ModEffects.CONDUCTING);
+        if (conducting && !Cooldowns.isOnCooldown(player, ASTRAPE_CD)) {
+            int level = 1;
+            float extraDamage = 5.0f * level;
+
+            target.hurtServer(
+                    serverLevel,
+                    serverLevel.damageSources().playerAttack(player),
+                    extraDamage
+            );
+
+            spawnLightning(serverLevel, target);
+            Cooldowns.start(player, ASTRAPE_CD, 10);
+        }
+    }
+
+    private void spawnLightning(ServerLevel level, LivingEntity target) {
+        for (int i = 0; i < 5; i++) {
+            LightningBolt lightning = EntityType.LIGHTNING_BOLT.create(level, EntitySpawnReason.SPAWNER);
+            if (lightning != null) {
                 lightning.setPos(target.getX(), target.getY(), target.getZ());
-                attacker.level().addFreshEntity(lightning);
+                lightning.setVisualOnly(false);
+                level.addFreshEntity(lightning);
             }
         }
-
-        MobEffectInstance conducting = target.getEffect((Holder<MobEffect>) ModEffects.CONDUCTING);
-        if (conducting == null) return;
-        if (Cooldowns.isOnCooldown(player, ASTRAPE_CD)) return;
-
-        int level = conducting.getAmplifier() + 1;
-        float extraDamage = 5.0f * level;
-
-        target.hurtServer(
-                (ServerLevel) attacker.level(),
-                attacker.level().damageSources().playerAttack(player),
-                extraDamage
-        );
-        for (int i = 0; i < 5; i++) {
-            LightningBolt lightning =
-                    new LightningBolt(EntityType.LIGHTNING_BOLT, attacker.level());
-            lightning.setPos(target.getX(), target.getY(), target.getZ());
-            attacker.level().addFreshEntity(lightning);
-        }
-        Cooldowns.start(player, ASTRAPE_CD, 10);
     }
 
     @Override

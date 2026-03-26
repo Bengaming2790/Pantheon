@@ -136,7 +136,7 @@ public class Peitho extends Item implements PolymerItem, GlowItem {
         out.remove(DataComponents.CUSTOM_DATA);
     }
     @Override
-    public void postHurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+    public void hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
         if (attacker.level().isClientSide()) return;
       if (attacker instanceof Player player) {
           if (attacker.isShiftKeyDown() && !(Cooldowns.isOnCooldown(player,PEITHO_25_CD))) {

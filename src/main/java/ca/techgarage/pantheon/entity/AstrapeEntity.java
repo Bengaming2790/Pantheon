@@ -5,6 +5,7 @@ import ca.techgarage.pantheon.items.ModItems;
 import ca.techgarage.pantheon.status.ModEffects;
 import eu.pb4.polymer.core.api.entity.PolymerEntity;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
@@ -128,14 +129,15 @@ public class AstrapeEntity extends Arrow implements PolymerEntity {
                 if (entity.getType() == EntityType.ENDERMAN) return;
 
                 if (entity instanceof LivingEntity living) {
-                    this.doPostHurtEffects(living); // Standard arrow knockback/effects logic
+                    this.doPostHurtEffects(living);
 
                     living.addEffect(
                             new MobEffectInstance(MobEffects.GLOWING, 20 * 8, 1, true, false, false)
                     );
 
                     living.addEffect(
-                            new MobEffectInstance((Holder<MobEffect>) ModEffects.CONDUCTING, 20 * 8, 1, true, false, false)
+                            new MobEffectInstance(ModEffects.CONDUCTING, 20 * 8, 1, true, true, false),
+                            entity
                     );
                 }
             }

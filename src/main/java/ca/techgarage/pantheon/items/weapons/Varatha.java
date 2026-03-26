@@ -159,7 +159,7 @@ public class Varatha extends Item implements PolymerItem, GlowItem {
 
                 Dash.dashForward(user, 1.5f);
                 DashState.start(serverPlayer, 15, net.minecraft.core.particles.ParticleTypes.RAID_OMEN);
-
+                serverPlayer.startAutoSpinAttack(5, 2.5f, serverPlayer.getActiveItem());
                 level.playSound(null, user.getX(), user.getY(), user.getZ(),
                         SoundEvents.BREEZE_WIND_CHARGE_BURST, SoundSource.PLAYERS, 1.0F, 0.5F);
             }

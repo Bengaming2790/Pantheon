@@ -4,6 +4,7 @@ import ca.techgarage.pantheon.entity.AstrapeEntity;
 import ca.techgarage.pantheon.items.weapons.Glaciera;
 import ca.techgarage.pantheon.status.ModEffects;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -155,7 +156,7 @@ public class AOEDamage {
                         entity
                 );
                 entity.addEffect(
-                        new MobEffectInstance((Holder<MobEffect>) ModEffects.CONDUCTING, 20 * 8, 1, true, true, false),
+                        new MobEffectInstance(ModEffects.CONDUCTING, 20 * 8, 1, true, true, false),
                         entity
                 );
             }

@@ -74,7 +74,7 @@ public class Phoebus extends Item implements PolymerItem {
     }
 
     @Override
-    public void postHurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+    public void hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
         super.postHurtEnemy(stack, target, attacker);
         if (target.level().isClientSide()) {
             return;
@@ -89,7 +89,7 @@ public class Phoebus extends Item implements PolymerItem {
         if (attacker instanceof Player player) {
             if (Cooldowns.isOnCooldown(player, PHOEBUS_SONG_ACTIVE)) {
                 target.addEffect(
-                        new MobEffectInstance((Holder<MobEffect>) ModEffects.SUN_POISONING, 20 * 5, 1, true, true, true),
+                        new MobEffectInstance(ModEffects.SUN_POISONING, 20 * 5, 1, true, true, true),
                         target
                 );
             }

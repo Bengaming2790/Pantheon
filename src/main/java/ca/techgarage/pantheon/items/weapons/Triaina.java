@@ -6,110 +6,110 @@ import ca.techgarage.pantheon.api.DashState;
 import ca.techgarage.pantheon.items.GlowItem;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.AttributeModifierSlot;
-import net.minecraft.component.type.AttributeModifiersComponent;
-import net.minecraft.component.type.TooltipDisplayComponent;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Unit;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameMode;
-import net.minecraft.world.World;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.LinkedHashSet;
 import java.util.List;
 
 public class Triaina extends Item implements PolymerItem, GlowItem {
-    public Triaina(Settings settings) {
-        super(settings.component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.MAX_STACK_SIZE, 1).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers()).fireproof()
-                .component(DataComponentTypes.TOOLTIP_DISPLAY, new TooltipDisplayComponent(false, new LinkedHashSet<>(List.of(
-                        DataComponentTypes.ATTRIBUTE_MODIFIERS,
-                        DataComponentTypes.UNBREAKABLE
+    public Triaina(Properties settings) {
+        super(settings.component(DataComponents.UNBREAKABLE, Unit.INSTANCE).component(DataComponents.MAX_STACK_SIZE, 1).component(DataComponents.ATTRIBUTE_MODIFIERS, createAttributeModifiers()).fireResistant()
+                .component(DataComponents.TOOLTIP_DISPLAY, new TooltipDisplay(false, new LinkedHashSet<>(List.of(
+                        DataComponents.ATTRIBUTE_MODIFIERS,
+                        DataComponents.UNBREAKABLE
                 )))));
         applyEffects();
     }
     private static final Identifier MODEL =
-            Identifier.of("pantheon", "triaina");
+            Identifier.fromNamespaceAndPath("pantheon", "triaina");
     private static final String TRIAINA_COMBO_TIMER = "triaina_hit_combo_timer";
     private static final String TRIAINA_COMBO_HITS = "triaina_hit_combo_hits";
 
-    public static AttributeModifiersComponent createAttributeModifiers() {
-        return AttributeModifiersComponent.builder()
+    public static ItemAttributeModifiers createAttributeModifiers() {
+        return ItemAttributeModifiers.builder()
                 .add(
-                        EntityAttributes.ATTACK_DAMAGE,
-                        new EntityAttributeModifier(
-                                BASE_ATTACK_DAMAGE_MODIFIER_ID,
+                        Attributes.ATTACK_DAMAGE,
+                        new AttributeModifier(
+                                BASE_ATTACK_DAMAGE_ID,
                                 11.0,
-                                EntityAttributeModifier.Operation.ADD_VALUE
+                                AttributeModifier.Operation.ADD_VALUE
                         ),
-                        AttributeModifierSlot.MAINHAND
+                        EquipmentSlotGroup.MAINHAND
                 )
                 .add(
-                        EntityAttributes.ATTACK_SPEED,
-                        new EntityAttributeModifier(
-                                BASE_ATTACK_SPEED_MODIFIER_ID,
+                        Attributes.ATTACK_SPEED,
+                        new AttributeModifier(
+                                BASE_ATTACK_SPEED_ID,
                                 -2.4,
-                                EntityAttributeModifier.Operation.ADD_VALUE
+                                AttributeModifier.Operation.ADD_VALUE
                         ),
-                        AttributeModifierSlot.MAINHAND
+                        EquipmentSlotGroup.MAINHAND
                 )
                 .build();
     }
 
     @Override
-    public ActionResult use(World world, PlayerEntity user, Hand hand) {
-        if (!world.isClient()) {
-            ItemStack stack = user.getStackInHand(hand);
-            if(user.raycast(2, 0, false).getType() == net.minecraft.util.hit.HitResult.Type.BLOCK) {
-                return ActionResult.PASS;
+    public InteractionResult use(Level world, Player user, InteractionHand hand) {
+        if (!world.isClientSide()) {
+            ItemStack stack = user.getItemInHand(hand);
+            if(user.pick(2, 0, false).getType() == net.minecraft.world.phys.HitResult.Type.BLOCK) {
+                return InteractionResult.PASS;
             }
-            if (!(user.getGameMode() == GameMode.CREATIVE)) {
-                user.getItemCooldownManager().set(stack, 200); //10 second cooldown
+            if (!(user.gameMode().isCreative())) {
+                user.getCooldowns().addCooldown(stack, 200); //10 second cooldown
             }
             Dash.dashForward(user, 1.5f);
-            DashState.start((ServerPlayerEntity) user, 15, ParticleTypes.FALLING_WATER);
+            DashState.start((ServerPlayer) user, 15, ParticleTypes.FALLING_WATER);
 
             world.playSound(
                     null,
                     user.getX(), user.getY(), user.getZ(),
-                    SoundEvents.BLOCK_CONDUIT_ACTIVATE,
-                    SoundCategory.PLAYERS,
+                    SoundEvents.CONDUIT_ACTIVATE,
+                    SoundSource.PLAYERS,
                     1.0F, // volume
                     1.0F  // pitch
             );
-            user.useRiptide(15, 5.0f, stack);
+            user.startAutoSpinAttack(15, 5.0f, stack);
 
         }
-        return ActionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
-    private static ItemStack getHeldEnyalios(PlayerEntity player) {
-        if (player.getMainHandStack().getItem() instanceof Triaina)
-            return player.getMainHandStack();
+    private static ItemStack getHeldEnyalios(Player player) {
+        if (player.getActiveItem().getItem() instanceof Triaina)
+            return player.getActiveItem();
         return null;
     }
 
     @Override
-    public void postHit(ItemStack stack, LivingEntity target, LivingEntity attacker) {
-        if (attacker.getEntityWorld().isClient()) return;
-        if (!(attacker instanceof PlayerEntity player)) return;
+    public void postHurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+        if (attacker.level().isClientSide()) return;
+        if (!(attacker instanceof Player player)) return;
         if (!(stack.getItem() instanceof Triaina)) return;
 
         // First hit → start combo
@@ -126,29 +126,27 @@ public class Triaina extends Item implements PolymerItem, GlowItem {
         // Third hit → knockback
         if (hits >= 3) {
             applyComboKnockback(player, target);
-            target.damage((ServerWorld) player.getEntityWorld(), player.getDamageSources().playerAttack(player), 5);
+            target.hurt( player.damageSources().playerAttack(player), 5);
             // Reset combo
             Cooldowns.clear(player, TRIAINA_COMBO_TIMER);
             Cooldowns.clear(player, TRIAINA_COMBO_HITS);
         }
     }
-    private static void applyComboKnockback(PlayerEntity player, LivingEntity target) {
-        Vec3d direction = target.getEntityPos()
-                .subtract(player.getEntityPos())
+    private static void applyComboKnockback(Player player, LivingEntity target) {
+        Vec3 direction = target.getDeltaMovement()
+                .subtract(player.getDeltaMovement())
                 .normalize();
-        target.damage((ServerWorld) target.getEntityWorld(), target.getDamageSources().playerAttack(player), 2f);
-        Vec3d velocity = new Vec3d(
+        target.hurt( target.damageSources().playerAttack(player), 2f);
+        Vec3 velocity = new Vec3(
                 direction.x * 1.2,
                 0.45,
                 direction.z * 1.2
         );
 
-        target.setVelocity(velocity);
+        target.push(velocity);
 
-        if (target instanceof ServerPlayerEntity serverTarget) {
-            serverTarget.networkHandler.sendPacket(
-                    new net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket(serverTarget)
-            );
+        if (player instanceof ServerPlayer serverPlayer) {
+            serverPlayer.connection.send(new ClientboundSetEntityMotionPacket(player));
         }
     }
 
@@ -156,12 +154,12 @@ public class Triaina extends Item implements PolymerItem, GlowItem {
     public static void applyEffects(){
         // Sea God's Boon
         ServerTickEvents.END_SERVER_TICK.register(server -> {
-            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            for (ServerPlayer player : server.getPlayerList().getPlayers()) {
                 if (getHeldEnyalios(player) == null) continue;
 
-                player.addStatusEffect(
-                        new StatusEffectInstance(
-                                StatusEffects.DOLPHINS_GRACE,
+                player.addEffect(
+                        new MobEffectInstance(
+                                MobEffects.DOLPHINS_GRACE,
                                 40,
                                 2,
                                 true,
@@ -169,9 +167,9 @@ public class Triaina extends Item implements PolymerItem, GlowItem {
                                 false
                         )
                 );
-                player.addStatusEffect(
-                        new StatusEffectInstance(
-                                StatusEffects.WATER_BREATHING,
+                player.addEffect(
+                        new MobEffectInstance(
+                                MobEffects.WATER_BREATHING,
                                 40,
                                 2,
                                 true,
@@ -188,8 +186,8 @@ public class Triaina extends Item implements PolymerItem, GlowItem {
     }
 
     @Override
-    public Text getName(ItemStack stack) {
-        return Text.translatable("item.pantheon.triaina");
+    public Component getName(ItemStack stack) {
+        return Component.translatable("item.pantheon.triaina");
     }
     @Override
     public Item getPolymerItem(ItemStack itemStack, PacketContext packetContext) {

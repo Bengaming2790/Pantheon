@@ -1,47 +1,46 @@
 package ca.techgarage.pantheon.status;
 
 import ca.techgarage.pantheon.DamageSources.ModDamageSources;
-import ca.techgarage.pantheon.api.DashState;
 import eu.pb4.polymer.core.api.other.PolymerStatusEffect;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectCategory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket;
-import net.minecraft.particle.DustParticleEffect;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
 
-public class Bleed extends StatusEffect implements PolymerStatusEffect {
-    public Bleed(StatusEffectCategory category, int color) {
+import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+
+public class Bleed extends MobEffect implements PolymerStatusEffect {
+    public Bleed(MobEffectCategory category, int color) {
         super(category, color);
     }
-    public ItemStack getPolymerIcon(StatusEffect effect, ServerPlayerEntity player) {
+    public ItemStack getPolymerIcon(MobEffect effect, ServerPlayer player) {
         return new ItemStack(Items.REDSTONE);
     }
     @Override
-    public boolean canApplyUpdateEffect(int duration, int amplifier) {
+    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
         return true; // run every tick
     }
 
     @Override
-    public boolean applyUpdateEffect(ServerWorld world, LivingEntity entity, int amplifier) {
+    public boolean applyEffectTick(ServerLevel world, LivingEntity entity, int amplifier) {
 
-        entity.damage(
-                world,
+        entity.hurt(
                 ModDamageSources.bleeding(world),
                 (0.5f + 1f) * amplifier
         );
 
 
-        DustParticleEffect dust = new DustParticleEffect(
+        DustParticleOptions dust = new DustParticleOptions(
                 16711680,
                 1.0f
         );
 
-        world.spawnParticles(
+        world.sendParticles(
                 dust,
                 entity.getX(),
                 entity.getY() + 0.5,
@@ -57,8 +56,8 @@ public class Bleed extends StatusEffect implements PolymerStatusEffect {
     }
 
 
-    public Text getName() {
-        return Text.translatable("effect.pantheon.bleed");
+    public Component getName() {
+        return Component.translatable("effect.pantheon.bleed");
     }
 
 }

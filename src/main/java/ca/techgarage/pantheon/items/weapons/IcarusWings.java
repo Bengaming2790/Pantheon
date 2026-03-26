@@ -4,54 +4,66 @@ import ca.techgarage.pantheon.api.Cooldowns;
 import ca.techgarage.pantheon.status.ModEffects;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.EquippableComponent;
-import net.minecraft.component.type.TooltipDisplayComponent;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.equipment.EquipmentAssetKeys;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
+
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Unit;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.item.equipment.Equippable;
+
+import net.minecraft.world.effect.MobEffectInstance;
+
 import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.*;
 
 public class IcarusWings extends Item implements PolymerItem {
-    public IcarusWings(Settings settings) {
-        super(settings.maxDamage(232).component(DataComponentTypes.GLIDER, Unit.INSTANCE)
-                .component(DataComponentTypes.MAX_STACK_SIZE, 1)
-                .component(DataComponentTypes.EQUIPPABLE, EquippableComponent.builder(EquipmentSlot.CHEST).equipSound(SoundEvents.ITEM_ARMOR_EQUIP_ELYTRA).model(EquipmentAssetKeys.ELYTRA).damageOnHurt(false).build()).repairable(Items.HONEYCOMB)
-                .component(DataComponentTypes.TOOLTIP_DISPLAY, new TooltipDisplayComponent(false, new LinkedHashSet<>(List.of(
-                        DataComponentTypes.ATTRIBUTE_MODIFIERS,
-                        DataComponentTypes.UNBREAKABLE
-                ))))
-                .fireproof());
-    }
+
     private static final String ICARUS_BREAK_CD = "icarus_break_cd";
     private static final String ICARUS_RECHARGE_INTERVAL = "icarus_recharge_interval";
     private static final Set<UUID> rechargingPlayers = new HashSet<>();
 
-    public static void icarusFall() {
+    public IcarusWings(Properties settings) {
+        super(settings
+                .durability(232)
+                .component(DataComponents.GLIDER, Unit.INSTANCE)
+                .component(DataComponents.MAX_STACK_SIZE, 1)
+                .component(DataComponents.EQUIPPABLE,
+                        Equippable.builder(EquipmentSlot.CHEST)
+                                .setEquipSound(SoundEvents.ARMOR_EQUIP_ELYTRA)
+                                .build()
+                )
+                .repairable(Items.HONEYCOMB)
+                .component(DataComponents.TOOLTIP_DISPLAY,
+                        new TooltipDisplay(false, new LinkedHashSet<>(List.of(
+                                DataComponents.ATTRIBUTE_MODIFIERS,
+                                DataComponents.UNBREAKABLE
+                        )))
+                )
+                .fireResistant()
+        );
+    }
 
+    public static void icarusFall() {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
 
-            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            for (ServerPlayer player : server.getPlayerList().getPlayers()) {
 
-                UUID uuid = player.getUuid();
-                ServerWorld world = player.getEntityWorld();
-                ItemStack chest = player.getEquippedStack(EquipmentSlot.CHEST);
+                UUID uuid = player.getUUID();
+                ServerLevel world = player.level();
+                ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
 
                 if (!(chest.getItem() instanceof IcarusWings)) {
                     rechargingPlayers.remove(uuid);
@@ -60,29 +72,30 @@ public class IcarusWings extends Item implements PolymerItem {
 
                 boolean breakCooldown = Cooldowns.isOnCooldown(player, ICARUS_BREAK_CD);
 
-
+                // ☀️ Too high → break wings
                 if (!breakCooldown && player.getY() > 384) {
 
                     world.playSound(
                             null,
                             player.getX(), player.getY(), player.getZ(),
-                            SoundEvents.BLOCK_DECORATED_POT_SHATTER,
-                            SoundCategory.PLAYERS,
+                            SoundEvents.DECORATED_POT_SHATTER,
+                            SoundSource.PLAYERS,
                             1.0F,
                             0F
                     );
 
                     Cooldowns.start(player, ICARUS_BREAK_CD, 20 * 30);
-                    player.addStatusEffect(
-                            new StatusEffectInstance(
-                                    ModEffects.SUN_POISONING,
+
+                    player.addEffect(
+                            new MobEffectInstance(
+                                    (Holder<MobEffect>) ModEffects.SUN_POISONING,
                                     20 * 5,
                                     1,
                                     true, true, true
                             )
                     );
 
-                    chest.setDamage(chest.getMaxDamage());
+                    chest.setDamageValue(chest.getMaxDamage());
                     rechargingPlayers.remove(uuid);
                     continue;
                 }
@@ -98,7 +111,7 @@ public class IcarusWings extends Item implements PolymerItem {
                 }
 
                 int maxDamage = chest.getMaxDamage();
-                int currentDamage = chest.getDamage();
+                int currentDamage = chest.getDamageValue();
 
                 if (currentDamage >= maxDamage - 15) {
                     rechargingPlayers.add(uuid);
@@ -108,15 +121,15 @@ public class IcarusWings extends Item implements PolymerItem {
                     continue;
 
                 if (currentDamage <= 0) {
-                    chest.setDamage(0);
+                    chest.setDamageValue(0);
                     rechargingPlayers.remove(uuid);
                     continue;
                 }
 
                 if (!Cooldowns.isOnCooldown(player, ICARUS_RECHARGE_INTERVAL)
-                        && player.isOnGround()) {
+                        && player.onGround()) {
 
-                    chest.setDamage(Math.max(0, currentDamage - 5));
+                    chest.setDamageValue(Math.max(0, currentDamage - 5));
                     Cooldowns.start(player, ICARUS_RECHARGE_INTERVAL, 1);
                 }
             }
@@ -124,12 +137,12 @@ public class IcarusWings extends Item implements PolymerItem {
     }
 
     @Override
-    public Text getName(ItemStack stack) {
-        return Text.translatable("item.pantheon.icurus_wings");
+    public Component getName(ItemStack stack) {
+        return Component.translatable("item.pantheon.icurus_wings");
     }
-    
+
     @Override
-    public Item getPolymerItem(ItemStack itemStack, PacketContext packetContext) {
+    public Item getPolymerItem(ItemStack itemStack, PacketContext context) {
         return Items.ELYTRA;
     }
 }

@@ -1,22 +1,22 @@
 package ca.techgarage.pantheon.entity;
 
 import ca.techgarage.pantheon.api.HomingTracker;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.projectile.thrown.SnowballEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.projectile.throwableitemprojectile.Snowball;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 
 public class PartyFoulEntity {
 
-    public static void launch(World world, LivingEntity owner) {
-        SnowballEntity snowball = new SnowballEntity(world, owner, owner.getMainHandStack());
+    public static void launch(Level level, LivingEntity owner) {
+        Snowball snowball = new Snowball(level, owner, new ItemStack(Items.SNOWBALL));
 
-        snowball.setItem(new ItemStack(Items.SNOWBALL));
-        snowball.setPosition(owner.getX(), owner.getEyeY(), owner.getZ());
-        snowball.setVelocity(owner, owner.getPitch(), owner.getYaw(), 0f, 1.5f, 0f);
+        snowball.setPos(owner.getX(), owner.getEyeY(), owner.getZ());
 
-        world.spawnEntity(snowball);
+        snowball.shootFromRotation(owner, owner.getXRot(), owner.getYRot(), 0.0f, 1.5f, 0.0f);
+
+        level.addFreshEntity(snowball);
 
         HomingTracker.attach(snowball, owner);
     }

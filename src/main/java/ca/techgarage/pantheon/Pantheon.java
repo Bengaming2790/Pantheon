@@ -1,7 +1,6 @@
 package ca.techgarage.pantheon;
 
 import ca.techgarage.pantheon.api.*;
-import ca.techgarage.pantheon.blocks.AltarBlock;
 import ca.techgarage.pantheon.blocks.ModAltarBlocks;
 import ca.techgarage.pantheon.blocks.ModBlockEntities;
 import ca.techgarage.pantheon.commands.ResetCooldownsCommand;
@@ -28,286 +27,207 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import org.slf4j.Logger;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.slf4j.LoggerFactory;
-import net.minecraft.util.Identifier;
-import static net.minecraft.server.command.CommandManager.literal;
-import static net.minecraft.server.command.CommandManager.argument;
-import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
-
-import com.mojang.brigadier.arguments.IntegerArgumentType;
-
+import org.slf4j.Logger;
 
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.mojang.brigadier.arguments.IntegerArgumentType.getInteger;
+import static com.mojang.brigadier.arguments.IntegerArgumentType.integer;
+import static net.minecraft.commands.Commands.*;
+
+
 public class Pantheon implements ModInitializer {
     public static final String MOD_ID = "pantheon";
     public static final boolean isPantheonSMP = true;
-    public Logger logger = LoggerFactory.getLogger(MOD_ID);
-
-
-
+    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     @Override
     public void onInitialize() {
-
-        if (isPantheonSMP) {
-            logger.info("[Pantheon] Mod Initialized");
-        } else {
-            logger.error("[Pantheon] Mod failed to initialize properly due to not being the official server.");
+        if (!isPantheonSMP) {
+            LOGGER.error("[Pantheon] Mod failed to initialize: Not the official server.");
             return;
         }
 
         ConfigManager.load(PantheonConfig.class);
-        ItemDenyList.deny(
-                Items.TRIDENT
-        );
+        ItemDenyList.deny(Items.TRIDENT);
 
         ModItems.registerModItems();
         ModEffects.register();
-        CommandRegistrationCallback.EVENT.register(
-                (dispatcher, registryAccess, environment) ->
-                        TempBanCommand.register(dispatcher)
-        );
-        CommandRegistrationCallback.EVENT.register(
-                (dispatcher, registryAccess, environment) ->
-                        TempBanListCommand.register(dispatcher)
-        );
-        CommandRegistrationCallback.EVENT.register(
-                (dispatcher, registryAccess, environment) ->
-                        TempBanRemoveCommand.register(dispatcher)
-        );
-        CommandRegistrationCallback.EVENT.register(
-                (dispatcher, registryAccess, environment) ->
-                        ResetCooldownsCommand.register(dispatcher)
-        );
-        ModAltarBlocks.register();
-        ModBlockEntities.register();
+
+        // Command Registration
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            TempBanCommand.register(dispatcher);
+            TempBanListCommand.register(dispatcher);
+            TempBanRemoveCommand.register(dispatcher);
+            ResetCooldownsCommand.register(dispatcher);
+
+            // Drachma Bank Command
+            dispatcher.register(literal("drachma")
+                    .then(literal("balance").executes(ctx -> {
+                        ServerPlayer player = ctx.getSource().getPlayerOrException();
+                        int balance = BankDatabase.getBalance(player.getUUID());
+                        player.sendSystemMessage(Component.translatable("command.pantheon.drachma.balance", balance));
+                        return 1;
+                    }))
+                    .then(literal("deposit").then(argument("amount", integer(1)).executes(ctx -> {
+                        ServerPlayer player = ctx.getSource().getPlayerOrException();
+                        int amount = getInteger(ctx, "amount");
+                        if (DrachmaItem.countDrachma(player) < amount) {
+                            player.sendSystemMessage(Component.translatable("command.pantheon.drachma.not_enough_inv"));
+                            return 0;
+                        }
+                        DrachmaItem.removeDrachmaFromInventory(player, amount);
+                        BankDatabase.add(player.getUUID(), amount);
+                        player.sendSystemMessage(Component.translatable("command.pantheon.drachma.deposit.success", amount));
+                        return 1;
+                    })))
+                    .then(literal("withdraw").then(argument("amount", integer(1)).executes(ctx -> {
+                        ServerPlayer player = ctx.getSource().getPlayerOrException();
+                        int amount = getInteger(ctx, "amount");
+                        int balance = BankDatabase.getBalance(player.getUUID());
+                        if (balance < amount) {
+                            player.sendSystemMessage(Component.translatable("command.pantheon.drachma.not_enough_bank"));
+                            return 0;
+                        }
+                        BankDatabase.remove(player.getUUID(), amount);
+                        player.getInventory().add(new ItemStack(ModItems.DRACHMA, amount));
+                        player.sendSystemMessage(Component.translatable("command.pantheon.drachma.withdraw.success", amount));
+                        return 1;
+                    })))
+            );
+        });
+
+//        ModAltarBlocks.register();
+//        ModBlockEntities.register();
         ModEntities.init();
-        logger.info("[Pantheon] Registered Assets");
         ItemFrameBlocker.register();
         InventoryBlocker.register();
-        Optional<?> modContainer = FabricLoader.getInstance().getModContainer(MOD_ID);
-        if (modContainer.isEmpty()) {
-            logger.error("[Pantheon] Mod container '{}' not found. Check that fabric.mod.json contains the matching mod id.", MOD_ID);
-            return;
-        }
 
         ServerTickEvents.END_SERVER_TICK.register(DashState::tick);
         PeithoTick.register();
         Enyalios.registerKillEffect();
         Glaciera.registerFrostWalkerTrait();
         IcarusWings.icarusFall();
-        PolymerResourcePackUtils.addModAssets(MOD_ID);
         CombatLogAutoBan.register();
-        PolymerResourcePackUtils.markAsRequired();
-        Path db = FabricLoader.getInstance()
-                .getGameDir()
-                .resolve("database/bank.db");
 
+        PolymerResourcePackUtils.addModAssets(MOD_ID);
+        PolymerResourcePackUtils.markAsRequired();
+
+        Path db = FabricLoader.getInstance().getGameDir().resolve("database/bank.db");
         BankDatabase.init(db);
 
-        PolymerItemGroupUtils.registerPolymerItemGroup(Identifier.of(MOD_ID, "items"), PolymerItemGroupUtils.builder()
-                .icon(() -> new ItemStack(ModItems.DRACHMA))
-                .displayName(Text.translatable("itemGroup.pantheon.items"))
-                .entries((context, entries) -> {
-                    entries.add(new ItemStack(ModItems.DRACHMA));
-                    entries.add(new ItemStack(ModItems.VARATHA));
-                    entries.add(new ItemStack(ModItems.ASTRAPE));
-                    entries.add(new ItemStack(ModItems.PEITHO));
-                    entries.add(new ItemStack(ModItems.KHALKEOUS));
-                    entries.add(new ItemStack(ModItems.AEGIS));
-                    entries.add(new ItemStack(ModItems.ENYALIOS));
-                    entries.add(new ItemStack(ModItems.TRIAINA));
-                }).build()
+        // Polymer Creative Tab Registration
+        PolymerItemGroupUtils.registerPolymerItemGroup(
+                Identifier.fromNamespaceAndPath(MOD_ID, "items"),
+                PolymerItemGroupUtils.builder()
+                        .icon(() -> new ItemStack(ModItems.DRACHMA))
+                        .title(Component.translatable("itemGroup.pantheon.items"))
+                        .displayItems((context, entries) -> {
+                            entries.accept(ModItems.DRACHMA);
+                            entries.accept(ModItems.VARATHA);
+                            entries.accept(ModItems.ASTRAPE);
+                            entries.accept(ModItems.PEITHO);
+                            entries.accept(ModItems.KHALKEOUS);
+                            entries.accept(ModItems.AEGIS);
+                            entries.accept(ModItems.ENYALIOS);
+                            entries.accept(ModItems.TRIAINA);
+                        }).build()
         );
 
+        // Main Tick Logic
         ServerTickEvents.END_SERVER_TICK.register(server -> {
-            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+                // Kynthia Activation Logic
+                if (player.swinging && player.swingTime == 1) {
+                    ItemStack stack = player.getMainHandItem();
+                    if (stack.getItem() instanceof Kynthia kynthia) {
+                        kynthia.activate(player);
+                    }
+                }
 
-
-                if (!player.handSwinging) continue;
-                if (player.handSwingTicks != 1) continue;
-
-                ItemStack stack = player.getMainHandStack();
-
-                if (!(stack.getItem() instanceof Kynthia kynthia)) continue;
-
-                kynthia.activate(player);
-
+                // Item Denial / Banned Items Logic
+                if (PantheonConfig.dropBannedItems && server.getTickCount() % 100 == 0) {
+                    for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+                        ItemStack stack = player.getInventory().getItem(i);
+                        if (!stack.isEmpty() && ItemDenyList.isDenied(stack.getItem())) {
+                            player.displayClientMessage(Component.translatable("item.anvil.rename"), true);
+                            player.getInventory().removeItemNoUpdate(i);
+                            player.drop(stack, false, false);
+                        }
+                    }
+                }
             }
-
             Caduceus.RandevuManager.tickAll();
-
-
         });
-        ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
+
+        // Entity Load Glow Event
+        ServerEntityEvents.ENTITY_LOAD.register((entity, level) -> {
             if (entity instanceof ItemEntity itemEntity) {
-                Item item = itemEntity.getStack().getItem();
-                if (item instanceof GlowItem) {
+                if (itemEntity.getItem().getItem() instanceof GlowItem) {
                     ModItems.applyGlowToAllDrops(itemEntity);
                 }
             }
         });
 
-        AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
-            if (world.isClient()) return ActionResult.PASS;
-            if (!player.isSneaking()) return ActionResult.PASS;
+        // Attack Event (Kynthia Sneak)
+        AttackEntityCallback.EVENT.register((player, level, hand, entity, hitResult) -> {
+            if (level.isClientSide()) return InteractionResult.PASS;
+            if (!player.isShiftKeyDown()) return InteractionResult.PASS;
 
-            ItemStack stack = player.getStackInHand(hand);
-            if (!(stack.getItem() instanceof Kynthia kynthia)) return ActionResult.PASS;
-
-            kynthia.activate(player);
-
-            return ActionResult.FAIL;
+            ItemStack stack = player.getItemInHand(hand);
+            if (stack.getItem() instanceof Kynthia kynthia) {
+                kynthia.activate(player);
+                return InteractionResult.FAIL;
+            }
+            return InteractionResult.PASS;
         });
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            var player = handler.player;
-            var uuid = player.getUuid();
 
-            if (!BankDatabase.hasAccount(uuid)) {
-                BankDatabase.createAccount(uuid, PantheonConfig.StartingDrachma);
+        // Join Logic
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            ServerPlayer player = handler.player;
+            if (!BankDatabase.hasAccount(player.getUUID())) {
+                BankDatabase.createAccount(player.getUUID(), PantheonConfig.StartingDrachma);
             }
         });
-        ServerTickEvents.END_SERVER_TICK.register(server -> {
-            if (!PantheonConfig.dropBannedItems) return;
-            if (server.getTicks() % 100 != 0) return;
 
-            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                for (int i = 0; i < player.getInventory().size(); i++) {
-                    ItemStack stack = player.getInventory().getStack(i);
-                    if (!stack.isEmpty() && ItemDenyList.isDenied(stack.getItem())) {
-                        player.sendMessage(Text.translatable("item.anvil.rename").formatted(), true);
-                        player.getInventory().removeStack(i);
-                        player.dropItem(stack, false, false);
-                    }
+        // Death Logic
+        ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
+            if (entity instanceof ServerPlayer player) {
+                UUID uuid = player.getUUID();
+                int needed = PantheonConfig.DroppedDrachmaOnDeath;
+                int invCount = DrachmaItem.countDrachma(player);
+                int takenFromInv = Math.min(invCount, needed);
+                int remaining = needed - takenFromInv;
+
+                if (takenFromInv > 0) DrachmaItem.removeDrachmaFromInventory(player, takenFromInv);
+                if (remaining > 0) BankDatabase.remove(uuid, remaining);
+
+                if (BankDatabase.getBalance(uuid) >= 0) {
+                    DrachmaItem.dropDrachma(player, takenFromInv + remaining);
                 }
             }
         });
-        ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
-            if (!(entity instanceof ServerPlayerEntity player)) return;
 
-            UUID uuid = player.getUuid();
-
-            int needed = PantheonConfig.DroppedDrachmaOnDeath;
-
-            int invCount = DrachmaItem.countDrachma(player);
-
-            int takenFromInv = Math.min(invCount, needed);
-            int remaining = needed - takenFromInv;
-
-            if (takenFromInv > 0) {
-                DrachmaItem.removeDrachmaFromInventory(player, takenFromInv);
-            }
-
-            if (remaining > 0) {
-                BankDatabase.remove(uuid, remaining);
-            }
-            if (BankDatabase.getBalance(player.getUuid()) < 0) {
-                return;
-            }
-            DrachmaItem.dropDrachma(player, takenFromInv + remaining);
-        });
-
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(
-                literal("drachma")
-                        .then(literal("balance")
-                                .executes(ctx -> {
-                                    ServerPlayerEntity player = ctx.getSource().getPlayer();
-                                    assert player != null;
-                                    int balance = BankDatabase.getBalance(player.getUuid());
-
-                                    player.sendMessage(
-                                            Text.translatable("command.pantheon.drachma.balance", balance),
-                                            false
-                                    );
-
-                                    return 1;
-                                })
-                        )
-
-                        .then(literal("deposit")
-                                .then(argument("amount", IntegerArgumentType.integer(1))
-                                        .executes(ctx -> {
-
-                                            ServerPlayerEntity player = ctx.getSource().getPlayer();
-                                            int amount = IntegerArgumentType.getInteger(ctx, "amount");
-
-                                            assert player != null;
-                                            int invCount = DrachmaItem.countDrachma(player);
-
-                                            if (invCount < amount) {
-                                                player.sendMessage(
-                                                        Text.translatable("command.pantheon.drachma.not_enough_inv"),
-                                                        false
-                                                );
-                                                return 0;
-                                            }
-
-                                            DrachmaItem.removeDrachmaFromInventory(player, amount);
-                                            BankDatabase.add(player.getUuid(), amount);
-
-                                            player.sendMessage(
-                                                    Text.translatable("command.pantheon.drachma.deposit.success", amount),
-                                                    false
-                                            );
-
-                                            return 1;
-                                        })
-                                )
-                        )
-
-                        .then(literal("withdraw")
-                                .then(argument("amount", IntegerArgumentType.integer(1))
-                                        .executes(ctx -> {
-
-                                            ServerPlayerEntity player = ctx.getSource().getPlayer();
-                                            int amount = IntegerArgumentType.getInteger(ctx, "amount");
-
-                                            assert player != null;
-                                            int balance = BankDatabase.getBalance(player.getUuid());
-
-                                            if (balance < amount) {
-                                                player.sendMessage(
-                                                        Text.translatable("command.pantheon.drachma.not_enough_bank"),
-                                                        false
-                                                );
-                                                return 0;
-                                            }
-
-                                            BankDatabase.remove(player.getUuid(), amount);
-                                            player.getInventory().insertStack(
-                                                    new ItemStack(ModItems.DRACHMA, amount)
-                                            );
-
-                                            player.sendMessage(
-                                                    Text.translatable("command.pantheon.drachma.withdraw.success", amount),
-                                                    false
-                                            );
-
-                                            return 1;
-                                        })
-                                )
-                        )
-        ));
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             BanDatabase.init(server);
             JoinListener.register();
         });
-
     }
 
     public static void log(String message) {
-        Logger logger = LoggerFactory.getLogger(MOD_ID);
-        logger.info(message);
+        LOGGER.info(message);
     }
 }

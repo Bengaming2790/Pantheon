@@ -4,27 +4,29 @@ import ca.techgarage.pantheon.api.Cooldowns;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.*;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.ShieldItem;
-import net.minecraft.registry.tag.DamageTypeTags;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Style;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
+
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.util.Unit;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.ShieldItem;
+import net.minecraft.world.item.component.BlocksAttacks;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.component.TooltipDisplay;
 import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.LinkedHashSet;
@@ -37,44 +39,44 @@ public class Aegis extends ShieldItem implements PolymerItem {
     private static final int COOLDOWN = 20 * 60; // 1 minute
     private static final int DEFLECT_BUFF_TIME = 20 * 5;
 
-    public Aegis(Settings settings) {
+    public Aegis(Properties settings) {
         super(settings
-                .component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers())
-                .component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE)
-                .component(DataComponentTypes.MAX_STACK_SIZE, 1)
-                .component(DataComponentTypes.BLOCKS_ATTACKS, new BlocksAttacksComponent(0.25F, 1.0F,
-                        List.of(new BlocksAttacksComponent.DamageReduction(90.0F, Optional.empty(), 0.0F, 1.0F)),
-                        new BlocksAttacksComponent.ItemDamage(3.0F, 1.0F, 1.0F), Optional.of(DamageTypeTags.BYPASSES_SHIELD), Optional.of(SoundEvents.ITEM_SHIELD_BLOCK),
-                        Optional.of(SoundEvents.ITEM_SHIELD_BREAK))).component(DataComponentTypes.BREAK_SOUND, SoundEvents.ITEM_SHIELD_BREAK)
-                .fireproof()
-                .component(DataComponentTypes.TOOLTIP_DISPLAY, new TooltipDisplayComponent(false, new LinkedHashSet<>(List.of(
-                        DataComponentTypes.ATTRIBUTE_MODIFIERS,
-                        DataComponentTypes.UNBREAKABLE
+                .component(DataComponents.ATTRIBUTE_MODIFIERS, createAttributeModifiers())
+                .component(DataComponents.UNBREAKABLE, Unit.INSTANCE)
+                .component(DataComponents.MAX_STACK_SIZE, 1)
+                .component(DataComponents.BLOCKS_ATTACKS, new BlocksAttacks(0.25F, 1.0F,
+                        List.of(new BlocksAttacks.DamageReduction(90.0F, Optional.empty(), 0.0F, 1.0F)),
+                        new BlocksAttacks.ItemDamageFunction(3.0F, 1.0F, 1.0F), Optional.of(DamageTypeTags.BYPASSES_SHIELD), Optional.of(SoundEvents.SHIELD_BLOCK),
+                        Optional.of(SoundEvents.SHIELD_BREAK))).component(DataComponents.BREAK_SOUND, SoundEvents.SHIELD_BREAK)
+                .fireResistant()
+                .component(DataComponents.TOOLTIP_DISPLAY, new TooltipDisplay(false, new LinkedHashSet<>(List.of(
+                        DataComponents.ATTRIBUTE_MODIFIERS,
+                        DataComponents.UNBREAKABLE
                 ))))
         );
         registerEvents();
     }
 
 
-    public static AttributeModifiersComponent createAttributeModifiers() {
-        return AttributeModifiersComponent.builder()
+    public static ItemAttributeModifiers createAttributeModifiers() {
+        return ItemAttributeModifiers.builder()
                 .add(
-                        EntityAttributes.ATTACK_DAMAGE,
-                        new EntityAttributeModifier(
-                                BASE_ATTACK_DAMAGE_MODIFIER_ID,
+                        Attributes.ATTACK_DAMAGE,
+                        new AttributeModifier(
+                                BASE_ATTACK_DAMAGE_ID,
                                 7,
-                                EntityAttributeModifier.Operation.ADD_VALUE
+                                AttributeModifier.Operation.ADD_VALUE
                         ),
-                        AttributeModifierSlot.MAINHAND
+                        EquipmentSlotGroup.MAINHAND
                 )
                 .add(
-                        EntityAttributes.ATTACK_SPEED,
-                        new EntityAttributeModifier(
-                                BASE_ATTACK_SPEED_MODIFIER_ID,
+                        Attributes.ATTACK_SPEED,
+                        new AttributeModifier(
+                                BASE_ATTACK_SPEED_ID,
                                 -2.3,
-                                EntityAttributeModifier.Operation.ADD_VALUE
+                                AttributeModifier.Operation.ADD_VALUE
                         ),
-                        AttributeModifierSlot.MAINHAND
+                        EquipmentSlotGroup.MAINHAND
                 )
                 .build();
     }
@@ -85,21 +87,21 @@ public class Aegis extends ShieldItem implements PolymerItem {
         ServerLivingEntityEvents.AFTER_DAMAGE.register(
                 (entity, source, baseDamage, damageTaken, blocked) -> {
 
-                    if (!(entity instanceof ServerPlayerEntity player)) return;
+                    if (!(entity instanceof ServerPlayer player)) return;
 
                     if (!blocked) return;
 
                     boolean holdingAegis =
-                            player.getMainHandStack().getItem() instanceof Aegis
-                                    || player.getOffHandStack().getItem() instanceof Aegis;
+                            player.getMainHandItem().getItem() instanceof Aegis
+                                    || player.getOffhandItem().getItem() instanceof Aegis;
 
                     if (!holdingAegis) return;
 
-                    player.getItemCooldownManager().set(player.getActiveItem(), 20 * 60);
+                    player.getCooldowns().addCooldown(player.getActiveItem(), 20 * 60);
                     deflect(player, source, baseDamage);
-                    player.addStatusEffect(
-                            new StatusEffectInstance(
-                                    StatusEffects.RESISTANCE,
+                    player.addEffect(
+                            new MobEffectInstance(
+                                    MobEffects.RESISTANCE,
                                     40,
                                     1
                             )
@@ -110,12 +112,12 @@ public class Aegis extends ShieldItem implements PolymerItem {
 
         // DIVINE PROTECTION (Resistance I while held)
         ServerTickEvents.END_SERVER_TICK.register(server -> {
-            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            for (ServerPlayer player : server.getPlayerList().getPlayers()) {
                 if (getHeldAegis(player) == null) continue;
 
-                player.addStatusEffect(
-                        new StatusEffectInstance(
-                                StatusEffects.RESISTANCE,
+                player.addEffect(
+                        new MobEffectInstance(
+                                MobEffects.RESISTANCE,
                                 40,
                                 0,
                                 true,
@@ -129,50 +131,50 @@ public class Aegis extends ShieldItem implements PolymerItem {
 
 
 
-    private static void deflect(ServerPlayerEntity player, DamageSource source, float damage) {
+    private static void deflect(ServerPlayer player, DamageSource source, float damage) {
 
         // Reflect damage
-        if (source.getAttacker() instanceof LivingEntity attacker) {
-            attacker.damage(player.getEntityWorld(),
-                    player.getEntityWorld().getDamageSources().playerAttack(player),
+        if (source.getEntity() instanceof LivingEntity attacker) {
+            attacker.hurt(
+                    player.level().damageSources().playerAttack(player),
                     damage * 1.25f
             );
         }
 
         // Resistance II
-        player.addStatusEffect(
-                new StatusEffectInstance(
-                        StatusEffects.RESISTANCE,
+        player.addEffect(
+                new MobEffectInstance(
+                        MobEffects.RESISTANCE,
                         DEFLECT_BUFF_TIME,
                         1
                 )
         );
 
-        player.addStatusEffect(
-                new StatusEffectInstance(
-                        StatusEffects.STRENGTH,
+        player.addEffect(
+                new MobEffectInstance(
+                        MobEffects.STRENGTH,
                         DEFLECT_BUFF_TIME,
                         0
                 )
         );
 
         // Disable shield
-        player.getItemCooldownManager().set(getHeldAegis(player), COOLDOWN);
+        player.getCooldowns().addCooldown(getHeldAegis(player), COOLDOWN);
 
         // Internal cooldown tracking
         Cooldowns.start(player, AEGIS_CD, COOLDOWN);
     }
 
 
-    private static ItemStack getHeldAegis(PlayerEntity player) {
-        if (player.getMainHandStack().getItem() instanceof Aegis)
-            return player.getMainHandStack();
-        if (player.getOffHandStack().getItem() instanceof Aegis)
-            return player.getOffHandStack();
+    private static ItemStack getHeldAegis(Player player) {
+        if (player.getMainHandItem().getItem() instanceof Aegis)
+            return player.getMainHandItem();
+        if (player.getOffhandItem().getItem() instanceof Aegis)
+            return player.getOffhandItem();
         return null;
     }
     private static final Identifier MODEL =
-            Identifier.of("pantheon", "aegis");
+            Identifier.fromNamespaceAndPath("pantheon", "aegis");
     public Identifier getPolymerItemModel(ItemStack stack, PacketContext context) {
         return MODEL;
     }
@@ -183,7 +185,7 @@ public class Aegis extends ShieldItem implements PolymerItem {
     }
 
     @Override
-    public Text getName(ItemStack stack) {
-        return Text.translatable("item.pantheon.aegis");
+    public Component getName(ItemStack stack) {
+        return Component.translatable("item.pantheon.aegis");
     }
 }

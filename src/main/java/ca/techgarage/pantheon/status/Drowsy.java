@@ -1,36 +1,37 @@
 package ca.techgarage.pantheon.status;
 
 import eu.pb4.polymer.core.api.other.PolymerStatusEffect;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectCategory;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
 
-public class Drowsy extends StatusEffect implements PolymerStatusEffect {
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
-    public Drowsy(StatusEffectCategory harmful, int i) {
-        super(StatusEffectCategory.HARMFUL, 0x5A5A5A); // gray-ish
+public class Drowsy extends MobEffect implements PolymerStatusEffect {
+
+    public Drowsy(MobEffectCategory harmful, int i) {
+        super(MobEffectCategory.HARMFUL, 0x5A5A5A); // gray-ish
     }
 
     @Override
-    public boolean canApplyUpdateEffect(int duration, int amplifier) {
+    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
         return true; // every tick
     }
 
     @Override
-    public boolean applyUpdateEffect(ServerWorld world, LivingEntity entity, int amplifier) {
+    public boolean applyEffectTick(ServerLevel world, LivingEntity entity, int amplifier) {
 
         int duration = 40;
         int level = amplifier;
 
-        entity.addStatusEffect(new StatusEffectInstance(
-                StatusEffects.SLOWNESS,
+        entity.addEffect(new MobEffectInstance(
+                MobEffects.SLOWNESS,
                 duration,
                 level,
                 false,
@@ -38,8 +39,8 @@ public class Drowsy extends StatusEffect implements PolymerStatusEffect {
                 false
         ));
 
-        entity.addStatusEffect(new StatusEffectInstance(
-                StatusEffects.BLINDNESS,
+        entity.addEffect(new MobEffectInstance(
+                MobEffects.BLINDNESS,
                 duration,
                 0,
                 false,
@@ -47,8 +48,8 @@ public class Drowsy extends StatusEffect implements PolymerStatusEffect {
                 false
         ));
 
-        entity.addStatusEffect(new StatusEffectInstance(
-                StatusEffects.MINING_FATIGUE,
+        entity.addEffect(new MobEffectInstance(
+                        MobEffects.MINING_FATIGUE,
                 duration,
                 level,
                 false,
@@ -61,13 +62,12 @@ public class Drowsy extends StatusEffect implements PolymerStatusEffect {
 
     // Polymer icon (what players see in inventory)
     @Override
-    public ItemStack getPolymerIcon(StatusEffect effect, ServerPlayerEntity player) {
+    public ItemStack getPolymerIcon(MobEffect effect, ServerPlayer player) {
         return new ItemStack(Items.PHANTOM_MEMBRANE);
     }
 
-    @Override
-    public Text getName() {
-        return Text.translatable("effect.pantheon.drowsy");
+    public Component getName() {
+        return Component.translatable("effect.pantheon.drowsy");
     }
 }
 

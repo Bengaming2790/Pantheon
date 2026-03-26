@@ -4,32 +4,32 @@ import ca.techgarage.pantheon.api.AOEDamage;
 import ca.techgarage.pantheon.api.Cooldowns;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.AttributeModifierSlot;
-import net.minecraft.component.type.AttributeModifiersComponent;
-import net.minecraft.component.type.TooltipDisplayComponent;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.util.Unit;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.GameMode;
-import net.minecraft.world.World;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.LinkedHashSet;
@@ -41,73 +41,77 @@ public class Glaciera extends Item implements PolymerItem {
     private static final String GLACIERA_COMBO_HITS = "glaciera_hit_combo_hits";
     private static final String FREEZE_LENGTH = "glaciera_freeze_length";
 
-    public Glaciera(Settings settings) {
+    public Glaciera(Properties settings) {
         super(settings
-                .component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE)
-                .component(DataComponentTypes.MAX_STACK_SIZE, 1)
-                .component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers()).fireproof()
-                .component(DataComponentTypes.TOOLTIP_DISPLAY, new TooltipDisplayComponent(false, new LinkedHashSet<>(List.of(
-                        DataComponentTypes.ATTRIBUTE_MODIFIERS,
-                        DataComponentTypes.UNBREAKABLE
+                .component(DataComponents.UNBREAKABLE, Unit.INSTANCE)
+                .component(DataComponents.MAX_STACK_SIZE, 1)
+                .component(DataComponents.ATTRIBUTE_MODIFIERS, createAttributeModifiers())
+                .fireResistant()
+                .component(DataComponents.TOOLTIP_DISPLAY, new TooltipDisplay(false, new LinkedHashSet<>(List.of(
+                        DataComponents.ATTRIBUTE_MODIFIERS,
+                        DataComponents.UNBREAKABLE
                 ))))
         );
     }
-    public static AttributeModifiersComponent createAttributeModifiers() {
-        return AttributeModifiersComponent.builder()
+
+    public static ItemAttributeModifiers createAttributeModifiers() {
+        return ItemAttributeModifiers.builder()
                 .add(
-                        EntityAttributes.ATTACK_DAMAGE,
-                        new EntityAttributeModifier(
-                                BASE_ATTACK_DAMAGE_MODIFIER_ID,
+                        Attributes.ATTACK_DAMAGE,
+                        new AttributeModifier(
+                                BASE_ATTACK_DAMAGE_ID,
                                 17,
-                                EntityAttributeModifier.Operation.ADD_VALUE
+                                AttributeModifier.Operation.ADD_VALUE
                         ),
-                        AttributeModifierSlot.MAINHAND
+                        EquipmentSlotGroup.MAINHAND
                 )
                 .add(
-                        EntityAttributes.ATTACK_SPEED,
-                        new EntityAttributeModifier(
-                                BASE_ATTACK_SPEED_MODIFIER_ID,
+                        Attributes.ATTACK_SPEED,
+                        new AttributeModifier(
+                                BASE_ATTACK_SPEED_ID,
                                 0.9 - 4.0,
-                                EntityAttributeModifier.Operation.ADD_VALUE
+                                AttributeModifier.Operation.ADD_VALUE
                         ),
-                        AttributeModifierSlot.MAINHAND
+                        EquipmentSlotGroup.MAINHAND
                 )
                 .build();
     }
 
-
     @Override
-    public void postHit(ItemStack stack, LivingEntity target, LivingEntity attacker) {
-        if (attacker.getEntityWorld().isClient()) return;
-        if (!(attacker instanceof PlayerEntity player)) {applyFreeze(target); return;}
+    public void postHurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+        if (attacker.level().isClientSide()) return;
+
+        if (!(attacker instanceof Player player)) {
+            applyFreeze(target);
+            return;
+        }
+
         if (!(stack.getItem() instanceof Glaciera)) return;
-        // First hit → start combo
+
         if (!Cooldowns.isOnCooldown(player, GLACIERA_COMBO_TIMER)) {
-            Cooldowns.start(player, GLACIERA_COMBO_TIMER, 20 * 15); // 10s window
+            Cooldowns.start(player, GLACIERA_COMBO_TIMER, 20 * 15);
             Cooldowns.setInt(player, GLACIERA_COMBO_HITS, 1);
             return;
         }
 
-        // Combo already active
         int hits = Cooldowns.getInt(player, GLACIERA_COMBO_HITS) + 1;
         Cooldowns.setInt(player, GLACIERA_COMBO_HITS, hits);
 
-        // Third hit → Freeze
         if (hits >= 3) {
             applyFreeze(target);
 
-            // Reset combo
             Cooldowns.clear(player, GLACIERA_COMBO_TIMER);
             Cooldowns.clear(player, GLACIERA_COMBO_HITS);
         }
     }
 
     @Override
-    public ActionResult use(World world, PlayerEntity player, Hand hand) {
-        if (!world.isClient()) {
+    public InteractionResult use(Level world, Player player, InteractionHand hand) {
+        if (!world.isClientSide()) {
             AOEDamage.applyAoeDamage(player, 8.0f, 3f, true);
-            ServerWorld serverworld = (ServerWorld) world;
-            serverworld.spawnParticles(
+
+            ServerLevel serverWorld = (ServerLevel) world;
+            serverWorld.sendParticles(
                     ParticleTypes.SNOWFLAKE,
                     player.getX(),
                     player.getY() + 0.5,
@@ -118,50 +122,50 @@ public class Glaciera extends Item implements PolymerItem {
                     2,
                     0.0
             );
-            if (player.getGameMode() != GameMode.CREATIVE) {
-                player.getItemCooldownManager().set(player.getStackInHand(hand), 20 * 60); //60 second cooldown
-            }
 
+            if (!player.isCreative()) {
+                player.getCooldowns().addCooldown(player.getItemInHand(hand), 20 * 60);
+            }
         }
-        return ActionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     public static void registerFrostWalkerTrait() {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
-            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            for (ServerPlayer player : server.getPlayerList().getPlayers()) {
 
-                if (!(player.getMainHandStack().getItem() instanceof Glaciera))
+                if (!(player.getMainHandItem().getItem() instanceof Glaciera))
                     continue;
 
-                if (!player.isOnGround()) continue;
-                if (player.hasVehicle()) continue;
+                if (!player.onGround()) continue;
+                if (player.getVehicle() != null) continue;
 
-                ServerWorld world = player.getEntityWorld();
+                ServerLevel world = player.level();
                 int radius = 5;
 
-                BlockPos center = player.getBlockPos();
+                BlockPos center = player.getOnPos();
 
-                for (BlockPos pos : BlockPos.iterate(
-                        center.add(-radius, -1, -radius),
-                        center.add(radius, -1, radius)
+                for (BlockPos pos : BlockPos.betweenClosed(
+                        center.offset(-radius, -1, -radius),
+                        center.offset(radius, -1, radius)
                 )) {
-
-                    if (!pos.isWithinDistance(player.getEntityPos(), radius))
+                    Vec3i iPos = new Vec3i((int) player.position().x, (int) player.position().y, (int) player.position().z);
+                    if (!pos.closerThan(iPos, radius))
                         continue;
 
                     BlockState state = world.getBlockState(pos);
-                    BlockState above = world.getBlockState(pos.up());
+                    BlockState above = world.getBlockState(pos.above());
 
                     if (state.getBlock() == Blocks.WATER
-                            && state.getFluidState().isStill()
+                            && state.getFluidState().isSource()
                             && above.isAir()) {
 
-                        world.setBlockState(pos, Blocks.FROSTED_ICE.getDefaultState());
+                        world.setBlockAndUpdate(pos, Blocks.FROSTED_ICE.defaultBlockState());
 
-                        world.scheduleBlockTick(
+                        world.scheduleTick(
                                 pos,
                                 Blocks.FROSTED_ICE,
-                                MathHelper.nextInt(player.getRandom(), 60, 120)
+                                Mth.nextInt(player.getRandom(), 60, 120)
                         );
                     }
                 }
@@ -170,28 +174,28 @@ public class Glaciera extends Item implements PolymerItem {
     }
 
     public static void applyFreeze(LivingEntity target) {
-        if (target.getEntityWorld().isClient()) return;
+        if (target.level().isClientSide()) return;
 
-        int freezeTime = 20 * 40; // 40 seconds
+        int freezeTime = 20 * 40;
 
-        target.setInPowderSnow(true);
-        target.setFrozenTicks(freezeTime);
-        target.addStatusEffect(
-                new StatusEffectInstance(StatusEffects.SLOWNESS, freezeTime, 1, false, true, false)
+        target.setIsInPowderSnow(true);
+        target.setTicksFrozen(freezeTime);
+        target.addEffect(
+                new MobEffectInstance(MobEffects.SLOWNESS, freezeTime, 1, false, true, false)
         );
 
-        // Only players should use Cooldowns system
-        if (target instanceof PlayerEntity player) {
+        if (target instanceof Player player) {
             Cooldowns.start(player, FREEZE_LENGTH, freezeTime);
         }
     }
+
     @Override
-    public Item getPolymerItem(ItemStack itemStack, PacketContext packetContext) {
+    public Item getPolymerItem(ItemStack itemStack, PacketContext context) {
         return Items.STICK;
     }
 
-        @Override
-    public Text getName(ItemStack stack) {
-        return Text.translatable("item.pantheon.glaceria");
+    @Override
+    public Component getName(ItemStack stack) {
+        return Component.translatable("item.pantheon.glaceria");
     }
 }

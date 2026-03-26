@@ -3,18 +3,18 @@ package ca.techgarage.pantheon.commands;
 import com.mojang.brigadier.CommandDispatcher;
 import ca.techgarage.pantheon.database.BanDatabase;
 import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
 
 import java.sql.*;
 
 public class TempBanListCommand {
 
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
 
         dispatcher.register(
-                CommandManager.literal("tempbanlist")
+                Commands.literal("tempbanlist")
                         .requires(Permissions.require("pantheon.tempban"))
                         .executes(ctx -> {
 
@@ -51,8 +51,8 @@ public class TempBanListCommand {
 
                                     String timeFormatted = formatDuration(remaining);
 
-                                    ctx.getSource().sendFeedback(
-                                            () -> Text.literal(
+                                    ctx.getSource().sendSuccess(
+                                            () -> Component.literal(
                                                     playerName + " - Reason: " + reason + " - Unbans in: " + timeFormatted
                                             ),
                                             false
@@ -61,13 +61,13 @@ public class TempBanListCommand {
 
                             } catch (SQLException e) {
                                 e.printStackTrace();
-                                ctx.getSource().sendError(Text.literal("Error reading ban database."));
+                                ctx.getSource().sendFailure(Component.literal("Error reading ban database."));
                                 return 0;
                             }
 
                             if (!foundAny) {
-                                ctx.getSource().sendFeedback(
-                                        () -> Text.literal("No active temporary bans."),
+                                ctx.getSource().sendSuccess(
+                                        () -> Component.literal("No active temporary bans."),
                                         false
                                 );
                             }

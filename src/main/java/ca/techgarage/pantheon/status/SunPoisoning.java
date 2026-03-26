@@ -2,39 +2,37 @@ package ca.techgarage.pantheon.status;
 
 import ca.techgarage.pantheon.DamageSources.ModDamageSources;
 import eu.pb4.polymer.core.api.other.PolymerStatusEffect;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectCategory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
-public class SunPoisoning extends StatusEffect implements PolymerStatusEffect {
-    public SunPoisoning(StatusEffectCategory category, int color) {
+public class SunPoisoning extends MobEffect implements PolymerStatusEffect {
+    public SunPoisoning(MobEffectCategory category, int color) {
         super(category, color);
     }
-    public ItemStack getPolymerIcon(StatusEffect effect, ServerPlayerEntity player) {
+    public ItemStack getPolymerIcon(MobEffect effect, ServerPlayer player) {
         return new ItemStack(Items.SUNFLOWER);
     }
     @Override
-    public boolean canApplyUpdateEffect(int duration, int amplifier) {
+    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
         return true; // run every tick
     }
 
     @Override
-    public boolean applyUpdateEffect(ServerWorld world, LivingEntity entity, int amplifier) {
+    public boolean applyEffectTick(ServerLevel world, LivingEntity entity, int amplifier) {
 
-        entity.damage(
-                world,
+        entity.hurt(
                 ModDamageSources.sunPoisoning(world),
                 1.66f
         );
 
-        world.spawnParticles(
+        world.sendParticles(
                 ParticleTypes.FIREFLY,
                 entity.getX(),
                 entity.getY() + 0.5,
@@ -50,8 +48,8 @@ public class SunPoisoning extends StatusEffect implements PolymerStatusEffect {
     }
 
 
-    public Text getName() {
-        return Text.translatable("effect.pantheon.sun_poisoning");
+    public Component getName() {
+        return Component.translatable("effect.pantheon.sun_poisoning");
     }
 
 }

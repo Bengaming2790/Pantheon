@@ -1,41 +1,43 @@
 package ca.techgarage.pantheon.items.weapons;
 
 import ca.techgarage.pantheon.api.Cooldowns;
+import ca.techgarage.pantheon.api.Dash;
 import ca.techgarage.pantheon.api.DashState;
 import ca.techgarage.pantheon.items.GlowItem;
 import ca.techgarage.pantheon.items.material.ModToolMaterials;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.*;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectCategory;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.*;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Style;
-import net.minecraft.text.Text;
-import net.minecraft.util.*;
-import net.minecraft.world.GameMode;
-import net.minecraft.world.World;
-import ca.techgarage.pantheon.api.Dash;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Unit;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.item.component.ItemLore;
 import org.jspecify.annotations.Nullable;
-import xyz.nucleoid.packettweaker.PacketContext;
-
-import java.util.Collection;
-import java.util.LinkedHashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -43,197 +45,178 @@ public class Varatha extends Item implements PolymerItem, GlowItem {
 
     private static final Random random = new Random();
     private static final String STYGIAN = "varatha_stygian";
-    private static final Identifier MODEL =
-            Identifier.of("pantheon", "varatha");
-    public Varatha(Settings settings) {
-        super(
-                settings.spear(
-                        ModToolMaterials.VARATHA_TOOL_MATERIAL,
-                        1.5f,    // swingAnimationSeconds → attack speed math
-                        1.5f,    // chargeDamageMultiplier
-                        0f,   // chargeDelaySeconds
-                        3.0f,    // maxDurationForDismountSeconds
-                        0.1f,    // minSpeedForDismount
-                        3.0f,    // maxDurationForChargeKnockbackInSeconds
-                        0.1f,    // minSpeedForChargeKnockback
-                        3.0f,    // maxDurationForChargeDamageInSeconds
-                        0.1f     // minRelativeSpeedForChargeDamage
-                )
-                        .component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE)
-                        .component(DataComponentTypes.ATTRIBUTE_MODIFIERS, getDefaultAttributeModifiers()).fireproof()
-                        .component(DataComponentTypes.TOOLTIP_DISPLAY, new TooltipDisplayComponent(false, new LinkedHashSet<>(List.of(
-                                DataComponentTypes.ATTRIBUTE_MODIFIERS,
-                                DataComponentTypes.UNBREAKABLE
-                        )))).component(DataComponentTypes.LORE, lore)
+    private static final Identifier MODEL = Identifier.fromNamespaceAndPath("pantheon", "varatha");
+
+    public Varatha(Properties properties) {
+        super(properties.spear(
+                                ModToolMaterials.VARATHA_TOOL_MATERIAL,
+                                1.5f,    // swingAnimationSeconds → attack speed math
+                                1.5f,    // chargeDamageMultiplier
+                                0f,   // chargeDelaySeconds
+                                3.0f,    // maxDurationForDismountSeconds
+                                0.1f,    // minSpeedForDismount
+                                3.0f,    // maxDurationForChargeKnockbackInSeconds
+                                0.1f,    // minSpeedForChargeKnockback
+                                3.0f,    // maxDurationForChargeDamageInSeconds
+                                0.1f     // minRelativeSpeedForChargeDamage
+                        )
+                .component(DataComponents.UNBREAKABLE, Unit.INSTANCE)
+                .component(DataComponents.ATTRIBUTE_MODIFIERS, getDefaultAttributeModifiers())
+                .fireResistant()
+                .component(DataComponents.LORE, createLore)
         );
         registerEvents();
     }
 
 
-    private static final LoreComponent lore = new LoreComponent(List.of(
-            Text.literal(""),
-            Text.literal("A Bident Wielded by ")
-                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.DARK_RED).withBold(true))
-                    .append(Text.literal("Hades")
-                            .setStyle(Style.EMPTY.withItalic(true).withColor(Formatting.DARK_RED).withBold(true))),
-            Text.literal(""),
-            Text.literal("Piercing Blows")
-                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GOLD).withBold(true)),
-            Text.literal("  Ignores a portion of opponent's armor")
-                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)),
-            Text.literal(""),
-            Text.literal("Stygian Wound")
-                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GOLD).withBold(true)),
-            Text.literal("   §r§7On hitting an enemy inflict §8§l§oWithering §r§7& §r§8§l§oBlindness"),
-            Text.literal("   §r§7Cooldown: §2§l15s"),
-            Text.literal(""),
-            Text.literal("§r§6§lGravebound Charge §f§l(Right Click)"),
-            Text.literal("   §r§7Charge forward and leave a trail that §8§l§oHarms"),
-            Text.literal("   §r§7Cooldown: §2§l15s"),
-            Text.literal(""),
-            Text.literal("Abyssal Recovery")
-                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GOLD).withBold(true)),
-            Text.literal("   §r§8§l§oRecover Health §r§7on slaying an enemy"),
-            Text.literal(""),
-            Text.literal("Hellish Immunity")
-                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GOLD).withBold(true)),
-            Text.literal("   §r§7Grants §8§l§oDebuff Immunity")
+    private static final ItemLore createLore = new ItemLore(List.of(
+            Component.literal(""),
+            Component.literal("A Bident Wielded by ")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(ChatFormatting.DARK_RED).withBold(true))
+                    .append(Component.literal("Hades")
+                            .setStyle(Style.EMPTY.withItalic(true).withColor(ChatFormatting.DARK_RED).withBold(true))),
+            Component.literal(""),
+            Component.literal("Piercing Blows")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(ChatFormatting.GOLD).withBold(true)),
+            Component.literal("  Ignores a portion of opponent's armor")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(ChatFormatting.GRAY)),
+            Component.literal(""),
+            Component.literal("Stygian Wound")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(ChatFormatting.GOLD).withBold(true)),
+            Component.literal("   §r§7On hitting an enemy inflict §8§l§oWithering §r§7& §r§8§l§oBlindness"),
+            Component.literal("   §r§7Cooldown: §2§l15s"),
+            Component.literal(""),
+            Component.literal("§r§6§lGravebound Charge §f§l(Right Click)"),
+            Component.literal("   §r§7Charge forward and leave a trail that §8§l§oHarms"),
+            Component.literal("   §r§7Cooldown: §2§l15s"),
+            Component.literal(""),
+            Component.literal("Abyssal Recovery")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(ChatFormatting.GOLD).withBold(true)),
+            Component.literal("   §r§8§l§oRecover Health §r§7on slaying an enemy"),
+            Component.literal(""),
+            Component.literal("Hellish Immunity")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(ChatFormatting.GOLD).withBold(true)),
+            Component.literal("   §r§7Grants §8§l§oDebuff Immunity")
     ));
 
-
-    public static AttributeModifiersComponent getDefaultAttributeModifiers() {
-        return AttributeModifiersComponent.builder()
+    public static ItemAttributeModifiers getDefaultAttributeModifiers() {
+        return ItemAttributeModifiers.builder()
                 .add(
-                        EntityAttributes.ATTACK_DAMAGE,
-                        new EntityAttributeModifier(
-                                Item.BASE_ATTACK_DAMAGE_MODIFIER_ID,
+                        Attributes.ATTACK_DAMAGE,
+                        new AttributeModifier(
+                                BASE_ATTACK_DAMAGE_ID,
                                 7.0,
-                                EntityAttributeModifier.Operation.ADD_VALUE
+                                AttributeModifier.Operation.ADD_VALUE
                         ),
-                        AttributeModifierSlot.MAINHAND
+                        EquipmentSlotGroup.MAINHAND
                 )
                 .add(
-                        EntityAttributes.ATTACK_SPEED,
-                        new EntityAttributeModifier(
-                                Item.BASE_ATTACK_SPEED_MODIFIER_ID,
+                        Attributes.ATTACK_SPEED,
+                        new AttributeModifier(
+                                BASE_ATTACK_SPEED_ID,
                                 -2.8,
-                                EntityAttributeModifier.Operation.ADD_VALUE
+                                AttributeModifier.Operation.ADD_VALUE
                         ),
-                        AttributeModifierSlot.MAINHAND
+                        EquipmentSlotGroup.MAINHAND
                 )
                 .build();
     }
 
-
     private static void registerEvents() {
-
         ServerTickEvents.END_SERVER_TICK.register(server -> {
-            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            for (ServerPlayer player : server.getPlayerList().getPlayers()) {
                 if (getHeldVaratha(player) == null) continue;
 
-                for (StatusEffectInstance status : List.copyOf(player.getStatusEffects())) {
-                    RegistryEntry<StatusEffect> effectEntry = status.getEffectType();
-
-                    if (effectEntry.value().getCategory() == StatusEffectCategory.HARMFUL) {
-                        player.removeStatusEffect(effectEntry);
+                List<MobEffectInstance> effects = new ArrayList<>(player.getActiveEffects());
+                for (MobEffectInstance status : effects) {
+                    if (status.getEffect().value().getCategory() == MobEffectCategory.HARMFUL) {
+                        player.removeEffect(status.getEffect());
                     }
                 }
             }
         });
     }
-    private static ItemStack getHeldVaratha(PlayerEntity player) {
-        if (player.getMainHandStack().getItem() instanceof Varatha)
-            return player.getMainHandStack();
-        if (player.getOffHandStack().getItem() instanceof Varatha)
-            return player.getOffHandStack();
+
+    private static ItemStack getHeldVaratha(Player player) {
+        if (player.getMainHandItem().getItem() instanceof Varatha) return player.getMainHandItem();
+        if (player.getOffhandItem().getItem() instanceof Varatha) return player.getOffhandItem();
         return null;
     }
+
     @Override
-    public ActionResult use(World world, PlayerEntity user, Hand hand) {
-        if (!world.isClient()) {
-            ItemStack stack = user.getStackInHand(hand);
-            if(user.raycast(2, 0, false).getType() == net.minecraft.util.hit.HitResult.Type.BLOCK) {
-                return ActionResult.PASS;
-            }
-            if (!(user.getGameMode() == GameMode.CREATIVE)) {
-                user.getItemCooldownManager().set(stack, 200); //10 second cooldown
+    public InteractionResult use(Level level, Player user, InteractionHand hand) {
+        ItemStack stack = user.getItemInHand(hand);
+        if (!level.isClientSide()) {
+            // Raycast check
+            if (user.pick(2.0, 0.0f, false).getType() == net.minecraft.world.phys.HitResult.Type.BLOCK) {
+                return InteractionResult.PASS;
             }
 
-            Dash.dashForward(user, 1.5f);
-            DashState.start((ServerPlayerEntity) user, 15, ParticleTypes.RAID_OMEN);
-            world.playSound(
-                    null,
-                    user.getX(), user.getY(), user.getZ(),
-                    SoundEvents.ENTITY_BREEZE_WIND_BURST,
-                    SoundCategory.PLAYERS,
-                    1.0F, // volume
-                    0.5F  // pitch
-            );
-            user.useRiptide(15,0, stack);
+            if (user instanceof ServerPlayer serverPlayer) {
+                if (serverPlayer.gameMode.getGameModeForPlayer() != GameType.CREATIVE) {
+                    user.getCooldowns().addCooldown(serverPlayer.getActiveItem(), 200);
+                }
 
+                Dash.dashForward(user, 1.5f);
+                DashState.start(serverPlayer, 15, net.minecraft.core.particles.ParticleTypes.RAID_OMEN);
+
+                level.playSound(null, user.getX(), user.getY(), user.getZ(),
+                        SoundEvents.BREEZE_WIND_CHARGE_BURST, SoundSource.PLAYERS, 1.0F, 0.5F);
+            }
         }
-        return ActionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
+
     @Override
-    public void postHit(ItemStack stack, LivingEntity target, LivingEntity attacker) {
-        if (attacker.getEntityWorld().isClient()) return;
-        if (!(attacker instanceof ServerPlayerEntity player)) return;
+    public void hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+        if (attacker.level().isClientSide()) return ;
+        if (!(attacker instanceof ServerPlayer player)) return ;
 
         float damage = 19f;
 
-        // Check for Strength effect
-        if (attacker.hasStatusEffect(StatusEffects.STRENGTH)) {
-            StatusEffectInstance effect = attacker.getStatusEffect(StatusEffects.STRENGTH);
-
-            assert effect != null;
-            int level = effect.getAmplifier() + 1; // convert amplifier → level
-            damage += level * 3f; // +3 damage per level
+        if (attacker.hasEffect(MobEffects.STRENGTH)) {
+            MobEffectInstance effect = attacker.getEffect(MobEffects.STRENGTH);
+            if (effect != null) {
+                damage += (effect.getAmplifier() + 1) * 3f;
+            }
         }
 
-        // Armor ignoring damage (magic)
-        target.damage(
-                (ServerWorld) attacker.getEntityWorld(),
-                attacker.getDamageSources().magic(),
-                damage
-        );
+        target.hurt(attacker.damageSources().magic(), damage);
 
-        if (Cooldowns.isOnCooldown(player, STYGIAN)) return;
+        if (!Cooldowns.isOnCooldown(player, STYGIAN)) {
+            target.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 100, 1, true, false));
+            target.addEffect(new MobEffectInstance(MobEffects.WITHER, 100, 1, true, true));
 
-        target.addStatusEffect(
-                new StatusEffectInstance(StatusEffects.BLINDNESS, 20 * 5, 1, true, false, false)
-        );
-
-        target.addStatusEffect(
-                new StatusEffectInstance(StatusEffects.WITHER, 20 * 5, 1, true, true, false)
-        );
-
-
-        if (!player.isCreative()) Cooldowns.start(player, STYGIAN, 20 * 15);
+            if (!player.isCreative()) Cooldowns.start(player, STYGIAN, 300);
+        }
+        return ;
     }
 
     @Override
-    public void inventoryTick(ItemStack stack, ServerWorld world, Entity entity, @Nullable EquipmentSlot slot) {
-        PlayerEntity player = (PlayerEntity) entity;
-        if (stack.contains(DataComponentTypes.CUSTOM_NAME)) {
-            player.sendMessage(Text.translatable("item.anvil.rename").formatted(), true);
-            stack.remove(DataComponentTypes.CUSTOM_NAME);
+    public void inventoryTick(ItemStack stack, ServerLevel serverLevel, Entity entity, @Nullable EquipmentSlot equipmentSlot) {
+        if (entity instanceof Player player) {
+            if (stack.has(DataComponents.CUSTOM_NAME)) {
+                player.displayClientMessage(Component.translatable("item.anvil.rename").withStyle(ChatFormatting.RED), true);
+                stack.remove(DataComponents.CUSTOM_NAME);
+            }
+            if (stack.has(DataComponents.ENCHANTMENTS)) {
+                stack.remove(DataComponents.ENCHANTMENTS);
+            }
         }
-        if (stack.contains(DataComponentTypes.ENCHANTMENTS)) {
-            stack.remove(DataComponentTypes.ENCHANTMENTS);
-        }
-    }
-    @Override
-    public Text getName(ItemStack stack) {
-        return Text.translatable("item.pantheon.varatha").formatted();
     }
 
     @Override
-    public Item getPolymerItem(ItemStack stack, PacketContext context) {
+    public Component getName(ItemStack stack) {
+        return Component.translatable("item.pantheon.varatha").withStyle(ChatFormatting.GOLD);
+    }
+
+    @Override
+    public Item getPolymerItem(ItemStack stack, xyz.nucleoid.packettweaker.PacketContext context) {
         return Items.STICK;
     }
 
     @Override
-    public Identifier getPolymerItemModel(ItemStack stack, PacketContext context) {
+    public Identifier getPolymerItemModel(ItemStack stack, xyz.nucleoid.packettweaker.PacketContext context) {
         return MODEL;
     }
 

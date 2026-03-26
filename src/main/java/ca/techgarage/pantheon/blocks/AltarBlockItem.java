@@ -1,17 +1,17 @@
 package ca.techgarage.pantheon.blocks;
 
 import eu.pb4.polymer.core.api.item.PolymerItem;
-import net.minecraft.block.Block;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.server.network.ServerPlayerEntity;
+
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Block;
 import xyz.nucleoid.packettweaker.PacketContext;
 
 public class AltarBlockItem extends BlockItem implements PolymerItem {
 
-    public AltarBlockItem(Block block, Settings settings) {
+    public AltarBlockItem(Block block, Item.Properties settings) {
         super(block, settings);
     }
 

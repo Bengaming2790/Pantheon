@@ -4,38 +4,43 @@ import ca.techgarage.pantheon.api.AOEDamage;
 import ca.techgarage.pantheon.items.ModItems;
 import ca.techgarage.pantheon.status.ModEffects;
 import eu.pb4.polymer.core.api.entity.PolymerEntity;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.entity.*;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.decoration.DisplayEntity;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.projectile.PersistentProjectileEntity;
-import net.minecraft.item.ItemDisplayContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.EntityHitResult;
-import net.minecraft.util.math.AffineTransformation;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.core.Holder;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.arrow.Arrow;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.Vec3;
+import com.mojang.math.Transformation;
 import org.joml.Quaternionf;
+import org.joml.Vector3f;
+import org.jspecify.annotations.Nullable;
 import xyz.nucleoid.packettweaker.PacketContext;
 
-public class AstrapeEntity extends PersistentProjectileEntity implements PolymerEntity {
+
+public class AstrapeEntity extends Arrow implements PolymerEntity {
     private boolean hit = false;
-    private DisplayEntity.ItemDisplayEntity display;
+    private Display.ItemDisplay display;
     private final ItemStack weaponStack;
 
-    public AstrapeEntity(EntityType<? extends PersistentProjectileEntity> type, World world) {
-        super(type, world);
+    public AstrapeEntity(EntityType<? extends Arrow> type, Level level) {
+        super(type, level);
         this.weaponStack = ItemStack.EMPTY;
     }
 
-    public AstrapeEntity(World world, PlayerEntity owner, ItemStack stack) {
-        super(ModEntities.ASTRAPE, world);
+    public AstrapeEntity(Level level, Player owner, ItemStack stack) {
+        // Ensure ModEntities.ASTRAPE is registered as an EntityType<? extends AbstractArrow>
+        super(ModEntities.ASTRAPE, level);
         this.setOwner(owner);
         this.weaponStack = stack.copy();
     }
@@ -44,19 +49,19 @@ public class AstrapeEntity extends PersistentProjectileEntity implements Polymer
     public void tick() {
         super.tick();
 
-        if (this.getEntityWorld().isClient()) return;
+        if (this.level().isClientSide()) return;
 
         if (!hit && (display == null || !display.isAlive())) {
             spawnDisplay();
         }
 
         if (display != null) {
-            display.setPosition(this.getX(), this.getY(), this.getZ());
+            display.setPos(this.getX(), this.getY(), this.getZ());
 
-            Vec3d vel = this.getVelocity();
-            if (vel.lengthSquared() > 0.001) {
+            Vec3 vel = this.getDeltaMovement();
+            if (vel.lengthSqr() > 0.001) {
                 float yaw = (float)(Math.atan2(vel.z, vel.x) * (180F / Math.PI)) - 90F;
-                float pitch = (float)(-Math.atan2(vel.y, vel.horizontalLength()) * (180F / Math.PI));
+                float pitch = (float)(-Math.atan2(vel.y, vel.horizontalDistance()) * (180F / Math.PI));
 
                 Quaternionf rotation = new Quaternionf()
                         .rotateY((float)Math.toRadians(-yaw + 90))
@@ -67,10 +72,10 @@ public class AstrapeEntity extends PersistentProjectileEntity implements Polymer
 
                 rotation.mul(offset);
 
-                display.setTransformation(new AffineTransformation(
-                        new org.joml.Vector3f(),
+                display.setTransformation(new Transformation(
+                        new Vector3f(),
                         rotation,
-                        new org.joml.Vector3f(1f, 1f, 1f),
+                        new Vector3f(1f, 1f, 1f),
                         new Quaternionf()
                 ));
             }
@@ -82,83 +87,71 @@ public class AstrapeEntity extends PersistentProjectileEntity implements Polymer
     }
 
     private void spawnDisplay() {
-        if (!(this.getEntityWorld() instanceof ServerWorld world)) return;
+        if (!(this.level() instanceof ServerLevel serverLevel)) return;
 
-        display = new DisplayEntity.ItemDisplayEntity(EntityType.ITEM_DISPLAY, world);
-
-        display.setPosition(this.getX(), this.getY(), this.getZ());
+        display = new Display.ItemDisplay(EntityType.ITEM_DISPLAY, serverLevel);
+        display.setPos(this.getX(), this.getY(), this.getZ());
 
         ItemStack stack = new ItemStack(ModItems.ASTRAPE);
-
         display.setItemStack(stack);
-        display.setItemDisplayContext(ItemDisplayContext.GROUND);
+        display.setItemTransform(ItemDisplayContext.GROUND);
 
-        display.setDisplayWidth(1f);
-        display.setDisplayHeight(1f);
+        // setDisplayWidth/Height are usually handled via DataTracker or specific setters in MojMap
+        display.setWidth(1f);
+        display.setHeight(1f);
 
-        world.spawnEntity(display);
+        serverLevel.addFreshEntity(display);
+    }
+
+    public @Nullable EntityReference<Entity> owner() {
+        return owner;
     }
 
     @Override
-    protected void onEntityHit(EntityHitResult hit) {
+    protected void onHitEntity(EntityHitResult hit) {
         Entity entity = hit.getEntity();
         float damage = 8.0F;
 
         Entity owner = this.getOwner();
-        DamageSource source = this.getDamageSources().trident(this, owner == null ? this : owner);
+        DamageSource source = this.damageSources().trident(this, owner == null ? this : owner);
 
-        World world = this.getEntityWorld();
-
-        if (world instanceof ServerWorld serverWorld) {
-            damage = EnchantmentHelper.getDamage(
-                    serverWorld,
+        if (this.level() instanceof ServerLevel serverLevel) {
+            EnchantmentHelper.modifyDamage(
+                    serverLevel,
                     weaponStack,
                     entity,
                     source,
                     damage
             );
-        }
 
-        assert world instanceof ServerWorld;
-        if (entity.damage((ServerWorld) world, source, damage)) {
-            if (entity.getType() == EntityType.ENDERMAN) return;
+            if (entity.hurtMarked) {
+                if (entity.getType() == EntityType.ENDERMAN) return;
 
-            if (world instanceof ServerWorld serverWorld) {
-                EnchantmentHelper.onTargetDamaged(
-                        serverWorld,
-                        entity,
-                        source,
-                        weaponStack,
-                        (item) -> this.kill(serverWorld)
-                );
-            }
+                if (entity instanceof LivingEntity living) {
+                    this.doPostHurtEffects(living); // Standard arrow knockback/effects logic
 
-            if (entity instanceof LivingEntity living) {
-                this.knockback(living, source);
+                    living.addEffect(
+                            new MobEffectInstance(MobEffects.GLOWING, 20 * 8, 1, true, false, false)
+                    );
 
-                living.setStatusEffect(
-                        new StatusEffectInstance(StatusEffects.GLOWING, 20 * 8, 1, true, false, false),
-                        this
-                );
-
-                living.setStatusEffect(
-                        new StatusEffectInstance(ModEffects.CONDUCTING, 20 * 8, 1, true, false, false),
-                        this
-                );
+                    living.addEffect(
+                            new MobEffectInstance((Holder<MobEffect>) ModEffects.CONDUCTING, 20 * 8, 1, true, false, false)
+                    );
+                }
             }
         }
 
-        this.setVelocity(this.getVelocity().multiply(0.02, 0.2, 0.02));
-        this.playSound(SoundEvents.ITEM_TRIDENT_HIT, 1.0F, 1.0F);
+        this.setDeltaMovement(this.getDeltaMovement().multiply(0.02, 0.2, 0.02));
+        this.playSound(SoundEvents.TRIDENT_HIT, 1.0F, 1.0F);
     }
 
     @Override
-    protected void onBlockHit(BlockHitResult hitResult) {
-        super.onBlockHit(hitResult);
+    protected void onHitBlock(BlockHitResult hitResult) {
+        super.onHitBlock(hitResult);
 
-        if (this.getEntityWorld() instanceof ServerWorld world) {
-            Vec3d pos = hitResult.getBlockPos().toCenterPos();
-            AOEDamage.applyAoeDamage(this.getEntity(), world, pos, 7f, 15f, 1.5f);
+        if (this.level() instanceof ServerLevel serverLevel) {
+            Vec3 pos = hitResult.getBlockPos().getCenter();
+            AOEDamage.applyAoeDamage(this, serverLevel, pos, 7f, 15f, 1.5f);
         }
 
         this.hit = true;
@@ -171,18 +164,13 @@ public class AstrapeEntity extends PersistentProjectileEntity implements Polymer
     }
 
     @Override
-    protected ItemStack asItemStack() {
+    protected ItemStack getPickupItem() {
         return weaponStack.isEmpty() ? new ItemStack(ModItems.ASTRAPE) : weaponStack;
     }
 
-    @Override
-    protected ItemStack getDefaultItemStack() {
-        return new ItemStack(ModItems.ASTRAPE);
-    }
 
     @Override
     public EntityType<?> getPolymerEntityType(PacketContext packetContext) {
         return EntityType.ITEM_DISPLAY;
     }
-
 }

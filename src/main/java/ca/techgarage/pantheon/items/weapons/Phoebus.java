@@ -3,89 +3,93 @@ package ca.techgarage.pantheon.items.weapons;
 import ca.techgarage.pantheon.api.Cooldowns;
 import ca.techgarage.pantheon.status.ModEffects;
 import eu.pb4.polymer.core.api.item.PolymerItem;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.AttributeModifierSlot;
-import net.minecraft.component.type.AttributeModifiersComponent;
-import net.minecraft.component.type.TooltipDisplayComponent;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
+
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Unit;
-import net.minecraft.world.GameMode;
-import net.minecraft.world.World;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
 import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.LinkedHashSet;
 import java.util.List;
 
 public class Phoebus extends Item implements PolymerItem {
-    public Phoebus(Settings settings) {
-        super(settings.component(DataComponentTypes.MAX_STACK_SIZE, 1).component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers()).fireproof()
-                .component(DataComponentTypes.TOOLTIP_DISPLAY, new TooltipDisplayComponent(false, new LinkedHashSet<>(List.of(
-                        DataComponentTypes.ATTRIBUTE_MODIFIERS,
-                        DataComponentTypes.UNBREAKABLE
+    public Phoebus(net.minecraft.world.item.Item.Properties settings) {
+        super(settings.component(DataComponents.MAX_STACK_SIZE, 1).component(DataComponents.UNBREAKABLE, Unit.INSTANCE).component(DataComponents.ATTRIBUTE_MODIFIERS, createAttributeModifiers()).fireResistant()
+                .component(DataComponents.TOOLTIP_DISPLAY, new TooltipDisplay(false, new LinkedHashSet<>(List.of(
+                        DataComponents.ATTRIBUTE_MODIFIERS,
+                        DataComponents.UNBREAKABLE
                 )))));
     }
 
     private static final Identifier MODEL =
-            Identifier.of("pantheon", "phoebus");
+            Identifier.fromNamespaceAndPath("pantheon", "phoebus");
 
     public static final String PHOEBUS_SONG_CD = "phoebus_song_cd";
     public static final String PHOEBUS_SONG_ACTIVE = "phoebus_song_active_timer";
 
-    public static AttributeModifiersComponent createAttributeModifiers() {
-        return AttributeModifiersComponent.builder()
+    public static ItemAttributeModifiers createAttributeModifiers() {
+        return ItemAttributeModifiers.builder()
                 .add(
-                        EntityAttributes.ATTACK_DAMAGE,
-                        new EntityAttributeModifier(
-                                BASE_ATTACK_DAMAGE_MODIFIER_ID,
+                        Attributes.ATTACK_DAMAGE,
+                        new AttributeModifier(
+                                BASE_ATTACK_DAMAGE_ID,
                                 14.0,
-                                EntityAttributeModifier.Operation.ADD_VALUE
+                                AttributeModifier.Operation.ADD_VALUE
                         ),
-                        AttributeModifierSlot.MAINHAND
+                        EquipmentSlotGroup.MAINHAND
                 )
                 .add(
-                        EntityAttributes.ATTACK_SPEED,
-                        new EntityAttributeModifier(
-                                BASE_ATTACK_SPEED_MODIFIER_ID,
+                        Attributes.ATTACK_SPEED,
+                        new AttributeModifier(
+                                BASE_ATTACK_SPEED_ID,
                                 1.6 - 4.0,
-                                EntityAttributeModifier.Operation.ADD_VALUE
+                                AttributeModifier.Operation.ADD_VALUE
                         ),
-                        AttributeModifierSlot.MAINHAND
+                        EquipmentSlotGroup.MAINHAND
                 )
                 .build();
     }
 
     @Override
-    public void postHit(ItemStack stack, net.minecraft.entity.LivingEntity target, net.minecraft.entity.LivingEntity attacker) {
-        super.postHit(stack, target, attacker);
-        if (target.getEntityWorld().isClient()) {
+    public void postHurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+        super.postHurtEnemy(stack, target, attacker);
+        if (target.level().isClientSide()) {
             return;
         }
 
-        target.setOnFireFor(5);
-        target.setStatusEffect(
-                new StatusEffectInstance(StatusEffects.GLOWING, 20 * 5, 1, true, true, false),
+        target.igniteForTicks(5);
+        target.addEffect(
+                new MobEffectInstance(MobEffects.GLOWING, 20 * 5, 1, true, true, false),
                 target
         );
 
-        if (attacker instanceof PlayerEntity player) {
+        if (attacker instanceof Player player) {
             if (Cooldowns.isOnCooldown(player, PHOEBUS_SONG_ACTIVE)) {
-                target.setStatusEffect(
-                        new StatusEffectInstance(ModEffects.SUN_POISONING, 20 * 5, 1, true, true, true),
+                target.addEffect(
+                        new MobEffectInstance((Holder<MobEffect>) ModEffects.SUN_POISONING, 20 * 5, 1, true, true, true),
                         target
                 );
             }
@@ -94,24 +98,24 @@ public class Phoebus extends Item implements PolymerItem {
     }
 
     @Override
-    public ActionResult use(World world, PlayerEntity user, Hand hand) {
-        if (!world.isClient()) {
-            user.setStatusEffect(new StatusEffectInstance(StatusEffects.SPEED, 20 * 10, 2), user);
-             if (user.getGameMode() != GameMode.CREATIVE) {
-                user.getItemCooldownManager().set(user.getStackInHand(hand), 20 * 45); //45 second cooldown
+    public InteractionResult use(Level world, Player user, InteractionHand hand) {
+        if (!world.isClientSide()) {
+            user.addEffect(new MobEffectInstance(MobEffects.SPEED, 20 * 10, 2), user);
+             if (user.gameMode() != GameType.CREATIVE) {
+                user.getCooldowns().addCooldown(user.getActiveItem(), 20 * 45); //45 second cooldown
             }
             Cooldowns.start(user, PHOEBUS_SONG_ACTIVE, 20 * 15);
 
             world.playSound(
                     null,
                     user.getX(), user.getY(), user.getZ(),
-                    SoundEvents.BLOCK_CONDUIT_ACTIVATE,
-                    SoundCategory.PLAYERS,
+                    SoundEvents.CONDUIT_ACTIVATE,
+                    SoundSource.PLAYERS,
                     1.0F, // volume
                     1.0F  // pitch
             );
-            ServerWorld serverWorld = (ServerWorld) world;
-            serverWorld.spawnParticles(
+            ServerLevel serverWorld = (ServerLevel) world;
+            serverWorld.sendParticles(
                     ParticleTypes.NOTE,
                     user.getX(),
                     user.getY() + 0.5,
@@ -124,13 +128,13 @@ public class Phoebus extends Item implements PolymerItem {
             );
 
         }
-        return ActionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
     public Identifier getPolymerItemModel(ItemStack stack, PacketContext context) {
         return MODEL;
     }
-    public Text getName(ItemStack stack) {
-        return Text.translatable("item.pantheon.pheobus").formatted();
+    public Component getName(ItemStack stack) {
+        return Component.translatable("item.pantheon.pheobus");
     }
 
     @Override

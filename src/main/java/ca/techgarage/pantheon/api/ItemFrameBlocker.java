@@ -2,11 +2,11 @@ package ca.techgarage.pantheon.api;
 
 import ca.techgarage.pantheon.items.ModItems;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
-import net.minecraft.entity.decoration.ItemFrameEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
+import net.minecraft.world.entity.decoration.ItemFrame;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionResult;
 
 import java.util.Set;
 
@@ -16,20 +16,20 @@ public class ItemFrameBlocker {
 
     public static void register() {
 
-        UseEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
+        UseEntityCallback.EVENT.register((player, level, hand, entity, hitResult) -> {
 
-            if (!(entity instanceof ItemFrameEntity)) {
-                return ActionResult.PASS;
+            if (!(entity instanceof ItemFrame)) {
+                return InteractionResult.PASS;
             }
 
-            ItemStack stack = player.getStackInHand(hand);
+            ItemStack stack = player.getItemInHand(hand);
 
             if (BLOCKED_ITEMS.contains(stack.getItem())) {
-                player.sendMessage(Text.translatable("item.anvil.rename").formatted(), true);
-                return ActionResult.FAIL;
+                player.displayClientMessage(Component.translatable("item.anvil.rename"), true);
+                return InteractionResult.FAIL;
             }
 
-            return ActionResult.PASS;
+            return InteractionResult.PASS;
         });
     }
 }

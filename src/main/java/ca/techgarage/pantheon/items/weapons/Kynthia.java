@@ -1,19 +1,18 @@
 package ca.techgarage.pantheon.items.weapons;
 
 import eu.pb4.polymer.core.api.item.PolymerItem;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.TooltipDisplayComponent;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.projectile.PersistentProjectileEntity;
-import net.minecraft.entity.projectile.ProjectileEntity;
-import net.minecraft.item.*;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Unit;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
+import net.minecraft.world.item.*;
+import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.level.Level;
 import xyz.nucleoid.packettweaker.PacketContext;
 import ca.techgarage.pantheon.api.Grapple;
 
@@ -24,21 +23,21 @@ public class Kynthia extends BowItem implements PolymerItem {
     public static final String KYNTHIA_GRAPPLE_CD = "kynthia_grapple_cd";
 
     private static final Identifier MODEL =
-            Identifier.of("pantheon", "kynthia");
+            Identifier.fromNamespaceAndPath("pantheon", "kynthia");
 
-    public Kynthia(Settings settings) {
-        super(settings.component(DataComponentTypes.MAX_STACK_SIZE, 1)
-                .component(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true)
-                .component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).fireproof()
-                .component(DataComponentTypes.TOOLTIP_DISPLAY, new TooltipDisplayComponent(false, new LinkedHashSet<>(List.of(
-                        DataComponentTypes.ATTRIBUTE_MODIFIERS,
-                        DataComponentTypes.UNBREAKABLE
+    public Kynthia(Properties settings) {
+        super(settings.component(DataComponents.MAX_STACK_SIZE, 1)
+                .component(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true)
+                .component(DataComponents.UNBREAKABLE, Unit.INSTANCE).fireResistant()
+                .component(DataComponents.TOOLTIP_DISPLAY, new TooltipDisplay(false, new LinkedHashSet<>(List.of(
+                        DataComponents.ATTRIBUTE_MODIFIERS,
+                        DataComponents.UNBREAKABLE
                 ))))
         );
     }
 
 
-    public void activate(PlayerEntity player) {
+    public void activate(Player player) {
         Grapple.fire(player, 32.0);
 
     }
@@ -52,21 +51,19 @@ public class Kynthia extends BowItem implements PolymerItem {
         return Items.BOW;
     }
     @Override
-    protected ProjectileEntity createArrowEntity(World world, LivingEntity shooter, ItemStack weaponStack, ItemStack projectileStack, boolean critical) {
+    protected Projectile createProjectile(Level world, LivingEntity shooter, ItemStack weaponStack, ItemStack projectileStack, boolean critical) {
         Item item = projectileStack.getItem();
         ArrowItem arrowItem = item instanceof ArrowItem a ? a : (ArrowItem) Items.ARROW;
 
-        PersistentProjectileEntity arrow = arrowItem.createArrow(world, projectileStack, shooter, weaponStack);
-        if (critical) {
-            arrow.setCritical(true);
-        }
-        arrow.setDamage(10.0);
+        AbstractArrow arrow = arrowItem.createArrow(world, projectileStack, shooter, weaponStack);
+
+        arrow.hurt(shooter.damageSources().arrow(arrow, shooter), 10.0f);
 
         return arrow;
     }
     @Override
-    public Text getName(ItemStack stack) {
-        return Text.translatable("item.pantheon.kynthia").formatted();
+    public Component getName(ItemStack stack) {
+        return Component.translatable("item.pantheon.kynthia");
     }
 
 }

@@ -1,9 +1,9 @@
 package ca.techgarage.pantheon.api;
 
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.particle.ParticleEffect;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -14,8 +14,8 @@ public class DashState {
 
     public static final Map<UUID, ParticleCast> DASH_TICKS = new HashMap<>();
 
-    public static void start(ServerPlayerEntity player, int ticks, ParticleEffect particle) {
-        DASH_TICKS.put(player.getUuid(), new ParticleCast(ticks, particle));
+    public static void start(ServerPlayer player, int ticks, ParticleOptions particle) {
+        DASH_TICKS.put(player.getUUID(), new ParticleCast(ticks, particle));
     }
 
     public static void tick(MinecraftServer server) {
@@ -23,7 +23,7 @@ public class DashState {
 
         while (it.hasNext()) {
             Map.Entry<UUID, ParticleCast> entry = it.next();
-            ServerPlayerEntity player = server.getPlayerManager().getPlayer(entry.getKey());
+            ServerPlayer player = server.getPlayerList().getPlayer(entry.getKey());
 
             if (player == null) {
                 it.remove();
@@ -37,9 +37,9 @@ public class DashState {
                 continue;
             }
 
-            ServerWorld world = player.getEntityWorld();
+            ServerLevel world = (ServerLevel) player.level();
 
-            world.spawnParticles(
+            world.sendParticles(
                     data.particle,
                     player.getX(),
                     player.getY() + 0.5,
@@ -57,9 +57,9 @@ public class DashState {
 
     public static class ParticleCast {
         int ticks;
-        final ParticleEffect particle;
+        final ParticleOptions particle;
 
-        ParticleCast(int ticks, ParticleEffect particle) {
+        ParticleCast(int ticks, ParticleOptions particle) {
             this.ticks = ticks;
             this.particle = particle;
         }

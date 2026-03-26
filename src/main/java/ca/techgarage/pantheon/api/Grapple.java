@@ -1,144 +1,146 @@
 package ca.techgarage.pantheon.api;
 
 import ca.techgarage.pantheon.items.weapons.Kynthia;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameMode;
-import net.minecraft.world.RaycastContext;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 
 public class Grapple {
 
-    public static boolean isAimingDown(PlayerEntity player) {
-        return player.getPitch() > 80.0F;
+    public static boolean isAimingDown(Player player) {
+        return player.getXRot() > 80.0F;
     }
-    public static void pullPlayer(PlayerEntity player, Vec3d target) {
-        if (player.isSneaking()) {
-            player.setSneaking(false);
+
+    public static void pullPlayer(Player player, Vec3 target) {
+        if (player.isShiftKeyDown()) {
+            player.setShiftKeyDown(false);
         }
 
-        Vec3d look = player.getRotationVec(1.0F).normalize();
+        Vec3 look = player.getViewVector(1.0F).normalize();
 
         double speed = 1.6;
         double yBoost = 0.15;
 
-        Vec3d velocity = new Vec3d(
+        Vec3 velocity = new Vec3(
                 look.x * speed,
                 look.y * speed + yBoost,
                 look.z * speed
         );
 
-        player.setVelocity(velocity);
-        player.velocityDirty = true;
+        player.setDeltaMovement(velocity);
+        player.hurtMarked = true;
         player.fallDistance = 0;
 
-        if (player instanceof ServerPlayerEntity serverPlayer) {
-            serverPlayer.networkHandler.sendPacket(
-                    new EntityVelocityUpdateS2CPacket(serverPlayer)
+        if (player instanceof ServerPlayer serverPlayer) {
+            serverPlayer.connection.send(
+                    new ClientboundSetEntityMotionPacket(serverPlayer)
             );
         }
     }
 
+    public static void bouncePlayer(Player player) {
+        Vec3 vel = player.getDeltaMovement();
 
-
-
-    public static void bouncePlayer(PlayerEntity player) {
-        Vec3d vel = player.getVelocity();
-
-        player.setVelocity(
+        player.setDeltaMovement(
                 vel.x * 0.3,
                 1.2,
                 vel.z * 0.3
         );
-        if (player instanceof ServerPlayerEntity serverPlayer) {
-            serverPlayer.networkHandler.sendPacket(new EntityVelocityUpdateS2CPacket(player));
+
+        if (player instanceof ServerPlayer serverPlayer) {
+            serverPlayer.connection.send(new ClientboundSetEntityMotionPacket(player));
         }
     }
 
-    public static void spawnChainParticles(ServerWorld world, Vec3d from, Vec3d to) {
-        Vec3d delta = to.subtract(from);
+    public static void spawnChainParticles(ServerLevel world, Vec3 from, Vec3 to) {
+        Vec3 delta = to.subtract(from);
         int points = 128;
 
         for (int i = 0; i <= points; i++) {
-            Vec3d pos = from.add(delta.multiply(i / (double) points));
-            world.spawnParticles(ParticleTypes.CRIT, pos.x, pos.y, pos.z, 1, 0, 0, 0, 0);
+            Vec3 pos = from.add(delta.scale(i / (double) points));
+            world.sendParticles(ParticleTypes.CRIT, pos.x, pos.y, pos.z, 1, 0, 0, 0, 0);
         }
     }
-    public static void pullEntity(PlayerEntity player, Entity target) {
-        Vec3d playerPos = player.getEntityPos().add(0, player.getStandingEyeHeight(), 0);
-        Vec3d targetPos = target.getEntityPos().add(0, target.getStandingEyeHeight(), 0);
 
-        Vec3d velocity = playerPos.subtract(targetPos)
+    public static void pullEntity(Player player, Entity target) {
+        Vec3 playerPos = player.position().add(0, player.getEyeHeight(), 0);
+        Vec3 targetPos = target.position().add(0, target.getEyeHeight(), 0);
+
+        Vec3 velocity = playerPos.subtract(targetPos)
                 .normalize()
-                .multiply(1.6);
+                .scale(1.6);
 
-        target.setVelocity(velocity);
+        target.setDeltaMovement(velocity);
 
-        if (target instanceof ServerPlayerEntity serverTarget) {
-            serverTarget.networkHandler.sendPacket(
-                    new EntityVelocityUpdateS2CPacket(serverTarget)
+        if (target instanceof ServerPlayer serverTarget) {
+            serverTarget.connection.send(
+                    new ClientboundSetEntityMotionPacket(serverTarget)
             );
         }
     }
 
-    public static void fire(PlayerEntity player, double range) {
-        if (!(player.getEntityWorld() instanceof ServerWorld world)) return;
-        if (Cooldowns.isOnCooldown(player, Kynthia.KYNTHIA_GRAPPLE_CD) && (player.getGameMode() != GameMode.CREATIVE)) return;
-        Vec3d start = player.getCameraPosVec(1.0F);
-        Vec3d direction = player.getRotationVec(1.0F);
-        Vec3d end = start.add(direction.multiply(range));
+    public static void fire(Player player, double range) {
+        if (!(player.level() instanceof ServerLevel world)) return;
+        if (Cooldowns.isOnCooldown(player, Kynthia.KYNTHIA_GRAPPLE_CD) && !player.isCreative()) return;
 
-        BlockHitResult blockHit = world.raycast(new RaycastContext(
+        Vec3 start = player.getEyePosition(1.0F);
+        Vec3 direction = player.getViewVector(1.0F);
+        Vec3 end = start.add(direction.scale(range));
+
+        BlockHitResult blockHit = world.clip(new ClipContext(
                 start,
                 end,
-                RaycastContext.ShapeType.OUTLINE,
-                RaycastContext.FluidHandling.NONE,
+                ClipContext.Block.OUTLINE,
+                ClipContext.Fluid.NONE,
                 player
         ));
 
-        if (blockHit.getType() != BlockHitResult.Type.BLOCK) {
+        if (blockHit.getType() != HitResult.Type.BLOCK) {
             return;
         }
 
-        Vec3d hitPos = blockHit.getPos();
+        Vec3 hitPos = blockHit.getLocation();
 
         spawnChainParticles(world, start, hitPos);
-        player.getEntityWorld().playSound(
+        player.level().playSound(
                 null,
                 player.getX(), player.getY(), player.getZ(),
-                SoundEvents.ENTITY_BLAZE_SHOOT,
-                SoundCategory.PLAYERS,
-                1.0F, // volume
-                1.75F  // pitch
+                SoundEvents.BLAZE_SHOOT,
+                SoundSource.PLAYERS,
+                1.0F,
+                1.75F
         );
         Cooldowns.start(player, Kynthia.KYNTHIA_GRAPPLE_CD, 20 * 15);
-        Entity closestEntity = world.getOtherEntities(
+
+        Entity closestEntity = world.getEntities(
                 player,
                 player.getBoundingBox()
-                        .stretch(direction.multiply(range))
-                        .expand(1.0),
+                        .expandTowards(direction.scale(range))
+                        .inflate(1.0),
                 e -> e.isAlive() && e.isAttackable()
         ).stream().min((a, b) -> {
-            double da = a.getEntityPos().squaredDistanceTo(start);
-            double db = b.getEntityPos().squaredDistanceTo(start);
+            double da = a.position().distanceToSqr(start);
+            double db = b.position().distanceToSqr(start);
             return Double.compare(da, db);
         }).orElse(null);
 
         if (closestEntity != null &&
-                closestEntity.getEntityPos().distanceTo(start) < hitPos.distanceTo(start)) {
-
+                closestEntity.position().distanceTo(start) < hitPos.distanceTo(start)) {
             pullEntity(player, closestEntity);
             return;
         }
 
-        double distance = hitPos.distanceTo(player.getEntityPos());
+        double distance = hitPos.distanceTo(player.position());
 
         if (distance <= 2.0 && isAimingDown(player)) {
             bouncePlayer(player);
@@ -146,7 +148,4 @@ public class Grapple {
             pullPlayer(player, hitPos);
         }
     }
-
-
-
 }

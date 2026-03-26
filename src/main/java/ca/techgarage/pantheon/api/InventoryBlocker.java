@@ -2,12 +2,11 @@ package ca.techgarage.pantheon.api;
 
 import ca.techgarage.pantheon.items.ModItems;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.*;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.inventory.*;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.chat.Component;
 
 import java.util.Set;
 
@@ -21,42 +20,43 @@ public class InventoryBlocker {
 
         ServerTickEvents.END_SERVER_TICK.register(server -> {
 
-            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            for (ServerPlayer player : server.getPlayerList().getPlayers()) {
 
-                ScreenHandler handler = player.currentScreenHandler;
-                if (handler == null) continue;
+                AbstractContainerMenu menu = player.containerMenu;
+                if (menu == null) continue;
 
                 // Only block vanilla storage containers
-                if (!(handler instanceof GenericContainerScreenHandler
-                        || handler instanceof ShulkerBoxScreenHandler
-                        || handler instanceof HopperScreenHandler
-                        || handler instanceof FurnaceScreenHandler
-                        || handler instanceof BlastFurnaceScreenHandler
-                        || handler instanceof SmokerScreenHandler
-                        || handler instanceof BrewingStandScreenHandler
-                        || handler instanceof AnvilScreenHandler
-                        || handler instanceof CartographyTableScreenHandler
-                        || handler instanceof GrindstoneScreenHandler
-                        || handler instanceof StonecutterScreenHandler
-                        || handler instanceof SmithingScreenHandler
-                        || handler instanceof CrafterScreenHandler
-                        || handler instanceof MountScreenHandler
-                        )) {
+                // Note: Checking against player.inventoryMenu ensures we aren't blocking the player's own inventory screen
+                if (!(menu instanceof ChestMenu
+                        || menu instanceof ShulkerBoxMenu
+                        || menu instanceof HopperMenu
+                        || menu instanceof FurnaceMenu
+                        || menu instanceof BlastFurnaceMenu
+                        || menu instanceof SmokerMenu
+                        || menu instanceof BrewingStandMenu
+                        || menu instanceof AnvilMenu
+                        || menu instanceof CartographyTableMenu
+                        || menu instanceof GrindstoneMenu
+                        || menu instanceof StonecutterMenu
+                        || menu instanceof SmithingMenu
+                        || menu instanceof CrafterMenu
+                        || menu instanceof HorseInventoryMenu
+                )) {
                     continue;
                 }
 
-                for (Slot slot : handler.slots) {
+                for (Slot slot : menu.slots) {
 
                     // Skip player inventory slots
-                    if (slot.inventory == player.getInventory()) continue;
+                    if (slot.container == player.getInventory()) continue;
 
-                    ItemStack stack = slot.getStack();
+                    ItemStack stack = slot.getItem();
                     if (stack.isEmpty()) continue;
 
                     if (BLOCKED_ITEMS.contains(stack.getItem())) {
-                        player.sendMessage(Text.translatable("item.anvil.rename").formatted(), true);
-                        slot.setStack(ItemStack.EMPTY);
-                        player.getInventory().offerOrDrop(stack);
+                        player.displayClientMessage(Component.translatable("item.anvil.rename").withStyle(style -> style.withBold(true)), true);
+                        slot.set(ItemStack.EMPTY);
+                        player.getInventory().placeItemBackInInventory(stack);
                     }
                 }
             }

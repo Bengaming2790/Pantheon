@@ -1,12 +1,11 @@
 package ca.techgarage.pantheon.api;
 
-import net.minecraft.scoreboard.Scoreboard;
-import net.minecraft.scoreboard.Team;
-import net.minecraft.scoreboard.AbstractTeam;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.scores.PlayerTeam;
+import net.minecraft.world.scores.Scoreboard;
+import net.minecraft.world.scores.Team;
 
 public class DroppedItemGlow {
 
@@ -18,58 +17,57 @@ public class DroppedItemGlow {
      * @param hexColor   A hex color string, e.g. "#FF5500" or "FF5500"
      */
     public static void applyGlow(ItemEntity itemEntity, String hexColor) {
-        if (!(itemEntity.getEntityWorld() instanceof ServerWorld serverWorld)) return;
+        if (!(itemEntity.level() instanceof ServerLevel serverWorld)) return;
 
-        Formatting formatting = hexToNearestFormatting(hexColor);
+        ChatFormatting formatting = hexToNearestFormatting(hexColor);
         String teamName = "glow_" + formatting.getName();
 
         Scoreboard scoreboard = serverWorld.getScoreboard();
 
-        Team team = scoreboard.getTeam(teamName);
+        PlayerTeam team = scoreboard.getPlayerTeam(teamName);
         if (team == null) {
-            team = scoreboard.addTeam(teamName);
+            team = scoreboard.addPlayerTeam(teamName);
             team.setColor(formatting);
-            team.setCollisionRule(AbstractTeam.CollisionRule.NEVER);
-            team.setNameTagVisibilityRule(AbstractTeam.VisibilityRule.NEVER);
+            team.setCollisionRule(Team.CollisionRule.NEVER);
+            team.setNameTagVisibility(Team.Visibility.NEVER);
         }
 
-        scoreboard.addScoreHolderToTeam(itemEntity.getNameForScoreboard(), team);
-        itemEntity.setGlowing(true);
+        scoreboard.addPlayerToTeam(itemEntity.getScoreboardName(), team);
+        itemEntity.setGlowingTag(true);
     }
 
-
     public static void removeGlow(ItemEntity itemEntity) {
-        if (!(itemEntity.getEntityWorld() instanceof ServerWorld serverWorld)) return;
-        itemEntity.setGlowing(false);
-        serverWorld.getScoreboard().clearTeam(itemEntity.getNameForScoreboard());
+        if (!(itemEntity.level() instanceof ServerLevel serverWorld)) return;
+        itemEntity.setGlowingTag(false);
+        serverWorld.getScoreboard().removePlayerFromTeam(itemEntity.getScoreboardName());
     }
 
     /**
-     * Converts a hex color string to the nearest Minecraft Formatting color.
+     * Converts a hex color string to the nearest Minecraft ChatFormatting color.
      */
-    public static Formatting hexToNearestFormatting(String hex) {
+    public static ChatFormatting hexToNearestFormatting(String hex) {
         hex = hex.replace("#", "");
         int r = Integer.parseInt(hex.substring(0, 2), 16);
         int g = Integer.parseInt(hex.substring(2, 4), 16);
         int b = Integer.parseInt(hex.substring(4, 6), 16);
 
-        Formatting[] candidates = {
-                Formatting.BLACK,       // #000000
-                Formatting.DARK_BLUE,   // #0000AA
-                Formatting.DARK_GREEN,  // #00AA00
-                Formatting.DARK_AQUA,   // #00AAAA
-                Formatting.DARK_RED,    // #AA0000
-                Formatting.DARK_PURPLE, // #AA00AA
-                Formatting.GOLD,        // #FFAA00
-                Formatting.GRAY,        // #AAAAAA
-                Formatting.DARK_GRAY,   // #555555
-                Formatting.BLUE,        // #5555FF
-                Formatting.GREEN,       // #55FF55
-                Formatting.AQUA,        // #55FFFF
-                Formatting.RED,         // #FF5555
-                Formatting.LIGHT_PURPLE,// #FF55FF
-                Formatting.YELLOW,      // #FFFF55
-                Formatting.WHITE        // #FFFFFF
+        ChatFormatting[] candidates = {
+                ChatFormatting.BLACK,
+                ChatFormatting.DARK_BLUE,
+                ChatFormatting.DARK_GREEN,
+                ChatFormatting.DARK_AQUA,
+                ChatFormatting.DARK_RED,
+                ChatFormatting.DARK_PURPLE,
+                ChatFormatting.GOLD,
+                ChatFormatting.GRAY,
+                ChatFormatting.DARK_GRAY,
+                ChatFormatting.BLUE,
+                ChatFormatting.GREEN,
+                ChatFormatting.AQUA,
+                ChatFormatting.RED,
+                ChatFormatting.LIGHT_PURPLE,
+                ChatFormatting.YELLOW,
+                ChatFormatting.WHITE
         };
 
         int[] colorValues = {
@@ -79,7 +77,7 @@ public class DroppedItemGlow {
                 0xFF5555, 0xFF55FF, 0xFFFF55, 0xFFFFFF
         };
 
-        Formatting nearest = Formatting.WHITE;
+        ChatFormatting nearest = ChatFormatting.WHITE;
         double minDist = Double.MAX_VALUE;
 
         for (int i = 0; i < colorValues.length; i++) {

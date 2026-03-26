@@ -5,232 +5,179 @@ import ca.techgarage.pantheon.api.Cooldowns;
 import ca.techgarage.pantheon.status.ModEffects;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.AttributeModifierSlot;
-import net.minecraft.component.type.AttributeModifiersComponent;
-import net.minecraft.component.type.TooltipDisplayComponent;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.network.packet.s2c.play.PositionFlag;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Unit;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameMode;
-import net.minecraft.world.World;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.entity.Relative;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.*;
 
 public class Caduceus extends Item implements PolymerItem {
-    public Caduceus(Settings settings) {
-        super(settings.component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.MAX_STACK_SIZE, 1)
-                .component(DataComponentTypes.ATTRIBUTE_MODIFIERS, createAttributeModifiers())
-                .component(DataComponentTypes.TOOLTIP_DISPLAY, new TooltipDisplayComponent(false, new LinkedHashSet<>(List.of(
-                        DataComponentTypes.ATTRIBUTE_MODIFIERS,
-                        DataComponentTypes.UNBREAKABLE
-                ))))
-                .fireproof());
-        applyEffects();
-    }
+
     private static final String CADUCEUS_DROWSY_CD = "caduceus_drowsy_cd";
     private static final String CADUCEUS_RENDEZVOUS_CD = "caduceus_rendezvous_cd";
     private static final String CADUCEUS_RENDEZVOUS_TIMER = "caduceus_rendezvous_timer";
+
+    public Caduceus(Properties settings) {
+        super(settings
+                .component(DataComponents.UNBREAKABLE, Unit.INSTANCE)
+                .component(DataComponents.MAX_STACK_SIZE, 1)
+                .component(DataComponents.ATTRIBUTE_MODIFIERS, createAttributeModifiers())
+                .fireResistant());
+        applyEffects();
+    }
+
     @Override
-    public void postHit(ItemStack stack, net.minecraft.entity.LivingEntity target, net.minecraft.entity.LivingEntity attacker) {
-        super.postHit(stack, target, attacker);
-        if (attacker instanceof net.minecraft.entity.player.PlayerEntity player) {
+    public void hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+        if (attacker instanceof Player player) {
             if (!Cooldowns.isOnCooldown(player, CADUCEUS_DROWSY_CD)) {
-                target.addStatusEffect(new StatusEffectInstance(ModEffects.DROWSY, 20 * 5, 1, true, true, true), target);
-                Cooldowns.start(player, CADUCEUS_DROWSY_CD, 20 * 10);
+                target.addEffect(new MobEffectInstance((Holder<MobEffect>) ModEffects.DROWSY, 100, 1, true, true, true));
+                Cooldowns.start(player, CADUCEUS_DROWSY_CD, 200);
             }
         }
+        return;
     }
-    public static AttributeModifiersComponent createAttributeModifiers() {
-        return AttributeModifiersComponent.builder()
-                .add(
-                        EntityAttributes.ATTACK_DAMAGE,
-                        new EntityAttributeModifier(
-                                BASE_ATTACK_DAMAGE_MODIFIER_ID,
-                                5,
-                                EntityAttributeModifier.Operation.ADD_VALUE
-                        ),
-                        AttributeModifierSlot.MAINHAND
-                )
-                .add(
-                        EntityAttributes.ATTACK_SPEED,
-                        new EntityAttributeModifier(
-                                BASE_ATTACK_SPEED_MODIFIER_ID,
-                                -2,
-                                EntityAttributeModifier.Operation.ADD_VALUE
-                        ),
-                        AttributeModifierSlot.MAINHAND
-                )
+
+    public static ItemAttributeModifiers createAttributeModifiers() {
+        return ItemAttributeModifiers.builder()
+                .add(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_ID, 5.0, AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND)
+                .add(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_ID, -2.0, AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND)
                 .build();
     }
 
     @Override
-    public ActionResult use(World world, PlayerEntity user, Hand hand) {
+    public InteractionResult use(Level level, Player user, InteractionHand hand) {
+        ItemStack stack = user.getItemInHand(hand);
+        if (level.isClientSide()) return InteractionResult.SUCCESS;
 
-        if (world.isClient()) return ActionResult.SUCCESS;
+        ServerPlayer player = (ServerPlayer) user;
 
-        ServerPlayerEntity player = (ServerPlayerEntity) user;
-
-        // Cooldown check
         if (Cooldowns.isOnCooldown(player, CADUCEUS_RENDEZVOUS_CD)) {
-            return ActionResult.FAIL;
+            return InteractionResult.FAIL;
         }
 
         RandevuData existing = RandevuManager.get(player);
 
         if (existing == null) {
-
             RandevuManager.create(player);
-            player.sendMessage(Text.translatable("item.caduceus.randevu.place"), true);
-            Cooldowns.start(player, CADUCEUS_RENDEZVOUS_TIMER, 20 * 30); // 30-second timer to return
-            world.playSound(
-                    null,
-                    player.getX(), player.getY(), player.getZ(),
-                    SoundEvents.BLOCK_BEACON_ACTIVATE,
-                    SoundCategory.PLAYERS,
-                    0.5F, // volume
-                    0F  // pitch
-            );
-            return ActionResult.SUCCESS;
+            player.displayClientMessage(Component.translatable("item.caduceus.randevu.place"), true);
+            Cooldowns.start(player, CADUCEUS_RENDEZVOUS_TIMER, 600);
+            level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.BEACON_ACTIVATE, SoundSource.PLAYERS, 0.5F, 0.0F);
+            return InteractionResult.SUCCESS;
         }
 
-        if (player.getEntityWorld().getTime() > existing.expireTime()) {
+        if (level.getGameTime() > existing.expireTime()) {
             RandevuManager.remove(player);
-            player.sendMessage(Text.translatable("item.caduceus.randevu.expire"), true);
-            return ActionResult.FAIL;
+            player.displayClientMessage(Component.translatable("item.caduceus.randevu.expire"), true);
+            return InteractionResult.FAIL;
         }
 
-        // Teleport
-        player.teleport(
-                existing.world(),
+
+        player.teleportTo(
+                (ServerLevel) existing.world(),
                 existing.position().x,
                 existing.position().y,
                 existing.position().z,
-                EnumSet.noneOf(PositionFlag.class),
-                player.getYaw(),
-                player.getPitch(),
-                true
+                EnumSet.noneOf(Relative.class),
+                player.getYRot(),
+                player.getXRot(),
+                false
         );
-        world.playSound(
-                null,
-                player.getX(), player.getY(), player.getZ(),
-                SoundEvents.ENTITY_ENDERMAN_TELEPORT,
-                SoundCategory.PLAYERS,
-                1.0F, // volume
-                1.0F  // pitch
-        );
-        AOEDamage.applyAoeDamage(player, player.getEntityWorld(), player.getEntityPos(), 8f, 2.5f);
 
-        if (player.getGameMode() != GameMode.CREATIVE) {
-            Cooldowns.start(player, CADUCEUS_RENDEZVOUS_CD, 20 * 120);
-            user.getItemCooldownManager().set(user.getStackInHand(hand), 20 * 120); //10 second cooldown
+        level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 1.0F, 1.0F);
+        AOEDamage.applyAoeDamage(player, player.level(), player.position(), 8f, 2.5f);
 
+        if (player.gameMode.getGameModeForPlayer() != GameType.CREATIVE) {
+            Cooldowns.start(player, CADUCEUS_RENDEZVOUS_CD, 2400);
+            user.getCooldowns().addCooldown(player.getActiveItem(), 2400);
         }
         RandevuManager.remove(player);
 
-        return ActionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     @Override
     public Item getPolymerItem(ItemStack itemStack, PacketContext packetContext) {
         return Items.STICK;
     }
-    private static ItemStack getHeldCaduceus(PlayerEntity player) {
-        if (player.getMainHandStack().getItem() instanceof Caduceus)
-            return player.getMainHandStack();
+
+    private static ItemStack getHeldCaduceus(Player player) {
+        if (player.getMainHandItem().getItem() instanceof Caduceus) return player.getMainHandItem();
+        if (player.getOffhandItem().getItem() instanceof Caduceus) return player.getOffhandItem();
         return null;
     }
-    public static void applyEffects(){
-        // Swift Travel
-        ServerTickEvents.END_SERVER_TICK.register(server -> {
-            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                if (getHeldCaduceus(player) == null) continue;
 
-                player.addStatusEffect(
-                        new StatusEffectInstance(
-                                StatusEffects.SPEED,
-                                40,
-                                0,
-                                true,
-                                false,
-                                false
-                        )
-                );
+    public static void applyEffects(){
+        ServerTickEvents.END_SERVER_TICK.register(server -> {
+            for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+                if (getHeldCaduceus(player) == null) continue;
+                player.addEffect(new MobEffectInstance(MobEffects.SPEED, 40, 0, true, false, false));
             }
         });
     }
 
-    /**
-     * @param expireTime world time in ticks
-     */
-    public record RandevuData(ServerWorld world, Vec3d position, long expireTime) {
-
-        public void tick(ServerWorld world) {
-                Vec3d pos = this.position();
-                world.spawnParticles(
-                        ParticleTypes.END_ROD,
-                        pos.x, pos.y + 1.0, pos.z,
-                        5,
-                        0.2, 0.5, 0.2,
-                        0.01
-                );
-            }
-        }
-
-    public static class RandevuManager {
-
-        public static final Map<UUID, RandevuData> POINTS = new HashMap<>();
-
-        public static void create(ServerPlayerEntity player) {
-
-            ServerWorld world = player.getEntityWorld();
-            Vec3d pos = player.getEntityPos();
-            long expire = world.getTime() + (20 * 30); // 30 seconds
-
-            POINTS.put(player.getUuid(),
-                    new RandevuData(world, pos, expire));
-        }
-        public static void tickAll() {
-            Iterator<Map.Entry<UUID, RandevuData>> iterator = POINTS.entrySet().iterator();
-
-            while (iterator.hasNext()) {
-                Map.Entry<UUID, RandevuData> entry = iterator.next();
-                RandevuData data = entry.getValue();
-
-                // Remove expired points
-                if (data.world().getTime() > data.expireTime()) {
-                    iterator.remove();
-                    continue;
-                }
-
-                // Spawn particles
-                data.tick(data.world());
-            }
-        }
-        public static RandevuData get(ServerPlayerEntity player) {
-            return POINTS.get(player.getUuid());
-        }
-
-        public static void remove(ServerPlayerEntity player) {
-            POINTS.remove(player.getUuid());
+    public record RandevuData(Level world, Vec3 position, long expireTime) {
+        public void tick(ServerLevel level) {
+            Vec3 pos = this.position();
+            level.sendParticles(ParticleTypes.END_ROD, pos.x, pos.y + 1.0, pos.z, 5, 0.2, 0.5, 0.2, 0.01);
         }
     }
 
+    public static class RandevuManager {
+        public static final Map<UUID, RandevuData> POINTS = new HashMap<>();
+
+        public static void create(ServerPlayer player) {
+            Level level = player.level();
+            Vec3 pos = player.position();
+            long expire = level.getGameTime() + 600;
+            POINTS.put(player.getUUID(), new RandevuData(level, pos, expire));
+        }
+
+        public static void tickAll() {
+            Iterator<Map.Entry<UUID, RandevuData>> iterator = POINTS.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<UUID, RandevuData> entry = iterator.next();
+                RandevuData data = entry.getValue();
+                if (data.world().getGameTime() > data.expireTime()) {
+                    iterator.remove();
+                    continue;
+                }
+                if (data.world() instanceof ServerLevel serverLevel) {
+                    data.tick(serverLevel);
+                }
+            }
+        }
+
+        public static RandevuData get(ServerPlayer player) {
+            return POINTS.get(player.getUUID());
+        }
+
+        public static void remove(ServerPlayer player) {
+            POINTS.remove(player.getUUID());
+        }
+    }
 }

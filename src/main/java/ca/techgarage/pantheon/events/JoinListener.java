@@ -2,7 +2,7 @@ package ca.techgarage.pantheon.events;
 
 import ca.techgarage.pantheon.database.BanManager;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 
 import java.util.UUID;
 
@@ -12,7 +12,7 @@ public class JoinListener {
 
         ServerPlayConnectionEvents.INIT.register((handler, server) -> {
 
-            UUID uuid = handler.player.getUuid();
+            UUID uuid = handler.player.getUUID();
 
             if (BanManager.isBanned(uuid)) {
 
@@ -20,7 +20,7 @@ public class JoinListener {
 
                 if (remaining > 0) {
 
-                    handler.disconnect(Text.literal(
+                    handler.disconnect(Component.literal(
                             "You are temporarily banned.\n For: " +
                                     BanManager.getReason(uuid) + "\n"
                                     + "Time remaining: " + formatDuration(remaining)

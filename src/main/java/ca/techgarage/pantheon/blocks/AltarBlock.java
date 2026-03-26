@@ -4,94 +4,118 @@ import ca.techgarage.pantheon.blocks.altar.AltarBlockEntity;
 import ca.techgarage.pantheon.blocks.altar.AltarRecipe;
 import com.mojang.serialization.MapCodec;
 import eu.pb4.polymer.core.api.block.PolymerBlock;
-import net.minecraft.block.*;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityTicker;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+
+import net.minecraft.core.BlockPos;
+
+import net.minecraft.server.level.ServerLevel;
+
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+
+import net.minecraft.world.InteractionResult;
+
+import net.minecraft.world.entity.player.Player;
+
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.entity.*;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.RenderShape;
+
+import net.minecraft.world.phys.BlockHitResult;
+
 import xyz.nucleoid.packettweaker.PacketContext;
 
-public class AltarBlock extends BlockWithEntity implements PolymerBlock {
+public class AltarBlock extends BaseEntityBlock implements PolymerBlock {
 
     private final AltarRecipe recipe;
 
-    public AltarBlock(Settings settings, AltarRecipe recipe) {
+    public static final MapCodec<AltarBlock> CODEC =
+            simpleCodec(settings -> new AltarBlock(settings, null));
+
+    public AltarBlock(Properties settings, AltarRecipe recipe) {
         super(settings);
         this.recipe = recipe;
     }
 
     @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
+    }
+
+    @Override
     public BlockState getPolymerBlockState(BlockState state, PacketContext context) {
-        return Blocks.BARRIER.getDefaultState();
+        return Blocks.BARRIER.defaultBlockState();
     }
 
     @Override
-    public BlockRenderType getRenderType(BlockState state) {
-        return BlockRenderType.MODEL;
+    public RenderShape getRenderShape(BlockState state) {
+        return RenderShape.MODEL;
     }
 
     @Override
-    public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new AltarBlockEntity(pos, state);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(
-            World world, BlockState state, BlockEntityType<T> type) {
-        if (world.isClient()) return null;
-        if (type != ModBlockEntities.ALTAR) return null;
+            Level level, BlockState state, BlockEntityType<T> type) {
+
+        if (level.isClientSide()) return null;
+        if (type.equals(ModBlockEntities.ALTAR)) return null;
+
         AltarRecipe capturedRecipe = this.recipe;
-        return (BlockEntityTicker<T>) (BlockEntityTicker<AltarBlockEntity>)
-                (w, p, s, be) -> {
-                    be.spawnDisplayIfNeeded((ServerWorld) w, capturedRecipe);
-                    be.tickDisplay();
-                };
+
+        return (lvl, pos, st, be) -> {
+            if (be instanceof AltarBlockEntity altar) {
+                altar.spawnDisplayIfNeeded((ServerLevel) lvl, capturedRecipe);
+                altar.tickDisplay();
+            }
+        };
     }
 
     @Override
-    public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        if (!world.isClient()) {
-            BlockEntity be = world.getBlockEntity(pos);
+    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+        if (!level.isClientSide()) {
+            BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof AltarBlockEntity altar) {
                 altar.removeDisplay();
             }
         }
-        return super.onBreak(world, pos, state, player);
+        super.playerWillDestroy(level, pos, state, player);
+        return state;
     }
 
     @Override
-    public ActionResult onUse(BlockState state, World world, BlockPos pos,
-                              PlayerEntity player, BlockHitResult hit) {
-        if (world.isClient()) return ActionResult.SUCCESS;
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
+                                               Player player, BlockHitResult hit) {
 
-        BlockEntity be = world.getBlockEntity(pos);
+        if (level.isClientSide()) return InteractionResult.SUCCESS;
+
+        BlockEntity be = level.getBlockEntity(pos);
+
         if (be instanceof AltarBlockEntity altar) {
+
             if (altar.tryCraft(player, this.recipe)) {
-                world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
+
+                level.playSound(null, pos,
                         SoundEvents.UI_TOAST_CHALLENGE_COMPLETE,
-                        SoundCategory.PLAYERS, 1.0F, 0.75F);
-                return ActionResult.SUCCESS;
+                        SoundSource.PLAYERS,
+                        1.0F, 0.75F);
+
+                return InteractionResult.SUCCESS;
             } else {
-                world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
-                        SoundEvents.ENTITY_ITEM_BREAK,
-                        SoundCategory.PLAYERS, 1.0F, 0F);
-                return ActionResult.FAIL;
+
+                level.playSound(null, pos,
+                        SoundEvents.ITEM_BREAK.value(),
+                        SoundSource.PLAYERS,
+                        1.0F, 0.0F);
+
+                return InteractionResult.FAIL;
             }
         }
 
-        return ActionResult.FAIL;
-    }
-
-    @Override
-    protected MapCodec<? extends BlockWithEntity> getCodec() {
-        return null;
+        return InteractionResult.FAIL;
     }
 }

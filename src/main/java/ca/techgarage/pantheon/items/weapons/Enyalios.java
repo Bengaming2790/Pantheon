@@ -9,31 +9,30 @@ import ca.techgarage.pantheon.status.ModEffects;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.AttributeModifierSlot;
-import net.minecraft.component.type.AttributeModifiersComponent;
-import net.minecraft.component.type.TooltipDisplayComponent;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.particle.DustParticleEffect;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
+
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Unit;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameMode;
-import net.minecraft.world.World;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.level.Level;
 import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.LinkedHashSet;
@@ -44,11 +43,11 @@ public class Enyalios extends Item implements PolymerItem {
 
     private static final Random random = new Random();
     private static final Identifier MODEL =
-            Identifier.of("pantheon", "enyalios");
+            Identifier.fromNamespaceAndPath("pantheon", "enyalios");
 
     public static final String ENYALIOS_BLEED_ACTIVE = "enyalios_active_timer";
     public static final String ENYALIOS_BLEED_CD = "enyalios_bleed_cd";
-    public Enyalios(Settings settings) {
+    public Enyalios(Item.Properties settings) {
         super(
                 settings.spear(
                         ModToolMaterials.VARATHA_TOOL_MATERIAL,
@@ -61,10 +60,10 @@ public class Enyalios extends Item implements PolymerItem {
                         0.1F,
                         3.0F,
                         0.1F
-                ).component(DataComponentTypes.UNBREAKABLE, Unit.INSTANCE).component(DataComponentTypes.ATTRIBUTE_MODIFIERS, getDefaultAttributeModifiers()).fireproof()
-                        .component(DataComponentTypes.TOOLTIP_DISPLAY, new TooltipDisplayComponent(false, new LinkedHashSet<>(List.of(
-                                DataComponentTypes.ATTRIBUTE_MODIFIERS,
-                                DataComponentTypes.UNBREAKABLE
+                ).component(DataComponents.UNBREAKABLE, Unit.INSTANCE).component(DataComponents.ATTRIBUTE_MODIFIERS, getDefaultAttributeModifiers()).fireResistant()
+                        .component(DataComponents.TOOLTIP_DISPLAY, new TooltipDisplay(false, new LinkedHashSet<>(List.of(
+                                DataComponents.ATTRIBUTE_MODIFIERS,
+                                DataComponents.UNBREAKABLE
                         ))))
         );
         applyEffects();
@@ -75,11 +74,11 @@ public class Enyalios extends Item implements PolymerItem {
         ServerLivingEntityEvents.AFTER_DAMAGE.register(
                 (entity, source, baseAmount, amount, blocked) -> {
 
-                    if (!(entity instanceof ServerPlayerEntity player)) return;
+                    if (!(entity instanceof ServerPlayer player)) return;
 
-                    if (!(player.getMainHandStack().getItem() instanceof Enyalios)) return;
+                    if (!(player.getMainHandItem().getItem() instanceof Enyalios)) return;
 
-                    if (source.getAttacker() == player) return;
+                    if (source.getEntity() != player) return;
 
                     onEnyaliosHit(player, source, amount);
                 }
@@ -88,20 +87,20 @@ public class Enyalios extends Item implements PolymerItem {
     public static void registerKillEffect() {
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
 
-            if (!(source.getAttacker() instanceof ServerPlayerEntity player)) return;
-
+            if (!(source.getEntity() instanceof Player)) return;
+            ServerPlayer player = (ServerPlayer) source.getEntity();
             // Only trigger if player is holding Enyalios
-            if (!(player.getMainHandStack().getItem() instanceof Enyalios)) return;
+            if (!(player.getMainHandItem().getItem() instanceof Enyalios)) return;
 
             if (player == entity) return;
 
             applyKillBuff(player);
         });
     }
-    private static void applyKillBuff(ServerPlayerEntity player) {
-        player.addStatusEffect(
-                new StatusEffectInstance(
-                        StatusEffects.STRENGTH,
+    private static void applyKillBuff(ServerPlayer player) {
+        player.addEffect(
+                new MobEffectInstance(
+                        MobEffects.STRENGTH,
                         20 * 5, // 5 seconds
                         2,      // Strength III
                         true,
@@ -111,7 +110,7 @@ public class Enyalios extends Item implements PolymerItem {
         );
     }
 
-    private static void onEnyaliosHit(ServerPlayerEntity player, DamageSource source, float amount) {
+    private static void onEnyaliosHit(ServerPlayer player, DamageSource source, float amount) {
 
         if (!Cooldowns.isOnCooldown(player, ENYALIOS_BLEED_CD)) {
             Cooldowns.start(player, ENYALIOS_BLEED_ACTIVE, 20 * 8);
@@ -119,28 +118,27 @@ public class Enyalios extends Item implements PolymerItem {
     }
 
     @Override
-    public void postHit(ItemStack stack, LivingEntity target, LivingEntity attacker) {
-        if (attacker instanceof PlayerEntity player) {
+    public void postHurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+        if (attacker instanceof Player player) {
             float damage = 31f;
 
             // Check for Strength effect
-            if (attacker.hasStatusEffect(StatusEffects.STRENGTH)) {
-                StatusEffectInstance effect = attacker.getStatusEffect(StatusEffects.STRENGTH);
+            if (attacker.hasEffect(MobEffects.STRENGTH)) {
+                MobEffectInstance effect = attacker.getEffect(MobEffects.STRENGTH);
 
                 int level = effect.getAmplifier() + 1; // convert amplifier → level
                 damage += level * 3f; // +3 damage per level
             }
 
             // Armor ignoring damage (magic)
-            target.damage(
-                    (ServerWorld) attacker.getEntityWorld(),
-                    attacker.getDamageSources().playerAttack(player),
+            target.hurt(
+                    attacker.damageSources().playerAttack(player),
                     damage
             );
 
             if (Cooldowns.isOnCooldown(player, ENYALIOS_BLEED_ACTIVE)) {
-                target.setStatusEffect(
-                        new StatusEffectInstance(ModEffects.BLEED, 20 * 8, 2, true, false, false),
+                target.addEffect(
+                        new MobEffectInstance((Holder<MobEffect>) ModEffects.BLEED, 20 * 8, 2, true, false, false),
                         target
                 );
                 Cooldowns.clear(player, ENYALIOS_BLEED_ACTIVE);
@@ -148,8 +146,8 @@ public class Enyalios extends Item implements PolymerItem {
             }
 
             if (Math.random() < 0.05) {
-                target.setStatusEffect(
-                        new StatusEffectInstance(ModEffects.BLEED, 20 * 8, 2, true, false, false),
+                target.addEffect(
+                        new MobEffectInstance((Holder<MobEffect>) ModEffects.BLEED, 20 * 8, 2, true, false, false),
                         target
                 );
             }
@@ -159,50 +157,49 @@ public class Enyalios extends Item implements PolymerItem {
     }
 
     @Override
-    public ActionResult use(World world, PlayerEntity user, Hand hand) {
-        if (!world.isClient()) {
-            ItemStack stack = user.getStackInHand(hand);
-            if(user.raycast(2, 0, false).getType() == net.minecraft.util.hit.HitResult.Type.BLOCK) {
-                return ActionResult.PASS;
+    public InteractionResult use(Level world, Player user, InteractionHand hand) {
+        if (!world.isClientSide()) {
+            ItemStack stack = user.getItemInHand(hand);
+            if(user.pick(2, 0, false).getType() == net.minecraft.world.phys.HitResult.Type.BLOCK) {
+                return InteractionResult.PASS;
             }
-            if (!(user.getGameMode() == GameMode.CREATIVE)) {
-                user.getItemCooldownManager().set(stack, 200); //10 second cooldown
+            if (!(user.gameMode().isCreative())) {
+                user.getCooldowns().addCooldown(stack, 200); //10 second cooldown
             }
-            user.damage(
-                    (ServerWorld) user.getEntityWorld(),
-                    user.getDamageSources().magic(),
+            user.hurt(
+                    user.damageSources().magic(),
                     (8f) * 1
             );
 
             Dash.dashForward(user, 1.5f);
-            DashState.start((ServerPlayerEntity) user, 15, new DustParticleEffect(
+            DashState.start((ServerPlayer) user, 15, new DustParticleOptions(
                     16711680,
                     1.0F
             ));
-            user.useRiptide(15, 40, stack);
+            user.startAutoSpinAttack(15, 40, stack);
 
         }
-        return ActionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
-    public static AttributeModifiersComponent getDefaultAttributeModifiers() {
-        return AttributeModifiersComponent.builder()
+    public static ItemAttributeModifiers getDefaultAttributeModifiers() {
+        return ItemAttributeModifiers.builder()
                 .add(
-                        EntityAttributes.ATTACK_DAMAGE,
-                        new EntityAttributeModifier(
-                                Item.BASE_ATTACK_DAMAGE_MODIFIER_ID,
+                        Attributes.ATTACK_DAMAGE,
+                        new AttributeModifier(
+                                Item.BASE_ATTACK_DAMAGE_ID,
                                 8.0 - 1,
-                                EntityAttributeModifier.Operation.ADD_VALUE
+                                AttributeModifier.Operation.ADD_VALUE
                         ),
-                        AttributeModifierSlot.MAINHAND
+                        EquipmentSlotGroup.MAINHAND
                 )
                 .add(
-                        EntityAttributes.ATTACK_SPEED,
-                        new EntityAttributeModifier(
-                                Item.BASE_ATTACK_SPEED_MODIFIER_ID,
+                        Attributes.ATTACK_SPEED,
+                        new AttributeModifier(
+                                BASE_ATTACK_SPEED_ID,
                                 -2.8,
-                                EntityAttributeModifier.Operation.ADD_VALUE
+                                AttributeModifier.Operation.ADD_VALUE
                         ),
-                        AttributeModifierSlot.MAINHAND
+                        EquipmentSlotGroup.MAINHAND
                 )
                 .build();
     }
@@ -213,12 +210,12 @@ public class Enyalios extends Item implements PolymerItem {
 
     public static void applyEffects(){
         ServerTickEvents.END_SERVER_TICK.register(server -> {
-            for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            for (ServerPlayer player : server.getPlayerList().getPlayers()) {
                 if (getHeldEnyalios(player) == null) continue;
 
-                player.addStatusEffect(
-                        new StatusEffectInstance(
-                                StatusEffects.STRENGTH,
+                player.addEffect(
+                        new MobEffectInstance(
+                                MobEffects.STRENGTH,
                                 40,
                                 1,
                                 true,
@@ -230,9 +227,9 @@ public class Enyalios extends Item implements PolymerItem {
         });
     }
 
-    private static ItemStack getHeldEnyalios(PlayerEntity player) {
-        if (player.getMainHandStack().getItem() instanceof Enyalios)
-            return player.getMainHandStack();
+    private static ItemStack getHeldEnyalios(Player player) {
+        if (player.getMainHandItem().getItem() instanceof Enyalios)
+            return player.getMainHandItem();
         return null;
     }
     public Identifier getPolymerItemModel(ItemStack stack, PacketContext context) {

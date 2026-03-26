@@ -5,29 +5,32 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import ca.techgarage.pantheon.database.BanManager;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import me.lucko.fabric.api.permissions.v0.Permissions;
-import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
+import net.minecraft.commands.CommandSource;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
+
+
+import net.minecraft.server.level.ServerPlayer;
 
 public class TempBanCommand {
 
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
 
         dispatcher.register(
-                CommandManager.literal("tempban")
+                Commands.literal("tempban")
                         .requires(Permissions.require("pantheon.tempban"))
-                        .then(CommandManager.argument("player", EntityArgumentType.player())
-                                .then(CommandManager.argument("days", IntegerArgumentType.integer(0))
-                                        .then(CommandManager.argument("hours", IntegerArgumentType.integer(0))
-                                                .then(CommandManager.argument("minutes", IntegerArgumentType.integer(0))
-                                                        .then(CommandManager.argument("seconds", IntegerArgumentType.integer(0))
-                                                              .then(CommandManager.argument("reason", StringArgumentType.greedyString())
+                        .then(Commands.argument("player", EntityArgument.player())
+                                .then(Commands.argument("days", IntegerArgumentType.integer(0))
+                                        .then(Commands.argument("hours", IntegerArgumentType.integer(0))
+                                                .then(Commands.argument("minutes", IntegerArgumentType.integer(0))
+                                                        .then(Commands.argument("seconds", IntegerArgumentType.integer(0))
+                                                              .then(Commands.argument("reason", StringArgumentType.greedyString())
                                                                 .executes(ctx -> {
 
-                                                                    ServerPlayerEntity target =
-                                                                            EntityArgumentType.getPlayer(ctx, "player");
+                                                                    ServerPlayer target =
+                                                                            EntityArgument.getPlayer(ctx, "player");
 
                                                                     int days = IntegerArgumentType.getInteger(ctx, "days");
                                                                     int hours = IntegerArgumentType.getInteger(ctx, "hours");
@@ -42,19 +45,19 @@ public class TempBanCommand {
                                                                                     seconds * 1000L;
 
                                                                     if (duration <= 0) {
-                                                                        ctx.getSource().sendError(
-                                                                                Text.literal("Duration must be greater than 0."));
+                                                                        ctx.getSource().sendFailure(
+                                                                                Component.literal("Duration must be greater than 0."));
                                                                         return 0;
                                                                     }
 
-                                                                    BanManager.ban(target.getUuid(), target.getName().toString(), duration, reason);
+                                                                    BanManager.ban(target.getUUID(), target.getName().toString(), duration, reason);
 
-                                                                    target.networkHandler.disconnect(
-                                                                            Text.literal("You have been temporarily banned. \n For: " + reason)
+                                                                    target.connection.disconnect(
+                                                                            Component.literal("You have been temporarily banned. \n For: " + reason)
                                                                     );
 
-                                                                    ctx.getSource().sendFeedback(
-                                                                            () -> Text.literal("Temporarily banned "
+                                                                    ctx.getSource().sendSuccess(
+                                                                            () -> Component.literal("Temporarily banned "
                                                                                     + target.getName().getString()),
                                                                             true
                                                                     );

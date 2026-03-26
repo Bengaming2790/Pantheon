@@ -1,43 +1,46 @@
 package ca.techgarage.pantheon.api;
 
+import ca.techgarage.pantheon.entity.AstrapeEntity;
 import ca.techgarage.pantheon.items.weapons.Glaciera;
 import ca.techgarage.pantheon.status.ModEffects;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LightningEntity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.core.Holder;
+import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LightningBolt;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 
 public class AOEDamage {
 
     public static void applyAoeDamage(LivingEntity attacker, LivingEntity primaryTarget, float radius, float damageAmount) {
-        World world = attacker.getEntityWorld();
+        Level world = attacker.level();
 
-
-        Box box = new Box(
+        AABB box = new AABB(
                 attacker.getX() - radius, attacker.getY() - radius, attacker.getZ() - radius,
                 attacker.getX() + radius, attacker.getY() + radius, attacker.getZ() + radius
         );
 
-        List<LivingEntity> entities = world.getEntitiesByClass(
+        List<LivingEntity> entities = world.getEntitiesOfClass(
                 LivingEntity.class,
                 box,
                 e -> e != attacker && e != primaryTarget && e.isAlive()
         );
 
         for (LivingEntity entity : entities) {
-            if (entity.squaredDistanceTo(primaryTarget) <= radius * radius) {
-                entity.damage((ServerWorld) primaryTarget.getEntityWorld(),
-                        world.getDamageSources().playerAttack((PlayerEntity) attacker),
+            if (entity.distanceToSqr(primaryTarget) <= radius * radius) {
+                entity.hurtServer(
+                        (ServerLevel) primaryTarget.level(),
+                        world.damageSources().playerAttack((Player) attacker),
                         damageAmount
                 );
             }
@@ -47,25 +50,25 @@ public class AOEDamage {
     public static void applyAoeDamage(LivingEntity attacker, float radius, float damageAmount, boolean freeze) {
         if (!freeze) return;
 
-        World world = attacker.getEntityWorld();
+        Level world = attacker.level();
 
-        Box box = new Box(
+        AABB box = new AABB(
                 attacker.getX() - radius, attacker.getY() - radius, attacker.getZ() - radius,
                 attacker.getX() + radius, attacker.getY() + radius, attacker.getZ() + radius
         );
 
-        List<LivingEntity> entities = world.getEntitiesByClass(
+        List<LivingEntity> entities = world.getEntitiesOfClass(
                 LivingEntity.class,
                 box,
                 e -> e != attacker && e.isAlive()
         );
 
         for (LivingEntity entity : entities) {
-            if (entity.squaredDistanceTo(attacker) <= radius * radius) {
+            if (entity.distanceToSqr(attacker) <= radius * radius) {
 
-                entity.damage(
-                        (ServerWorld) world,
-                        world.getDamageSources().playerAttack((PlayerEntity) attacker),
+                entity.hurtServer(
+                        (ServerLevel) world,
+                        world.damageSources().playerAttack((Player) attacker),
                         damageAmount
                 );
 
@@ -74,118 +77,116 @@ public class AOEDamage {
         }
     }
 
+    public static void applyAoeDamage(LivingEntity attacker, ServerLevel world, Vec3 center, float radius, float damageAmount) {
 
-    public static void applyAoeDamage(LivingEntity attacker, ServerWorld world, Vec3d center, float radius, float damageAmount) {
-
-        Box box = new Box(
+        AABB box = new AABB(
                 center.x - radius, center.y - radius, center.z - radius,
                 center.x + radius, center.y + radius, center.z + radius
         );
 
-        List<LivingEntity> entities = world.getEntitiesByClass(
+        List<LivingEntity> entities = world.getEntitiesOfClass(
                 LivingEntity.class,
                 box,
                 e -> e != attacker && e.isAlive()
         );
 
         for (LivingEntity entity : entities) {
-            if (entity.squaredDistanceTo(center) <= radius * radius) {
-                entity.damage(world, world.getDamageSources().playerAttack((PlayerEntity) attacker), damageAmount);
+            if (entity.distanceToSqr(center) <= radius * radius) {
+                entity.hurtServer(world, world.damageSources().playerAttack((Player) attacker), damageAmount);
             }
         }
     }
-    public static void applyAoeDamage(LivingEntity attacker, ServerWorld world, Vec3d center, float radius, float damageAmount, float knockbackStrength ) {
 
-        Box box = new Box(
+    public static void applyAoeDamage(AstrapeEntity attacker, ServerLevel world, Vec3 center, float radius, float damageAmount, float knockbackStrength) {
+
+        AABB box = new AABB(
                 center.x - radius, center.y - radius, center.z - radius,
                 center.x + radius, center.y + radius, center.z + radius
         );
 
-        List<LivingEntity> entities = world.getEntitiesByClass(
+        List<LivingEntity> entities = world.getEntitiesOfClass(
                 LivingEntity.class,
                 box,
-                e -> e != attacker && e.isAlive()
+                e -> !e.equals(attacker.owner()) && e.isAlive()
         );
 
         for (LivingEntity entity : entities) {
 
-            if (entity.squaredDistanceTo(center) <= radius * radius) {
+            if (entity.distanceToSqr(center) <= radius * radius) {
 
                 // Apply damage
-                entity.damage(
+                entity.hurtServer(
                         world,
-                        world.getDamageSources().playerAttack((PlayerEntity) attacker),
+                        world.damageSources().generic(),
                         damageAmount
                 );
 
                 // ---- Knockback ----
-                Vec3d direction = entity.getEntityPos().subtract(center);
+                Vec3 direction = entity.position().subtract(center);
 
-                if (direction.lengthSquared() > 0) {
+                if (direction.lengthSqr() > 0) {
                     direction = direction.normalize();
 
-                    Vec3d knockback = new Vec3d(
+                    Vec3 knockback = new Vec3(
                             direction.x * knockbackStrength,
                             0.4 * knockbackStrength, // slight upward boost
                             direction.z * knockbackStrength
                     );
 
-                    entity.addVelocity(knockback.x, knockback.y, knockback.z);
-                    entity.velocityDirty = true;
-                    if (entity instanceof ServerPlayerEntity serverTarget) {
-                        serverTarget.networkHandler.sendPacket(
-                                new EntityVelocityUpdateS2CPacket(serverTarget)
+                    entity.push(knockback.x, knockback.y, knockback.z);
+                    entity.hurtMarked = true;
+                    if (entity instanceof ServerPlayer serverTarget) {
+                        serverTarget.connection.send(
+                                new ClientboundSetEntityMotionPacket(serverTarget)
                         );
                     }
                 }
-                if (entity instanceof PlayerEntity player && player.isCreative()) {
+
+                if (entity instanceof Player player && player.isCreative()) {
                     continue;
                 }
 
-                LightningEntity lightning =
-                        new LightningEntity(EntityType.LIGHTNING_BOLT, entity.getEntityWorld());
+                LightningBolt lightning = new LightningBolt(EntityType.LIGHTNING_BOLT, world);
+                lightning.setPos(entity.getX(), entity.getY(), entity.getZ());
+                world.addFreshEntity(lightning);
 
-                lightning.setPosition(entity.getX(), entity.getY(), entity.getZ());
-                entity.getEntityWorld().spawnEntity(lightning);
-                entity.setStatusEffect(
-                        new StatusEffectInstance(StatusEffects.GLOWING, 20 * 8, 1, true, false, false),
+                entity.addEffect(
+                        new MobEffectInstance(MobEffects.GLOWING, 20 * 8, 1, true, false, false),
                         entity
                 );
-                entity.setStatusEffect(
-                        new StatusEffectInstance(ModEffects.CONDUCTING, 20 * 8, 1, true, true, false),
+                entity.addEffect(
+                        new MobEffectInstance((Holder<MobEffect>) ModEffects.CONDUCTING, 20 * 8, 1, true, true, false),
                         entity
                 );
-
             }
         }
     }
 
     public static void applyAoeDamage(LivingEntity attacker, LivingEntity primaryTarget, float radius, float damageAmount, boolean setOnFire, int secondsOnFire) {
-        World world = attacker.getEntityWorld();
+        Level world = attacker.level();
 
-
-        Box box = new Box(
+        AABB box = new AABB(
                 attacker.getX() - radius, attacker.getY() - radius, attacker.getZ() - radius,
                 attacker.getX() + radius, attacker.getY() + radius, attacker.getZ() + radius
         );
 
-        List<LivingEntity> entities = world.getEntitiesByClass(
+        List<LivingEntity> entities = world.getEntitiesOfClass(
                 LivingEntity.class,
                 box,
                 e -> e != attacker && e != primaryTarget && e.isAlive()
         );
 
         for (LivingEntity entity : entities) {
-            if (entity.squaredDistanceTo(primaryTarget) <= radius * radius) {
-                entity.damage((ServerWorld) primaryTarget.getEntityWorld(),
-                        world.getDamageSources().playerAttack((PlayerEntity) attacker),
+            if (entity.distanceToSqr(primaryTarget) <= radius * radius) {
+                entity.hurtServer(
+                        (ServerLevel) primaryTarget.level(),
+                        world.damageSources().playerAttack((Player) attacker),
                         damageAmount
                 );
                 if (setOnFire) {
-                    entity.setOnFireForTicks(20 * secondsOnFire);
+                    entity.igniteForTicks(20 * secondsOnFire);
                 }
             }
         }
     }
-
 }

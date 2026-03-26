@@ -4,11 +4,11 @@ import ca.techgarage.pantheon.database.BanManager;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.damage.DamageTypes;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.ActionResult;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.player.Player;
+
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,33 +34,33 @@ public class CombatLogAutoBan {
         // Player hits another player
         AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
 
-            if (!world.isClient() && entity instanceof PlayerEntity target) {
+            if (!world.isClientSide() && entity instanceof Player target) {
 
                 long expireTime = System.currentTimeMillis() + (COMBAT_TIME_SECONDS * 1000L);
 
-                combatTagged.put(player.getUuid(), expireTime);
-                combatTagged.put(target.getUuid(), expireTime);
+                combatTagged.put(player.getUUID(), expireTime);
+                combatTagged.put(target.getUUID(), expireTime);
             }
 
-            return ActionResult.PASS;
+            return InteractionResult.PASS;
         });
 
         // Player disconnects
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
 
-            ServerPlayerEntity player = handler.player;
-            UUID uuid = player.getUuid();
+            ServerPlayer player = handler.player;
+            UUID uuid = player.getUUID();
 
             Long expireTime = combatTagged.get(uuid);
 
             if (expireTime != null && System.currentTimeMillis() < expireTime) {
 
                 // Kill the player before banning
-                DamageSource source = player.getEntityWorld()
-                        .getDamageSources()
+                DamageSource source = player.level()
+                        .damageSources()
                         .generic();
 
-                player.damage(player.getEntityWorld(),source, Float.MAX_VALUE);
+                player.hurt(source, Float.MAX_VALUE);
 
                 // Apply temp ban
                 BanManager.ban(uuid, player.getName().getString(),

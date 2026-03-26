@@ -1,61 +1,59 @@
 package ca.techgarage.pantheon.mixin;
 
 import ca.techgarage.pantheon.PantheonConfig;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.screen.SmithingScreenHandler;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.SmithingMenu; // MojMap name for SmithingScreenHandler
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-// TODO(Ravel): can not resolve target class SmithingScreenHandler
-@Mixin(SmithingScreenHandler.class)
+@Mixin(SmithingMenu.class)
 public abstract class NetheriteArmorCancelMixin {
 
-    // TODO(Ravel): no target class
-    @Inject(method = "updateResult", at = @At("TAIL"))
-    private void preventNetheriteArmor(CallbackInfo ci) {
 
+    @Inject(method = "createResult", at = @At("TAIL"))
+    private void preventNetheriteUpgrade(CallbackInfo ci) {
         if (!PantheonConfig.diableNetheriteUpgrade) return;
 
-        ItemStack stack = ((SmithingScreenHandler)(Object)this)
-                .getSlot(3)
-                .getStack();
+        SmithingMenu self = (SmithingMenu)(Object)this;
+        // getSlot(3) is the output slot in SmithingMenu
+        ItemStack stack = self.getSlot(3).getItem();
 
-        if (isNetheriteGear(stack)) {
-            ((SmithingScreenHandler)(Object)this)
-                    .getSlot(3)
-                    .setStack(ItemStack.EMPTY);
-
+        if (pantheon$isNetheriteGear(stack)) {
+            self.getSlot(3).set(ItemStack.EMPTY);
         }
     }
-    // TODO(Ravel): no target class
-    @Inject(method = "onTakeOutput", at = @At("HEAD"), cancellable = true)
-    private void preventTaking(PlayerEntity player, ItemStack stack, CallbackInfo ci) {
+
+
+    @Inject(method = "onTake", at = @At("HEAD"), cancellable = true)
+    private void preventTaking(Player player, ItemStack stack, CallbackInfo ci) {
         if (!PantheonConfig.diableNetheriteUpgrade) return;
 
-        if (isNetheriteGear(stack)) {
+        if (pantheon$isNetheriteGear(stack)) {
+            player.displayClientMessage(Component.translatable("item.anvil.rename"), true);
             ci.cancel();
-            player.sendMessage(Text.translatable("item.anvil.rename").formatted(), true);
         }
     }
+
     @Unique
-    private boolean isNetheriteGear(ItemStack stack) {
+    private boolean pantheon$isNetheriteGear(ItemStack stack) {
         if (stack.isEmpty()) return false;
 
-        return stack.isOf(Items.NETHERITE_HELMET)
-                || stack.isOf(Items.NETHERITE_CHESTPLATE)
-                || stack.isOf(Items.NETHERITE_LEGGINGS)
-                || stack.isOf(Items.NETHERITE_BOOTS)
-                || stack.isOf(Items.NETHERITE_AXE)
-                || stack.isOf(Items.NETHERITE_HOE)
-                || stack.isOf(Items.NETHERITE_SWORD)
-                || stack.isOf(Items.NETHERITE_PICKAXE)
-                || stack.isOf(Items.NETHERITE_SHOVEL)
-                || stack.isOf(Items.NETHERITE_HORSE_ARMOR);
+        // In 1.21.1 MojMap: isOf() -> is()
+        return stack.is(Items.NETHERITE_HELMET)
+                || stack.is(Items.NETHERITE_CHESTPLATE)
+                || stack.is(Items.NETHERITE_LEGGINGS)
+                || stack.is(Items.NETHERITE_BOOTS)
+                || stack.is(Items.NETHERITE_AXE)
+                || stack.is(Items.NETHERITE_HOE)
+                || stack.is(Items.NETHERITE_SWORD)
+                || stack.is(Items.NETHERITE_PICKAXE)
+                || stack.is(Items.NETHERITE_SHOVEL)
+                || stack.is(Items.NETHERITE_HORSE_ARMOR);
     }
 }

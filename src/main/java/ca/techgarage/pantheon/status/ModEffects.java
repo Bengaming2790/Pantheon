@@ -1,56 +1,54 @@
 package ca.techgarage.pantheon.status;
 
 import ca.techgarage.pantheon.Pantheon;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectCategory;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectCategory;
 
 public class ModEffects {
 
-    public static final StatusEffect CONDUCTING_EFFECT =
-            new Conducting(StatusEffectCategory.NEUTRAL, 0xC5FF00);
+    public static final MobEffect CONDUCTING_EFFECT =
+            new Conducting(MobEffectCategory.NEUTRAL, 0xC5FF00);
 
-    public static final RegistryEntry<StatusEffect> CONDUCTING =
-            Registry.registerReference(
-                    Registries.STATUS_EFFECT,
-                    Identifier.of(Pantheon.MOD_ID, "conducting"),
+    public static final MobEffect CONDUCTING =
+            Registry.register(
+                    BuiltInRegistries.MOB_EFFECT,
+                    Identifier.fromNamespaceAndPath(Pantheon.MOD_ID, "conducting"),
                     CONDUCTING_EFFECT
             );
 
-    public static final StatusEffect BLEED_EFFECT =
-            new Bleed(StatusEffectCategory.HARMFUL, 0xFF2B00);
+    public static final MobEffect BLEED_EFFECT =
+            new Bleed(MobEffectCategory.HARMFUL, 0xFF2B00);
 
-    public static final RegistryEntry<StatusEffect> BLEED =
-            Registry.registerReference(
-                    Registries.STATUS_EFFECT,
-                    Identifier.of(Pantheon.MOD_ID, "bleed"),
+    public static final MobEffect BLEED =
+            Registry.register(
+                    BuiltInRegistries.MOB_EFFECT,
+                    Identifier.fromNamespaceAndPath(Pantheon.MOD_ID, "bleed"),
                     BLEED_EFFECT
             );
 
+    public static final MobEffect DROWSY_EFFECT =
+            new Drowsy(MobEffectCategory.NEUTRAL, 0xFF2B00);
 
-    public static final StatusEffect DROWSY_EFFECT =
-            new Drowsy(StatusEffectCategory.NEUTRAL, 0xFF2B00);
-
-    public static final RegistryEntry<StatusEffect> DROWSY =
-            Registry.registerReference(
-                    Registries.STATUS_EFFECT,
-                    Identifier.of(Pantheon.MOD_ID, "drowsy"),
+    public static final MobEffect DROWSY =
+            Registry.register(
+                    BuiltInRegistries.MOB_EFFECT,
+                    Identifier.fromNamespaceAndPath(Pantheon.MOD_ID, "drowsy"),
                     DROWSY_EFFECT
             );
 
-    public static final StatusEffect SUN_POISONING_EFFECT =
-            new SunPoisoning(StatusEffectCategory.NEUTRAL, 0xFFAB00);
+    public static final MobEffect SUN_POISONING_EFFECT =
+            new SunPoisoning(MobEffectCategory.NEUTRAL, 0xFFAB00);
 
-    public static final RegistryEntry<StatusEffect> SUN_POISONING =
-            Registry.registerReference(
-                    Registries.STATUS_EFFECT,
-                    Identifier.of(Pantheon.MOD_ID, "sun_poisoning"),
+    public static final MobEffect SUN_POISONING =
+            Registry.register(
+                    BuiltInRegistries.MOB_EFFECT,
+                    Identifier.fromNamespaceAndPath(Pantheon.MOD_ID, "sun_poisoning"),
                     SUN_POISONING_EFFECT
             );
-
 
     public static void register() {
         Pantheon.log("Registering status effects...");

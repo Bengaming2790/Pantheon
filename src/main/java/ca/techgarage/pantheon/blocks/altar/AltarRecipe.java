@@ -1,8 +1,10 @@
 package ca.techgarage.pantheon.blocks.altar;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
+
+
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.Map;
 
@@ -52,12 +54,12 @@ public class AltarRecipe {
 
     // ── Inventory helpers ─────────────────────────────────────────────
 
-    public boolean playerHasIngredients(PlayerEntity player) {
+    public boolean playerHasIngredients(Player player) {
         for (Map.Entry<Item, Integer> entry : ingredients.entrySet()) {
             int needed = entry.getValue();
             int found = 0;
-            for (int i = 0; i < player.getInventory().size(); i++) {
-                ItemStack stack = player.getInventory().getStack(i);
+            for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+                ItemStack stack = player.getInventory().getItem(i);
                 if (stack.getItem() == entry.getKey()) found += stack.getCount();
             }
             if (found < needed) return false;
@@ -65,14 +67,14 @@ public class AltarRecipe {
         return true;
     }
 
-    public void consumeIngredients(PlayerEntity player) {
+    public void consumeIngredients(Player player) {
         for (Map.Entry<Item, Integer> entry : ingredients.entrySet()) {
             int toConsume = entry.getValue();
-            for (int i = 0; i < player.getInventory().size() && toConsume > 0; i++) {
-                ItemStack stack = player.getInventory().getStack(i);
+            for (int i = 0; i < player.getInventory().getContainerSize() && toConsume > 0; i++) {
+                ItemStack stack = player.getInventory().getItem(i);
                 if (stack.getItem() == entry.getKey()) {
                     int remove = Math.min(toConsume, stack.getCount());
-                    stack.decrement(remove);
+                    stack.shrink(remove);
                     toConsume -= remove;
                 }
             }

@@ -1,168 +1,173 @@
 package ca.techgarage.pantheon.items.weapons;
 
+
 import ca.techgarage.pantheon.api.Cooldowns;
 import ca.techgarage.pantheon.api.Dash;
 import ca.techgarage.pantheon.api.DashState;
 import ca.techgarage.pantheon.items.GlowItem;
 import eu.pb4.polymer.core.api.item.PolymerItem;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.AttributeModifierSlot;
-import net.minecraft.component.type.AttributeModifiersComponent;
-import net.minecraft.component.type.LoreComponent;
-import net.minecraft.component.type.TooltipDisplayComponent;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Style;
-import net.minecraft.text.Text;
-import net.minecraft.util.*;
-import net.minecraft.world.GameMode;
-import net.minecraft.world.World;
+
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Unit;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.component.ItemLore;
+import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
 import xyz.nucleoid.packettweaker.PacketContext;
 import java.util.LinkedHashSet;
 import java.util.List;
 
 public class Peitho extends Item implements PolymerItem, GlowItem {
-    public Peitho(Settings settings) {
-        super(settings.component(DataComponentTypes.UNBREAKABLE,  Unit.INSTANCE)
-                .component(DataComponentTypes.MAX_STACK_SIZE, 1)
-                .component(DataComponentTypes.ATTRIBUTE_MODIFIERS, getDefaultAttributeModifiers())
-                .component(DataComponentTypes.LORE, lore).fireproof().component(DataComponentTypes.TOOLTIP_DISPLAY, new TooltipDisplayComponent(false, new LinkedHashSet<>(List.of(
-                        DataComponentTypes.ATTRIBUTE_MODIFIERS,
-                        DataComponentTypes.UNBREAKABLE
+    public Peitho(Properties settings) {
+        super(settings.component(DataComponents.UNBREAKABLE,  Unit.INSTANCE)
+                .component(DataComponents.MAX_STACK_SIZE, 1)
+                .component(DataComponents.ATTRIBUTE_MODIFIERS, getDefaultAttributeModifiers())
+                .component(DataComponents.LORE, lore).fireResistant().component(DataComponents.TOOLTIP_DISPLAY, new TooltipDisplay(false, new LinkedHashSet<>(List.of(
+                        DataComponents.ATTRIBUTE_MODIFIERS,
+                        DataComponents.UNBREAKABLE
                 ))))
         );
     }
     private static final String PEITHO_25_CD = "peitho_25_cd";
     private static final Identifier MODEL =
-            Identifier.of("pantheon", "peitho");
+            Identifier.fromNamespaceAndPath("pantheon", "peitho");
 
-    private static LoreComponent lore = new LoreComponent(List.of(
-            Text.literal("A Dagger Wielded By ")
-                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.LIGHT_PURPLE).withBold(false))
-                    .append(Text.literal("Aphrodite")
-                            .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.LIGHT_PURPLE).withBold(true))),
-            Text.literal("Heartbreak")
-                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GOLD).withBold(true)),
-            Text.literal("   Deal 7.5% instead of traditional damage")
-                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)),
-            Text.literal("Sorrowful Rose")
-                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GOLD).withBold(true))
-                    .append(Text.literal(" - Crouch + Left Click")
-                            .setStyle(Style.EMPTY.withItalic(true).withColor(Formatting.GRAY).withBold(false))),
-            Text.literal("   Launch a powerful attack forward that deals")
-                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)),
-            Text.literal("   35% of Current Health of those hit")
-                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)),
+    private static ItemLore lore = new ItemLore(List.of(
+            Component.literal("A Dagger Wielded By ")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(ChatFormatting.LIGHT_PURPLE).withBold(false))
+                    .append(Component.literal("Aphrodite")
+                            .setStyle(Style.EMPTY.withItalic(false).withColor(ChatFormatting.LIGHT_PURPLE).withBold(true))),
+            Component.literal("Heartbreak")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(ChatFormatting.GOLD).withBold(true)),
+            Component.literal("   Deal 7.5% instead of traditional damage")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(ChatFormatting.GRAY)),
+            Component.literal("Sorrowful Rose")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(ChatFormatting.GOLD).withBold(true))
+                    .append(Component.literal(" - Crouch + Left Click")
+                            .setStyle(Style.EMPTY.withItalic(true).withColor(ChatFormatting.GRAY).withBold(false))),
+            Component.literal("   Launch a powerful attack forward that deals")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(ChatFormatting.GRAY)),
+            Component.literal("   35% of Current Health of those hit")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(ChatFormatting.GRAY)),
 
-            Text.literal("Lovestuck Lunge")
-                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GOLD).withBold(true))
-                    .append(Text.literal(" - Right Click")
-                            .setStyle(Style.EMPTY.withItalic(true).withColor(Formatting.GRAY).withBold(false))),
-            Text.literal("   Charge forward and gain Regeneration")
-                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)),
-            Text.literal("   Cooldown: 10s")
-                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY)),
-            Text.literal("Love's Favor")
-                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GOLD).withBold(true)),
-            Text.literal("   Grants Health Boost")
-                    .setStyle(Style.EMPTY.withItalic(false).withColor(Formatting.GRAY))
+            Component.literal("Lovestuck Lunge")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(ChatFormatting.GOLD).withBold(true))
+                    .append(Component.literal(" - Right Click")
+                            .setStyle(Style.EMPTY.withItalic(true).withColor(ChatFormatting.GRAY).withBold(false))),
+            Component.literal("   Charge forward and gain Regeneration")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(ChatFormatting.GRAY)),
+            Component.literal("   Cooldown: 10s")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(ChatFormatting.GRAY)),
+            Component.literal("Love's Favor")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(ChatFormatting.GOLD).withBold(true)),
+            Component.literal("   Grants Health Boost")
+                    .setStyle(Style.EMPTY.withItalic(false).withColor(ChatFormatting.GRAY))
     ));
 
     @Override
-    public ActionResult use(World world, PlayerEntity user, Hand hand) {
-        if (!world.isClient()) {
-            ItemStack stack = user.getStackInHand(hand);
-            if(user.raycast(2, 0, false).getType() == net.minecraft.util.hit.HitResult.Type.BLOCK) {
-                return ActionResult.PASS;
+    public InteractionResult use(Level world, Player user, InteractionHand hand) {
+        if (!world.isClientSide()) {
+            ItemStack stack = user.getItemInHand(hand);
+            if(user.pick(2, 0, false).getType() ==net.minecraft.world.phys.HitResult.Type.BLOCK) {
+                return InteractionResult.PASS;
             }
-            if (!(user.getGameMode() == GameMode.CREATIVE)) {
-                user.getItemCooldownManager().set(stack, 300); //15 second cooldown
+            if (!(user.gameMode().isCreative())) {
+                user.getCooldowns().addCooldown(stack, 20 * 15);
             }
             Dash.dashForward(user, 0.75f);
 
-            DashState.start((ServerPlayerEntity) user, 10, ParticleTypes.HEART);
-            user.setStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, 200, 1), user);
-            user.getEntityWorld().playSound(
+            DashState.start((ServerPlayer) user, 10, ParticleTypes.HEART);
+            user.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 200, 1), user);
+            user.level().playSound(
                     null,
                     user.getX(), user.getY(), user.getZ(),
-                    SoundEvents.ENTITY_BREEZE_JUMP,
-                    SoundCategory.PLAYERS,
+                    SoundEvents.BREEZE_JUMP,
+                    SoundSource.PLAYERS,
                     1.0F, // volume
                     0.5F  // pitch
             );
-            user.useRiptide(10, 0f, stack);
+            user.startAutoSpinAttack(10, 0f, stack);
 
         }
-        return ActionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
 
-    public static AttributeModifiersComponent getDefaultAttributeModifiers() {
-        return AttributeModifiersComponent.builder()
+    public static ItemAttributeModifiers getDefaultAttributeModifiers() {
+        return ItemAttributeModifiers.builder()
                 .add(
-                        EntityAttributes.ATTACK_SPEED,
-                        new EntityAttributeModifier(
-                                Item.BASE_ATTACK_SPEED_MODIFIER_ID,
+                        Attributes.ATTACK_SPEED,
+                        new AttributeModifier(
+                                Item.BASE_ATTACK_SPEED_ID,
                                 2 - 4,
-                                EntityAttributeModifier.Operation.ADD_VALUE
+                                AttributeModifier.Operation.ADD_VALUE
                         ),
-                        AttributeModifierSlot.MAINHAND
+                        EquipmentSlotGroup.MAINHAND
                 )
                 .build();
     }
 
     @Override
     public void modifyBasePolymerItemStack(ItemStack out, ItemStack stack, PacketContext context) {
-        out.remove(DataComponentTypes.CUSTOM_DATA);
+        out.remove(DataComponents.CUSTOM_DATA);
     }
     @Override
-    public void postHit(ItemStack stack, LivingEntity target, LivingEntity attacker) {
-        if (attacker.getEntityWorld().isClient()) return;
-      if (attacker instanceof PlayerEntity player) {
-          if (attacker.isSneaking() && !(Cooldowns.isOnCooldown(player,PEITHO_25_CD))) {
+    public void postHurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+        if (attacker.level().isClientSide()) return;
+      if (attacker instanceof Player player) {
+          if (attacker.isShiftKeyDown() && !(Cooldowns.isOnCooldown(player,PEITHO_25_CD))) {
               double damageAmount = target.getMaxHealth() * 0.25;
-              target.damage((ServerWorld) target.getEntityWorld(), target.getDamageSources().generic(), (float) damageAmount);
-              player.getEntityWorld().playSound(
+              target.hurt( target.damageSources().generic(), (float) damageAmount);
+              player.level().playSound(
                       null,
                       player.getX(), player.getY(), player.getZ(),
-                      SoundEvents.ENTITY_PLAYER_ATTACK_CRIT,
-                      SoundCategory.PLAYERS,
+                      SoundEvents.PLAYER_ATTACK_CRIT,
+                      SoundSource.PLAYERS,
                       1.0F, // volume
                       0.3F  // pitch
               );
-              if (player.getGameMode() != GameMode.CREATIVE) Cooldowns.start(player, PEITHO_25_CD, 20 * 45);
+              if (!player.gameMode().isCreative()) Cooldowns.start(player, PEITHO_25_CD, 20 * 45);
               return;
           }
       }
         double damageAmount = target.getMaxHealth() * 0.075;
-        target.damage((ServerWorld) target.getEntityWorld(), target.getDamageSources().generic(), (float) damageAmount);
+        target.hurt(target.damageSources().generic(), (float) damageAmount);
     }
 
 
     @Override
-    public void inventoryTick(ItemStack stack, ServerWorld world, Entity entity, @Nullable EquipmentSlot slot) {
-        PlayerEntity player = (PlayerEntity) entity;
-        if (stack.contains(DataComponentTypes.CUSTOM_NAME)) {
-            player.sendMessage(Text.translatable("item.anvil.rename").formatted(), true);
-            stack.remove(DataComponentTypes.CUSTOM_NAME);
+    public void inventoryTick(ItemStack stack, ServerLevel world, Entity entity, @Nullable EquipmentSlot slot) {
+        Player player = (Player) entity;
+        if (stack.has(DataComponents.CUSTOM_NAME)) {
+            player.displayClientMessage(Component.translatable("item.anvil.rename"), true);
+            stack.remove(DataComponents.CUSTOM_NAME);
         }
-        if (stack.contains(DataComponentTypes.ENCHANTMENTS)) {
-            stack.remove(DataComponentTypes.ENCHANTMENTS);
+        if (stack.has(DataComponents.ENCHANTMENTS)) {
+            stack.remove(DataComponents.ENCHANTMENTS);
         }
     }
 
@@ -175,8 +180,8 @@ public class Peitho extends Item implements PolymerItem, GlowItem {
     }
 
     @Override
-    public Text getName(ItemStack stack) {
-        return Text.translatable("item.pantheon.peitho");
+    public Component getName(ItemStack stack) {
+        return Component.translatable("item.pantheon.peitho");
     }
 
     @Override

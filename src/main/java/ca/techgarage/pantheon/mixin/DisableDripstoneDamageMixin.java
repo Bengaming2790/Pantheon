@@ -2,32 +2,26 @@ package ca.techgarage.pantheon.mixin;
 
 
 import ca.techgarage.pantheon.PantheonConfig;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.damage.DamageTypes;
-import net.minecraft.server.world.ServerWorld;
 
+
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
+import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-// TODO(Ravel): can not resolve target class LivingEntity
 @Mixin(LivingEntity.class)
 public abstract class DisableDripstoneDamageMixin {
-// TODO(Ravel): no target class
-//todo FIX THIS
-    @Inject(
-            method = "damage",
-            at = @At("HEAD"),
-            cancellable = true
-    )
-    private void disableDripstoneDamage(ServerWorld world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
 
-        if (source.isOf(DamageTypes.STALAGMITE) && PantheonConfig.disableDripstoneDamage) {
+    @Unique
+    private void disableDripstoneDamage(ServerLevel world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
+
+        if (source.is(DamageTypes.STALAGMITE) && PantheonConfig.disableDripstoneDamage) {
             LivingEntity self = (LivingEntity)(Object)this;
 
-            self.damage(world, self.getDamageSources().fall(), amount);
+            self.hurt(self.damageSources().fall(), amount);
 
             cir.setReturnValue(false);
         }

@@ -1,37 +1,27 @@
 package ca.techgarage.pantheon.mixin;
 
 import ca.techgarage.pantheon.PantheonConfig;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.CobwebBlock;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityCollisionHandler;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.InsideBlockEffectApplier;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.WebBlock; // MojMap name for CobwebBlock
+import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-// TODO(Ravel): can not resolve target class CobwebBlock
-@Mixin(CobwebBlock.class)
+@Mixin(WebBlock.class)
 public abstract class NoCobwebSlowMixin {
 
-    // TODO(Ravel): no target class
     @Inject(
-            method = "onEntityCollision",
+            method = "entityInside", // MojMap name for onEntityCollision
             at = @At("HEAD"),
             cancellable = true
     )
-    private void cancelCobwebSlow(
-            BlockState state,
-            World world,
-            BlockPos pos,
-            Entity entity,
-            EntityCollisionHandler handler,
-            boolean bl,
-            CallbackInfo ci
-    ) {
+    private void cancelCobwebSlow(BlockState blockState, Level level, BlockPos blockPos, Entity entity, InsideBlockEffectApplier insideBlockEffectApplier, boolean bl, CallbackInfo ci) {
         if (PantheonConfig.noCobwebSlow) {
             ci.cancel();
         }

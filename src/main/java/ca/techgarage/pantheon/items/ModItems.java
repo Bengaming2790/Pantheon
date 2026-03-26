@@ -2,13 +2,13 @@ package ca.techgarage.pantheon.items;
 
 import ca.techgarage.pantheon.api.DroppedItemGlow;
 import ca.techgarage.pantheon.items.weapons.*;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.Item;
 
 import java.lang.reflect.Field;
 import java.util.HashSet;
@@ -18,37 +18,47 @@ import static ca.techgarage.pantheon.Pantheon.MOD_ID;
 
 public class ModItems {
 
-    //Items
-    public static final RegistryKey<Item> DRACHMA_KEY =
-            RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "drachma"));
+    public static final ResourceKey<Item> DRACHMA_KEY =
+            ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "drachma"));
 
-    public static final RegistryKey<Item> VARATHA_KEY =
-            RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "varatha"));
+    public static final ResourceKey<Item> VARATHA_KEY =
+            ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "varatha"));
 
-    public static final RegistryKey<Item> KHALKEOUS_KEY =
-            RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "khalkeous"));
-    public static final RegistryKey<Item> AEGIS_KEY =
-            RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "aegis"));
-    public static final RegistryKey<Item> KYNTHIA_KEY =
-            RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "kynthia"));
-    public static final RegistryKey<Item> ENYALIOS_KEY =
-            RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "enyalios"));
-    public static final RegistryKey<Item> ASTRAPE_KEY =
-            RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "astrape"));
-    public static final RegistryKey<Item> PEITHO_KEY =
-            RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "peitho"));
-    public static final RegistryKey<Item> TRIAINA_KEY =
-            RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "triaina"));
-    public static final RegistryKey<Item> CADUCEUS_KEY =
-            RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "caduceus"));
-    public static final RegistryKey<Item> PHOEBUS_KEY =
-            RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "phoebus"));
-    public static final RegistryKey<Item> THYRSUS_KEY =
-            RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "thyrsus"));
-    public static final RegistryKey<Item> GLACIERA_KEY =
-            RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "glaciera"));
-    public static final RegistryKey<Item> ICARUS_WINGS_KEY =
-            RegistryKey.of(RegistryKeys.ITEM, Identifier.of(MOD_ID, "icarus_wings"));
+    public static final ResourceKey<Item> KHALKEOUS_KEY =
+            ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "khalkeous"));
+
+    public static final ResourceKey<Item> AEGIS_KEY =
+            ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "aegis"));
+
+    public static final ResourceKey<Item> KYNTHIA_KEY =
+            ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "kynthia"));
+
+    public static final ResourceKey<Item> ENYALIOS_KEY =
+            ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "enyalios"));
+
+    public static final ResourceKey<Item> ASTRAPE_KEY =
+            ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "astrape"));
+
+    public static final ResourceKey<Item> PEITHO_KEY =
+            ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "peitho"));
+
+    public static final ResourceKey<Item> TRIAINA_KEY =
+            ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "triaina"));
+
+    public static final ResourceKey<Item> CADUCEUS_KEY =
+            ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "caduceus"));
+
+    public static final ResourceKey<Item> PHOEBUS_KEY =
+            ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "phoebus"));
+
+    public static final ResourceKey<Item> THYRSUS_KEY =
+            ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "thyrsus"));
+
+    public static final ResourceKey<Item> GLACIERA_KEY =
+            ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "glaciera"));
+
+    public static final ResourceKey<Item> ICARUS_WINGS_KEY =
+            ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "icarus_wings"));
 
     public static Item DRACHMA;
     public static Item VARATHA;
@@ -66,82 +76,78 @@ public class ModItems {
     public static Item ICARUS_WINGS;
 
     public static void registerModItems() {
+        // In Mojang Mappings, Registry.register uses BuiltInRegistries.ITEM
         DRACHMA = Registry.register(
-                Registries.ITEM,
+                BuiltInRegistries.ITEM,
                 DRACHMA_KEY,
-                new DrachmaItem(new Item.Settings().registryKey(DRACHMA_KEY))
+                new DrachmaItem(new Item.Properties().setId(DRACHMA_KEY))
         );
         VARATHA = Registry.register(
-                Registries.ITEM,
+                BuiltInRegistries.ITEM,
                 VARATHA_KEY,
-                new Varatha(new Item.Settings().registryKey(VARATHA_KEY))
+                new Varatha(new Item.Properties().setId(VARATHA_KEY))
         );
         KHALKEOUS = Registry.register(
-                Registries.ITEM,
+                BuiltInRegistries.ITEM,
                 KHALKEOUS_KEY,
-                new Khalkeus(new Item.Settings().registryKey(KHALKEOUS_KEY))
+                new Khalkeus(new Item.Properties().setId(KHALKEOUS_KEY))
         );
         AEGIS = Registry.register(
-                Registries.ITEM,
+                BuiltInRegistries.ITEM,
                 AEGIS_KEY,
-                new Aegis(new Item.Settings().registryKey(AEGIS_KEY))
+                new Aegis(new Item.Properties().setId(AEGIS_KEY))
         );
         KYNTHIA = Registry.register(
-                Registries.ITEM,
+                BuiltInRegistries.ITEM,
                 KYNTHIA_KEY,
-                new Kynthia(new Item.Settings().registryKey(KYNTHIA_KEY))
+                new Kynthia(new Item.Properties().setId(KYNTHIA_KEY))
         );
         ENYALIOS = Registry.register(
-                Registries.ITEM,
+                BuiltInRegistries.ITEM,
                 ENYALIOS_KEY,
-                new Enyalios(new Item.Settings().registryKey(ENYALIOS_KEY))
+                new Enyalios(new Item.Properties().setId(ENYALIOS_KEY))
         );
         ASTRAPE = Registry.register(
-                Registries.ITEM,
+                BuiltInRegistries.ITEM,
                 ASTRAPE_KEY,
-                new Astrape(new Item.Settings().registryKey(ASTRAPE_KEY))
+                new Astrape(new Item.Properties().setId(ASTRAPE_KEY))
         );
         PEITHO = Registry.register(
-                Registries.ITEM,
+                BuiltInRegistries.ITEM,
                 PEITHO_KEY,
-                new Peitho(new Item.Settings().registryKey(PEITHO_KEY)));
+                new Peitho(new Item.Properties().setId(PEITHO_KEY)));
         TRIAINA = Registry.register(
-                Registries.ITEM,
+                BuiltInRegistries.ITEM,
                 TRIAINA_KEY,
-                new Triaina(new Item.Settings().registryKey(TRIAINA_KEY)));
+                new Triaina(new Item.Properties().setId(TRIAINA_KEY)));
         CADUCEUS = Registry.register(
-                Registries.ITEM,
-                Identifier.of(MOD_ID, "caduceus"),
-                new Caduceus(new Item.Settings().registryKey(CADUCEUS_KEY)));
-
+                BuiltInRegistries.ITEM,
+                CADUCEUS_KEY,
+                new Caduceus(new Item.Properties().setId(CADUCEUS_KEY)));
         PHOEBUS = Registry.register(
-                Registries.ITEM,
-                Identifier.of(MOD_ID, "phoebus"),
-                new Phoebus(new Item.Settings().registryKey(PHOEBUS_KEY)));
+                BuiltInRegistries.ITEM,
+                PHOEBUS_KEY,
+                new Phoebus(new Item.Properties().setId(PHOEBUS_KEY)));
         THYRSUS = Registry.register(
-                Registries.ITEM,
-                Identifier.of(MOD_ID, "thyrsus"),
-                new Thyrsus(new Item.Settings().registryKey(THYRSUS_KEY)));
+                BuiltInRegistries.ITEM,
+                THYRSUS_KEY,
+                new Thyrsus(new Item.Properties().setId(THYRSUS_KEY)));
         GLACIERA = Registry.register(
-                Registries.ITEM,
-                Identifier.of(MOD_ID, "glaciera"),
-                new Glaciera(new Item.Settings().registryKey(GLACIERA_KEY)));
+                BuiltInRegistries.ITEM,
+                GLACIERA_KEY,
+                new Glaciera(new Item.Properties().setId(GLACIERA_KEY)));
         ICARUS_WINGS = Registry.register(
-                Registries.ITEM,
-                Identifier.of(MOD_ID, "icarus_wings"),
-                new IcarusWings(new Item.Settings().registryKey(ICARUS_WINGS_KEY)));
+                BuiltInRegistries.ITEM,
+                ICARUS_WINGS_KEY,
+                new IcarusWings(new Item.Properties().setId(ICARUS_WINGS_KEY)));
     }
 
     public static Set<Item> getAllItems() {
         Set<Item> items = new HashSet<>();
-
         try {
             for (Field field : ModItems.class.getDeclaredFields()) {
-
                 if (field.getType() == Item.class) {
-
                     Item item = (Item) field.get(null);
-
                     if (item != null) {
                         items.add(item);
                     }
@@ -150,13 +156,12 @@ public class ModItems {
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
-
         return items;
     }
-    public static void applyGlowToAllDrops(ItemEntity itemEntity) {
-        Item item = itemEntity.getStack().getItem();
 
-        // Only process items belonging to this mod
+    public static void applyGlowToAllDrops(ItemEntity itemEntity) {
+        Item item = itemEntity.getItem().getItem(); // getStack() -> getItem(), getItem() -> getItem()
+
         if (!(item instanceof GlowItem glowItem)) return;
 
         DroppedItemGlow.applyGlow(itemEntity, glowItem.getGlowColor());

@@ -1,19 +1,18 @@
 package ca.techgarage.pantheon.blocks.altar;
 
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.CustomModelDataComponent;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.decoration.DisplayEntity;
-import net.minecraft.entity.decoration.DisplayEntity.BillboardMode;
-import net.minecraft.entity.decoration.DisplayEntity.ItemDisplayEntity;
-import net.minecraft.entity.decoration.DisplayEntity.TextDisplayEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-import org.joml.Vector3f;
+
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.Display;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Display.ItemDisplay;
+
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.component.CustomModelData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,70 +20,81 @@ import java.util.Map;
 
 public class AltarDisplay {
 
-    private static final float ROTATION_SPEED = 2.0f; // degrees per tick
+    private static final float ROTATION_SPEED = 2.0f;
 
-    private final List<DisplayEntity> entities = new ArrayList<>();
-    private final ItemDisplayEntity floatingItem;
+    private final List<Display> entities = new ArrayList<>();
+    private final ItemDisplay floatingItem;
 
-    public AltarDisplay(ServerWorld world, BlockPos pos, AltarRecipe recipe) {
+    public AltarDisplay(ServerLevel world, BlockPos pos, AltarRecipe recipe) {
         double cx = pos.getX() + 0.5;
         double cy = pos.getY();
         double cz = pos.getZ() + 0.5;
 
-        // ── Block model display ────────────────────────────────────────
-        // Uses a PAPER item with custom_model_data to show the altar model.
-        // The model JSON for pantheon:item/altar_model should use
-        // "parent": "pantheon:block/altar" to reference your block model.
+        // ── Block model display (via custom_model_data) ──
         ItemStack modelStack = new ItemStack(Items.PAPER);
-        modelStack.set(DataComponentTypes.ITEM_MODEL,
-                net.minecraft.util.Identifier.of("pantheon", "block/altar"));
-        ItemDisplayEntity modelDisplay = new ItemDisplayEntity(EntityType.ITEM_DISPLAY, world);
-        modelDisplay.setPosition(cx, cy, cz);
+        modelStack.set(DataComponents.CUSTOM_MODEL_DATA,
+                new CustomModelData(List.of(),List.of(),List.of(),List.of(1))); // resource pack handles model
+
+        ItemDisplay modelDisplay = new ItemDisplay(EntityType.ITEM_DISPLAY, world);
+        modelDisplay.setPos(cx, cy, cz);
         modelDisplay.setItemStack(modelStack);
-        modelDisplay.setBillboardMode(BillboardMode.FIXED);
+        modelDisplay.setBillboardConstraints(Display.BillboardConstraints.FIXED);
         spawnEntity(world, modelDisplay);
 
-        // ── Floating output item ───────────────────────────────────────
-        floatingItem = new ItemDisplayEntity(EntityType.ITEM_DISPLAY, world);
-        floatingItem.setPosition(cx, cy + recipe.getItemHeight(), cz);
+        // ── Floating output item ──
+        floatingItem = new ItemDisplay(EntityType.ITEM_DISPLAY, world);
+        floatingItem.setPos(cx, cy + recipe.getItemHeight(), cz);
         floatingItem.setItemStack(recipe.getOutput());
-        floatingItem.setBillboardMode(BillboardMode.FIXED);
+        floatingItem.setBillboardConstraints(Display.BillboardConstraints.FIXED);
         spawnEntity(world, floatingItem);
 
-        // ── Output name ────────────────────────────────────────────────
-        Text nameText = Text.literal("§6§l").append(recipe.getOutput().getName());
+        // ── Output name ──
+        Component nameText = Component.literal("§6§l")
+                .append(recipe.getOutput().getHoverName());
+
         spawnTextLine(world, cx, cy + recipe.getTextYStart(), cz, nameText);
 
-        // ── Ingredient lines ───────────────────────────────────────────
+        // ── Ingredients ──
         int i = 1;
         for (Map.Entry<Item, Integer> entry : recipe.getIngredients().entrySet()) {
-            String ingredientName = entry.getKey().getName().getString();
-            Text line = Text.literal("§7" + ingredientName + ": §f" + entry.getValue());
-            spawnTextLine(world, cx, cy + recipe.getTextYStart() - (i * recipe.getTextYStep()), cz, line);
+            String ingredientName = new ItemStack(entry.getKey())
+                    .getHoverName()
+                    .getString();
+
+            Component line = Component.literal("§7" + ingredientName + ": §f" + entry.getValue());
+
+            spawnTextLine(
+                    world,
+                    cx,
+                    cy + recipe.getTextYStart() - (i * recipe.getTextYStep()),
+                    cz,
+                    line
+            );
             i++;
         }
     }
 
     public void tick() {
-        floatingItem.rotate(ROTATION_SPEED, true, 0f, false);
+        // Simple rotation
+        floatingItem.setYRot(floatingItem.getYRot() + ROTATION_SPEED);
     }
 
-    private void spawnTextLine(ServerWorld world, double x, double y, double z, Text text) {
-        TextDisplayEntity textDisplay = new TextDisplayEntity(EntityType.TEXT_DISPLAY, world);
-        textDisplay.setPosition(x, y, z);
+    private void spawnTextLine(ServerLevel world, double x, double y, double z, Component text) {
+        Display.TextDisplay textDisplay = new Display.TextDisplay(EntityType.TEXT_DISPLAY, world);
+        textDisplay.setPos(x, y, z);
         textDisplay.setText(text);
-        textDisplay.setBillboardMode(BillboardMode.VERTICAL);
-        textDisplay.setBackground(0x55000000);
+        textDisplay.setBillboardConstraints(Display.BillboardConstraints.VERTICAL);
+        textDisplay.setBackgroundColor(0x55000000);
         spawnEntity(world, textDisplay);
     }
 
-    private void spawnEntity(ServerWorld world, DisplayEntity entity) {
-        world.spawnEntity(entity);
+    private void spawnEntity(ServerLevel world, Display entity) {
+        world.addFreshEntity(entity);
         entities.add(entity);
     }
 
     public void destroy() {
-        for (DisplayEntity entity : entities) {
+        for (Display entity : entities) {
             entity.discard();
         }
         entities.clear();

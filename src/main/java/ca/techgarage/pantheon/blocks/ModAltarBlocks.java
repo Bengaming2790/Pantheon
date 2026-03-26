@@ -2,16 +2,18 @@ package ca.techgarage.pantheon.blocks;
 
 import ca.techgarage.pantheon.blocks.altar.AltarRecipe;
 import ca.techgarage.pantheon.items.ModItems;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.Block;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.util.Identifier;
 
 import java.util.Map;
 
@@ -78,26 +80,25 @@ public class ModAltarBlocks {
     }
 
     private static Block registerAltar(String name, AltarRecipe recipe) {
+        Identifier id = Identifier.fromNamespaceAndPath("pantheon", name);
 
-        Identifier id = Identifier.of("pantheon", name);
+        ResourceKey<Block> blockKey = ResourceKey.create(Registries.BLOCK, id);
+        ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, id);
 
-        RegistryKey<Block> blockKey = RegistryKey.of(Registries.BLOCK.getKey(), id);
-
-        AbstractBlock.Settings blockSettings = AbstractBlock.Settings
-                .create()
+        BlockBehaviour.Properties blockSettings = BlockBehaviour.Properties.of()
                 .strength(3.5f)
-                .registryKey(blockKey);
+                .setId(blockKey);
 
         Block block = new AltarBlock(blockSettings, recipe);
-        Registry.register(Registries.BLOCK, id, block);
 
-        RegistryKey<Item> itemKey = RegistryKey.of(Registries.ITEM.getKey(), id);
+        Registry.register(BuiltInRegistries.BLOCK, blockKey, block);
 
-        Item.Settings itemSettings = new Item.Settings()
-                .registryKey(itemKey);
+        Item.Properties itemSettings = new Item.Properties()
+                .setId(itemKey);
 
-        AltarBlockItem blockItem = new AltarBlockItem(block, itemSettings);
-        Registry.register(Registries.ITEM, id, blockItem);
+        BlockItem blockItem = new BlockItem(block, itemSettings);
+
+        Registry.register(BuiltInRegistries.ITEM, itemKey, blockItem);
 
         return block;
     }

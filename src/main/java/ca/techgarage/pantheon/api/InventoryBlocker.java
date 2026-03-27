@@ -54,7 +54,7 @@ public class InventoryBlocker {
                     if (stack.isEmpty()) continue;
 
                     if (BLOCKED_ITEMS.contains(stack.getItem())) {
-                        player.displayClientMessage(Component.translatable("item.anvil.rename").withStyle(style -> style.withBold(true)), true);
+                        player.sendSystemMessage(Component.translatable("item.anvil.rename").withStyle(style -> style.withBold(true)), true);
                         slot.set(ItemStack.EMPTY);
                         player.getInventory().placeItemBackInInventory(stack);
                     }

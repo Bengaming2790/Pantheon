@@ -35,7 +35,7 @@ public abstract class NetheriteArmorCancelMixin {
         if (!PantheonConfig.diableNetheriteUpgrade) return;
 
         if (pantheon$isNetheriteGear(stack)) {
-            player.displayClientMessage(Component.translatable("item.anvil.rename"), true);
+            player.sendSystemMessage(Component.translatable("item.anvil.rename"));
             ci.cancel();
         }
     }

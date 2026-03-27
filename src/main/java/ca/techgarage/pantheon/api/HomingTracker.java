@@ -20,14 +20,20 @@ public class HomingTracker {
         // Lock onto the nearest target at launch, don't re-acquire
         final LivingEntity[] lockedTarget = {null};
 
-        ServerTickEvents.END_WORLD_TICK.register(level -> {
+        ServerTickEvents.END_SERVER_TICK.register(level -> {
             if (projectile.isRemoved()) return;
 
-            ServerLevel serverLevel = (ServerLevel) level;
-
+            ServerLevel world = level.getLevel(ServerLevel.OVERWORLD);
+            ServerLevel nether = level.getLevel(ServerLevel.NETHER);
+            ServerLevel end = level.getLevel(ServerLevel.END);
             // Acquire lock on first tick
             if (lockedTarget[0] == null || !lockedTarget[0].isAlive()) {
-                lockedTarget[0] = findTarget(serverLevel, projectile, owner);
+                assert world != null;
+                lockedTarget[0] = findTarget(world, projectile, owner);
+                assert end != null;
+                lockedTarget[0] = findTarget(end, projectile, owner);
+                assert nether != null;
+                lockedTarget[0] = findTarget(nether, projectile, owner);
             }
 
             LivingEntity target = lockedTarget[0];

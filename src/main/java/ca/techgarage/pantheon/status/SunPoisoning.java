@@ -1,7 +1,7 @@
 package ca.techgarage.pantheon.status;
 
 import ca.techgarage.pantheon.DamageSources.ModDamageSources;
-import eu.pb4.polymer.core.api.other.PolymerStatusEffect;
+import eu.pb4.polymer.core.api.other.PolymerMobEffect;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -12,7 +12,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-public class SunPoisoning extends MobEffect implements PolymerStatusEffect {
+public class SunPoisoning extends MobEffect implements PolymerMobEffect {
     public SunPoisoning(MobEffectCategory category, int color) {
         super(category, color);
     }

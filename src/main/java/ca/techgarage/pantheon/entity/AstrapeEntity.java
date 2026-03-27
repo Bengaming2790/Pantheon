@@ -4,6 +4,7 @@ import ca.techgarage.pantheon.api.AOEDamage;
 import ca.techgarage.pantheon.items.ModItems;
 import ca.techgarage.pantheon.status.ModEffects;
 import eu.pb4.polymer.core.api.entity.PolymerEntity;
+import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
@@ -26,7 +27,6 @@ import com.mojang.math.Transformation;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.jspecify.annotations.Nullable;
-import xyz.nucleoid.packettweaker.PacketContext;
 
 
 public class AstrapeEntity extends Arrow implements PolymerEntity {

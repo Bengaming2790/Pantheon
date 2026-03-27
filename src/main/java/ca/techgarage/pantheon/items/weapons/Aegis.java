@@ -5,14 +5,22 @@ import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 
+import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.HolderSet;
+import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.Unit;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EquipmentSlotGroup;
@@ -27,10 +35,10 @@ import net.minecraft.world.item.ShieldItem;
 import net.minecraft.world.item.component.BlocksAttacks;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.component.TooltipDisplay;
-import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class Aegis extends ShieldItem implements PolymerItem {
@@ -38,25 +46,35 @@ public class Aegis extends ShieldItem implements PolymerItem {
     private static final String AEGIS_CD = "aegis_cd";
     private static final int COOLDOWN = 20 * 60; // 1 minute
     private static final int DEFLECT_BUFF_TIME = 20 * 5;
+    TagKey<DamageType> bypassesShieldTag = DamageTypeTags.BYPASSES_SHIELD;
 
     public Aegis(Properties settings) {
         super(settings
                 .component(DataComponents.ATTRIBUTE_MODIFIERS, createAttributeModifiers())
                 .component(DataComponents.UNBREAKABLE, Unit.INSTANCE)
                 .component(DataComponents.MAX_STACK_SIZE, 1)
-                .component(DataComponents.BLOCKS_ATTACKS, new BlocksAttacks(0.25F, 1.0F,
-                        List.of(new BlocksAttacks.DamageReduction(90.0F, Optional.empty(), 0.0F, 1.0F)),
-                        new BlocksAttacks.ItemDamageFunction(3.0F, 1.0F, 1.0F), Optional.of(DamageTypeTags.BYPASSES_SHIELD), Optional.of(SoundEvents.SHIELD_BLOCK),
-                        Optional.of(SoundEvents.SHIELD_BREAK))).component(DataComponents.BREAK_SOUND, SoundEvents.SHIELD_BREAK)
+                .component(DataComponents.BLOCKS_ATTACKS, new BlocksAttacks(
+                        0.25F, // 1: blockDelaySeconds
+                        1.0F,  // 2: disableCooldownScale
+                        List.of(new BlocksAttacks.DamageReduction(
+                                90.0F,            // horizontalBlockingAngle (90 deg each side = 180 total)
+                                Optional.empty(), // damage type filter
+                                0.0F,             // base damage blocked
+                                1.0F              // factor (1.0 = 100% of incoming damage is blocked)
+                        )),    // 3: damageReductions (List)
+                        new BlocksAttacks.ItemDamageFunction(
+                                3.0F, // threshold (min damage to hurt shield)
+                                0.0F, // base durability loss
+                                1.0F  // factor (1 durability per 1 damage)
+                        ),     // 4: itemDamage
+                        Optional.empty(), // 5: bypassedBy (DamageType Tag)
+                        Optional.of(SoundEvents.SHIELD_BLOCK), // 6: blockSound
+                        Optional.of(SoundEvents.SHIELD_BREAK))  // 7: disableSound
+                )
                 .fireResistant()
-                .component(DataComponents.TOOLTIP_DISPLAY, new TooltipDisplay(false, new LinkedHashSet<>(List.of(
-                        DataComponents.ATTRIBUTE_MODIFIERS,
-                        DataComponents.UNBREAKABLE
-                ))))
         );
-        registerEvents();
+         registerEvents();
     }
-
 
     public static ItemAttributeModifiers createAttributeModifiers() {
         return ItemAttributeModifiers.builder()
@@ -175,7 +193,8 @@ public class Aegis extends ShieldItem implements PolymerItem {
     }
     private static final Identifier MODEL =
             Identifier.fromNamespaceAndPath("pantheon", "aegis");
-    public Identifier getPolymerItemModel(ItemStack stack, PacketContext context) {
+    @Override
+    public Identifier getPolymerItemModel(ItemStack stack, PacketContext context, HolderLookup.Provider lookup) {
         return MODEL;
     }
 

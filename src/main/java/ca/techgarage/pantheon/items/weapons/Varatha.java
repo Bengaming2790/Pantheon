@@ -7,7 +7,9 @@ import ca.techgarage.pantheon.items.GlowItem;
 import ca.techgarage.pantheon.items.material.ModToolMaterials;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -196,7 +198,7 @@ public class Varatha extends Item implements PolymerItem, GlowItem {
     public void inventoryTick(ItemStack stack, ServerLevel serverLevel, Entity entity, @Nullable EquipmentSlot equipmentSlot) {
         if (entity instanceof Player player) {
             if (stack.has(DataComponents.CUSTOM_NAME)) {
-                player.displayClientMessage(Component.translatable("item.anvil.rename").withStyle(ChatFormatting.RED), true);
+                player.sendSystemMessage(Component.translatable("item.anvil.rename").withStyle(ChatFormatting.RED));
                 stack.remove(DataComponents.CUSTOM_NAME);
             }
             if (stack.has(DataComponents.ENCHANTMENTS)) {
@@ -211,17 +213,17 @@ public class Varatha extends Item implements PolymerItem, GlowItem {
     }
 
     @Override
-    public Item getPolymerItem(ItemStack stack, xyz.nucleoid.packettweaker.PacketContext context) {
-        return Items.STICK;
-    }
-
-    @Override
-    public Identifier getPolymerItemModel(ItemStack stack, xyz.nucleoid.packettweaker.PacketContext context) {
+    public Identifier getPolymerItemModel(ItemStack stack, PacketContext context, HolderLookup.Provider lookup) {
         return MODEL;
     }
 
     @Override
     public String getGlowColor() {
         return "#FF5555";
+    }
+
+    @Override
+    public Item getPolymerItem(ItemStack itemStack, PacketContext context) {
+        return Items.STICK;
     }
 }

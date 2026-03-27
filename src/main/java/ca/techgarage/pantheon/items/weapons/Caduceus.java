@@ -5,6 +5,7 @@ import ca.techgarage.pantheon.api.Cooldowns;
 import ca.techgarage.pantheon.status.ModEffects;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
@@ -32,7 +33,6 @@ import net.minecraft.world.entity.Relative;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.*;
 
@@ -84,7 +84,7 @@ public class Caduceus extends Item implements PolymerItem {
 
         if (existing == null) {
             RandevuManager.create(player);
-            player.displayClientMessage(Component.translatable("item.caduceus.randevu.place"), true);
+            player.sendSystemMessage(Component.translatable("item.caduceus.randevu.place"), true);
             Cooldowns.start(player, CADUCEUS_RENDEZVOUS_TIMER, 600);
             level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.BEACON_ACTIVATE, SoundSource.PLAYERS, 0.5F, 0.0F);
             return InteractionResult.SUCCESS;
@@ -92,7 +92,7 @@ public class Caduceus extends Item implements PolymerItem {
 
         if (level.getGameTime() > existing.expireTime()) {
             RandevuManager.remove(player);
-            player.displayClientMessage(Component.translatable("item.caduceus.randevu.expire"), true);
+            player.sendSystemMessage(Component.translatable("item.caduceus.randevu.expire"), true);
             return InteractionResult.FAIL;
         }
 

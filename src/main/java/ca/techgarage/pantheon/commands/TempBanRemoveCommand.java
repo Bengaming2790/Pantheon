@@ -20,7 +20,7 @@ public class TempBanRemoveCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
                 Commands.literal("tempbanremove")
-                        .requires(Permissions.require("pantheon.tempban", 2))
+                        .requires(Permissions.require("pantheon.tempban"))
                         .then(Commands.argument("player", GameProfileArgument.gameProfile())
                                 .executes(TempBanRemoveCommand::execute)
                         )

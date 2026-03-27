@@ -10,6 +10,7 @@ import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 
+import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -33,7 +34,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
-import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.LinkedHashSet;
 import java.util.List;

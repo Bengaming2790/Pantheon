@@ -1,6 +1,6 @@
 package ca.techgarage.pantheon.status;
 
-import eu.pb4.polymer.core.api.other.PolymerStatusEffect;
+import eu.pb4.polymer.core.api.other.PolymerMobEffect;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -12,7 +12,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-public class Conducting extends MobEffect implements PolymerStatusEffect {
+public class Conducting extends MobEffect implements PolymerMobEffect {
     public Conducting(MobEffectCategory category, int color) {
         super(category, color);
     }

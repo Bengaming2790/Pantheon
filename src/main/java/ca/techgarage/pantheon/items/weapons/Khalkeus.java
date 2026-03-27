@@ -6,6 +6,8 @@ import ca.techgarage.pantheon.api.Dash;
 import ca.techgarage.pantheon.api.DashState;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 
+import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 
@@ -35,7 +37,6 @@ import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.core.particles.ParticleTypes;
 
 import org.jspecify.annotations.Nullable;
-import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.function.Predicate;
 
@@ -101,7 +102,7 @@ public class Khalkeus extends MaceItem implements PolymerItem {
         if (!(entity instanceof Player player)) return;
 
         if (stack.has(DataComponents.CUSTOM_NAME)) {
-            player.displayClientMessage(Component.translatable("item.anvil.rename"), true);
+            player.sendSystemMessage(Component.translatable("item.anvil.rename"));
             stack.remove(DataComponents.CUSTOM_NAME);
         }
 
@@ -176,7 +177,7 @@ public class Khalkeus extends MaceItem implements PolymerItem {
     }
 
     @Override
-    public Identifier getPolymerItemModel(ItemStack stack, PacketContext context) {
+    public Identifier getPolymerItemModel(ItemStack stack, PacketContext context, HolderLookup.Provider lookup) {
         return MODEL;
     }
 }

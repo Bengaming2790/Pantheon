@@ -4,7 +4,9 @@ import ca.techgarage.pantheon.api.Cooldowns;
 import ca.techgarage.pantheon.status.ModEffects;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 
+import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
@@ -30,7 +32,6 @@ import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
-import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -130,7 +131,8 @@ public class Phoebus extends Item implements PolymerItem {
         }
         return InteractionResult.SUCCESS;
     }
-    public Identifier getPolymerItemModel(ItemStack stack, PacketContext context) {
+    @Override
+    public Identifier getPolymerItemModel(ItemStack itemStack, PacketContext context, HolderLookup.Provider lookup) {
         return MODEL;
     }
     public Component getName(ItemStack stack) {

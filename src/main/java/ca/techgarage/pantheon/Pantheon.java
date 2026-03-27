@@ -16,7 +16,7 @@ import ca.techgarage.pantheon.items.GlowItem;
 import ca.techgarage.pantheon.items.ModItems;
 import ca.techgarage.pantheon.items.weapons.*;
 import ca.techgarage.pantheon.status.ModEffects;
-import eu.pb4.polymer.core.api.item.PolymerItemGroupUtils;
+import eu.pb4.polymer.core.api.item.PolymerCreativeModeTabUtils;
 import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -130,9 +130,9 @@ public class Pantheon implements ModInitializer {
         BankDatabase.init(db);
 
         // Polymer Creative Tab Registration
-        PolymerItemGroupUtils.registerPolymerItemGroup(
+        PolymerCreativeModeTabUtils.registerPolymerCreativeModeTab(
                 Identifier.fromNamespaceAndPath(MOD_ID, "items"),
-                PolymerItemGroupUtils.builder()
+                PolymerCreativeModeTabUtils.builder()
                         .icon(() -> new ItemStack(ModItems.DRACHMA))
                         .title(Component.translatable("itemGroup.pantheon.items"))
                         .displayItems((context, entries) -> {
@@ -163,7 +163,7 @@ public class Pantheon implements ModInitializer {
                     for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
                         ItemStack stack = player.getInventory().getItem(i);
                         if (!stack.isEmpty() && ItemDenyList.isDenied(stack.getItem())) {
-                            player.displayClientMessage(Component.translatable("item.anvil.rename"), true);
+                            player.sendSystemMessage(Component.translatable("item.anvil.rename"), true);
                             player.getInventory().removeItemNoUpdate(i);
                             player.drop(stack, false, false);
                         }

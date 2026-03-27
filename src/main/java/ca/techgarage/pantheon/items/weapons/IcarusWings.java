@@ -5,6 +5,7 @@ import ca.techgarage.pantheon.status.ModEffects;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 
+import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
@@ -24,8 +25,6 @@ import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.equipment.Equippable;
 
 import net.minecraft.world.effect.MobEffectInstance;
-
-import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.*;
 

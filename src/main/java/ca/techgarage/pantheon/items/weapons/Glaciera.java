@@ -4,6 +4,7 @@ import ca.techgarage.pantheon.api.AOEDamage;
 import ca.techgarage.pantheon.api.Cooldowns;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.component.DataComponents;
@@ -30,7 +31,6 @@ import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.LinkedHashSet;
 import java.util.List;

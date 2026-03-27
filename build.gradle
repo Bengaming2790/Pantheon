@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.14.10'
+    id 'net.fabricmc.fabric-loom' version '1.15.5'
     id 'maven-publish'
 }
 
@@ -38,23 +38,30 @@ repositories {
 }
 
 dependencies {
-    // To change the versions see the gradle.properties file
+    // Minecraft itself
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings loom.officialMojangMappings()
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    modImplementation include("eu.pb4:polymer-core:0.15.2+1.21.11")
-    modImplementation include("eu.pb4:polymer-resource-pack:0.15.2+1.21.11")
-    modImplementation include("eu.pb4:polymer-blocks:0.15.2+1.21.11")
-    modImplementation include("eu.pb4:sgui:1.12.0+1.21.11")
-    modCompileOnly "net.luckperms:api:5.4"
-    implementation include("org.xerial:sqlite-jdbc:3.45.1.0")
-    include(modImplementation('me.lucko:fabric-permissions-api:0.6.1'))
+    // Fabric loader and API
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    // Polymer mods (compile and runtime)
+    implementation "eu.pb4:polymer-core:0.16.0-pre.3+26.1"
+    implementation "eu.pb4:polymer-resource-pack:0.16.0-pre.3+26.1"
+    implementation "eu.pb4:polymer-blocks:0.16.0-pre.3+26.1"
+    implementation "eu.pb4:sgui:2.0.0-beta.2+26.1"
+
+    // LuckPerms API (compile-only)
+    compileOnly "net.luckperms:api:5.4"
+    implementation "org.xerial:sqlite-jdbc:3.45.1.0"
     implementation "com.zaxxer:HikariCP:5.1.0"
 
-}
 
+    // Fabric Permissions API
+    implementation "me.lucko:fabric-permissions-api:0.7.0"
+
+
+}
 processResources {
     inputs.property "version", project.version
     inputs.property "minecraft_version", project.minecraft_version
@@ -68,7 +75,7 @@ processResources {
     }
 }
 
-def targetJavaVersion = 21
+def targetJavaVersion = 25
 tasks.withType(JavaCompile).configureEach {
     // ensure that the encoding is set to UTF-8, no matter what the system default is
     // this fixes some edge cases with special characters not displaying correctly

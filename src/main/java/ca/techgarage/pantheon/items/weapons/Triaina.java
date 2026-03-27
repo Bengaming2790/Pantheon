@@ -6,6 +6,8 @@ import ca.techgarage.pantheon.api.DashState;
 import ca.techgarage.pantheon.items.GlowItem;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
@@ -32,7 +34,6 @@ import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -180,8 +181,8 @@ public class Triaina extends Item implements PolymerItem, GlowItem {
             }
         });
     }
-
-    public Identifier getPolymerItemModel(ItemStack stack, PacketContext context) {
+    @Override
+    public Identifier getPolymerItemModel(ItemStack stack, PacketContext context, HolderLookup.Provider lookup) {
         return MODEL;
     }
 

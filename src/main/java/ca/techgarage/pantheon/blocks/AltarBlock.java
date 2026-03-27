@@ -5,6 +5,7 @@ import ca.techgarage.pantheon.blocks.altar.AltarRecipe;
 import com.mojang.serialization.MapCodec;
 import eu.pb4.polymer.core.api.block.PolymerBlock;
 
+import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.core.BlockPos;
 
 import net.minecraft.server.level.ServerLevel;
@@ -24,7 +25,6 @@ import net.minecraft.world.level.block.RenderShape;
 
 import net.minecraft.world.phys.BlockHitResult;
 
-import xyz.nucleoid.packettweaker.PacketContext;
 
 public class AltarBlock extends BaseEntityBlock implements PolymerBlock {
 

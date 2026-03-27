@@ -2,6 +2,8 @@ package ca.techgarage.pantheon.items.weapons;
 
 import eu.pb4.polymer.core.api.item.PolymerItem;
 
+import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -13,7 +15,6 @@ import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
-import xyz.nucleoid.packettweaker.PacketContext;
 import ca.techgarage.pantheon.api.Grapple;
 
 import java.util.LinkedHashSet;
@@ -41,12 +42,12 @@ public class Kynthia extends BowItem implements PolymerItem {
         Grapple.fire(player, 32.0);
 
     }
-
-    public Identifier getPolymerItemModel(ItemStack stack, PacketContext context) {
+    @Override
+    public Identifier getPolymerItemModel(ItemStack stack, PacketContext context, HolderLookup.Provider lookup) {
         return MODEL;
     }
 
-
+    @Override
     public Item getPolymerItem(ItemStack itemStack, PacketContext packetContext) {
         return Items.BOW;
     }

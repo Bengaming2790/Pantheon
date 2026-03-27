@@ -1,6 +1,6 @@
 package ca.techgarage.pantheon.status;
 
-import eu.pb4.polymer.core.api.other.PolymerStatusEffect;
+import eu.pb4.polymer.core.api.other.PolymerMobEffect;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -13,7 +13,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-public class Drowsy extends MobEffect implements PolymerStatusEffect {
+public class Drowsy extends MobEffect implements PolymerMobEffect {
 
     public Drowsy(MobEffectCategory harmful, int i) {
         super(MobEffectCategory.HARMFUL, 0x5A5A5A); // gray-ish

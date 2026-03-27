@@ -7,7 +7,9 @@ import ca.techgarage.pantheon.api.DashState;
 import ca.techgarage.pantheon.items.GlowItem;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 
+import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
@@ -37,7 +39,6 @@ import net.minecraft.world.item.component.ItemLore;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
-import xyz.nucleoid.packettweaker.PacketContext;
 import java.util.LinkedHashSet;
 import java.util.List;
 
@@ -132,7 +133,7 @@ public class Peitho extends Item implements PolymerItem, GlowItem {
     }
 
     @Override
-    public void modifyBasePolymerItemStack(ItemStack out, ItemStack stack, PacketContext context) {
+    public void modifyBasePolymerItemStack(ItemStack out, ItemStack stack, PacketContext context, HolderLookup.Provider lookup) {
         out.remove(DataComponents.CUSTOM_DATA);
     }
     @Override
@@ -163,7 +164,7 @@ public class Peitho extends Item implements PolymerItem, GlowItem {
     public void inventoryTick(ItemStack stack, ServerLevel world, Entity entity, @Nullable EquipmentSlot slot) {
         Player player = (Player) entity;
         if (stack.has(DataComponents.CUSTOM_NAME)) {
-            player.displayClientMessage(Component.translatable("item.anvil.rename"), true);
+            player.sendSystemMessage(Component.translatable("item.anvil.rename"));
             stack.remove(DataComponents.CUSTOM_NAME);
         }
         if (stack.has(DataComponents.ENCHANTMENTS)) {

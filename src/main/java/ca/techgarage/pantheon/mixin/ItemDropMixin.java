@@ -24,7 +24,7 @@ public class ItemDropMixin {
         ItemEntity self = (ItemEntity)(Object)this;
 
         if (ItemDenyList.isDenied(self.getItem().getItem())) {
-            player.displayClientMessage(Component.translatable("item.anvil.rename"), true);
+            player.sendSystemMessage(Component.translatable("item.anvil.rename"));
             ci.cancel();
         }
     }

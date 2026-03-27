@@ -2,6 +2,8 @@ package ca.techgarage.pantheon.items;
 
 import ca.techgarage.pantheon.database.BankDatabase;
 import eu.pb4.polymer.core.api.item.PolymerItem;
+import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -15,7 +17,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
-import xyz.nucleoid.packettweaker.PacketContext;
 
 public class DrachmaItem extends Item implements PolymerItem {
 
@@ -80,7 +81,7 @@ public class DrachmaItem extends Item implements PolymerItem {
     }
 
     @Override
-    public Identifier getPolymerItemModel(ItemStack stack, PacketContext context) {
+    public Identifier getPolymerItemModel(ItemStack stack, PacketContext context, HolderLookup.Provider lookup) {
         return MODEL;
     }
 }

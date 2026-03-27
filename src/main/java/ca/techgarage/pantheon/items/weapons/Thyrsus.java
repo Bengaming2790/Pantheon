@@ -4,6 +4,8 @@ import ca.techgarage.pantheon.api.Cooldowns;
 import ca.techgarage.pantheon.api.HomingTracker;
 import ca.techgarage.pantheon.entity.PartyFoulEntity;
 import eu.pb4.polymer.core.api.item.PolymerItem;
+import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -23,7 +25,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
-import xyz.nucleoid.packettweaker.PacketContext;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -120,13 +121,8 @@ public class Thyrsus extends Item implements PolymerItem {
         return InteractionResult.SUCCESS;
     }
 
-
-
-
-
-
     @Override
-    public Item getPolymerItem(ItemStack itemStack, PacketContext packetContext) {
+    public Item getPolymerItem(ItemStack itemStack, PacketContext context) {
         return Items.STICK;
     }
 }

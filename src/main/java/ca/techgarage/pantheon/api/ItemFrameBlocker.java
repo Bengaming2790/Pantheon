@@ -25,7 +25,7 @@ public class ItemFrameBlocker {
             ItemStack stack = player.getItemInHand(hand);
 
             if (BLOCKED_ITEMS.contains(stack.getItem())) {
-                player.displayClientMessage(Component.translatable("item.anvil.rename"), true);
+                player.sendSystemMessage(Component.translatable("item.anvil.rename"));
                 return InteractionResult.FAIL;
             }
 

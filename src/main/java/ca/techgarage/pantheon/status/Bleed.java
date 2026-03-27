@@ -1,7 +1,7 @@
 package ca.techgarage.pantheon.status;
 
 import ca.techgarage.pantheon.DamageSources.ModDamageSources;
-import eu.pb4.polymer.core.api.other.PolymerStatusEffect;
+import eu.pb4.polymer.core.api.other.PolymerMobEffect;
 
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.network.chat.Component;
@@ -14,7 +14,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-public class Bleed extends MobEffect implements PolymerStatusEffect {
+public class Bleed extends MobEffect implements PolymerMobEffect {
     public Bleed(MobEffectCategory category, int color) {
         super(category, color);
     }

@@ -2,6 +2,7 @@ package ca.techgarage.pantheon.items.weapons;
 
 import ca.techgarage.pantheon.Pantheon;
 import ca.techgarage.pantheon.api.Cooldowns;
+import ca.techgarage.pantheon.api.Grapple;
 import ca.techgarage.pantheon.entity.AstrapeEntity;
 import ca.techgarage.pantheon.status.ModEffects;
 import eu.pb4.polymer.core.api.item.PolymerItem;
@@ -13,11 +14,13 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Unit;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -57,6 +60,8 @@ public class Astrape extends Item implements PolymerItem {
     private static final Identifier MODEL =
             Identifier.fromNamespaceAndPath("pantheon", "astrape");
     private static final String ASTRAPE_CD = "astrape_lightning_cd";
+    private static final String ASTRAPE_LAUNCH_CD = "astrape_launch_cd";
+    private static final String ASTRAPE_ASCEND_CD = "astrape_ascend_cd";
 
     public static ItemAttributeModifiers createAttributeModifiers() {
         return ItemAttributeModifiers.builder()
@@ -131,11 +136,28 @@ public class Astrape extends Item implements PolymerItem {
         ItemStack stack = user.getItemInHand(hand);
 
         if (!world.isClientSide()) {
-            AstrapeEntity entity = new AstrapeEntity(world, user, stack);
-            entity.setPos(user.getX(), user.getEyeY(), user.getZ());
-            entity.shootFromRotation(user, user.getXRot(), user.getYRot(), 0.0F, 3.5f, 1.0F);
-            world.addFreshEntity(entity);
-            if (!user.isCreative()) user.getCooldowns().addCooldown(stack, 15 * 20);
+            ServerPlayer player = (ServerPlayer) user;
+
+            if (user.isShiftKeyDown() && !Cooldowns.isOnCooldown(user, ASTRAPE_ASCEND_CD)) {
+                if (!user.isCreative()) Cooldowns.start(player, ASTRAPE_ASCEND_CD, 20 * 20, "Ascend");
+                Grapple.bouncePlayer(user, 2.5);
+                user.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 20 * 7, 2));
+                return InteractionResult.SUCCESS;
+            } else if (user.isShiftKeyDown() && Cooldowns.isOnCooldown(user, ASTRAPE_ASCEND_CD)) {
+                player.sendSystemMessage(Component.literal("Ascend is on Cooldown"), true);
+                return InteractionResult.FAIL;
+            }
+
+            if (!Cooldowns.isOnCooldown(user, ASTRAPE_LAUNCH_CD)) {
+                AstrapeEntity entity = new AstrapeEntity(world, user, stack);
+                entity.setPos(user.getX(), user.getEyeY(), user.getZ());
+                entity.shootFromRotation(user, user.getXRot(), user.getYRot(), 0.0F, 3.5f, 1.0F);
+                world.addFreshEntity(entity);
+                if (!user.isCreative()) Cooldowns.start(user, ASTRAPE_LAUNCH_CD, 20 * 30, "Smite");
+            } else if (Cooldowns.isOnCooldown(user, ASTRAPE_LAUNCH_CD)) {
+                player.sendSystemMessage(Component.literal("Smite is on Cooldown"),true);
+                return InteractionResult.FAIL;
+            }
         }
 
         return InteractionResult.SUCCESS;

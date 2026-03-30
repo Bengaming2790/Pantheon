@@ -30,6 +30,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -146,6 +147,8 @@ public class Pantheon implements ModInitializer {
                             entries.accept(ModItems.TRIAINA);
                         }).build()
         );
+
+
 
         // Main Tick Logic
         ServerTickEvents.END_SERVER_TICK.register(server -> {

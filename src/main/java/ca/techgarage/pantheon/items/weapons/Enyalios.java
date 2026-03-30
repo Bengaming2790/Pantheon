@@ -138,7 +138,7 @@ public class Enyalios extends Item implements PolymerItem {
 
             if (Cooldowns.isOnCooldown(player, ENYALIOS_BLEED_ACTIVE)) {
                 target.addEffect(
-                        new MobEffectInstance((Holder<MobEffect>) ModEffects.BLEED, 20 * 8, 2, true, false, false),
+                        new MobEffectInstance( ModEffects.BLEED, 20 * 8, 2, true, false, false),
                         target
                 );
                 Cooldowns.clear(player, ENYALIOS_BLEED_ACTIVE);

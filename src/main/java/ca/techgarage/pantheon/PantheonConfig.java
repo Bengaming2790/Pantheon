@@ -19,6 +19,9 @@ public class PantheonConfig {
     @Comment("Time banned in mins default: 60 [Integer]")
     public static int timeBannedFromCombatLogInMinutes = 60;
 
+    @Comment("Wretched % damage increase {20 = 20%/1.2}")
+    public static double wretchedPercent = 20;
+
     public static boolean dropBannedItems = true;
 
 }

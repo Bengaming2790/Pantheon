@@ -1,8 +1,6 @@
 package ca.techgarage.pantheon.items.weapons;
 
-import ca.techgarage.pantheon.api.Cooldowns;
-import ca.techgarage.pantheon.api.Dash;
-import ca.techgarage.pantheon.api.DashState;
+import ca.techgarage.pantheon.api.*;
 import ca.techgarage.pantheon.items.GlowItem;
 import ca.techgarage.pantheon.items.material.ModToolMaterials;
 import eu.pb4.polymer.core.api.item.PolymerItem;
@@ -38,15 +36,17 @@ import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.item.component.ItemLore;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public class Varatha extends Item implements PolymerItem, GlowItem {
 
-    private static final Random random = new Random();
     private static final String STYGIAN = "varatha_stygian";
+    public static final String VARATHA_GRAPPLE_CD = "varatha_grapple_cd";
+    public static final String VARATHA_CHARGE_CD = "varatha_charge_cd";
+
     private static final Identifier MODEL = Identifier.fromNamespaceAndPath("pantheon", "varatha");
 
     public Varatha(Properties properties) {
@@ -145,32 +145,49 @@ public class Varatha extends Item implements PolymerItem, GlowItem {
         return null;
     }
 
+
     @Override
-    public InteractionResult use(Level level, Player user, InteractionHand hand) {
+    public @NonNull InteractionResult use(Level level, Player user, @NonNull InteractionHand hand) {
         ItemStack stack = user.getItemInHand(hand);
         if (!level.isClientSide()) {
-            // Raycast check
+
+            if (!Cooldowns.isOnCooldown(user, VARATHA_GRAPPLE_CD) && user.isShiftKeyDown()) {
+                Grapple.fireVar(user, 32.0);
+                if (!user.isCreative()) {
+                    Cooldowns.start(user, VARATHA_GRAPPLE_CD, 20 * 20,  "Carthonic Grasp");
+                }
+                return InteractionResult.SUCCESS;
+            } else if (Cooldowns.isOnCooldown(user, VARATHA_GRAPPLE_CD) && user.isShiftKeyDown()) {
+                ServerPlayer serverPlayer = (ServerPlayer) user;
+                serverPlayer.sendSystemMessage(Component.literal("Carthonic Grasp is on Cooldown"), true);
+                return InteractionResult.FAIL;
+            }
             if (user.pick(2.0, 0.0f, false).getType() == net.minecraft.world.phys.HitResult.Type.BLOCK) {
                 return InteractionResult.PASS;
             }
 
             if (user instanceof ServerPlayer serverPlayer) {
-                if (serverPlayer.gameMode.getGameModeForPlayer() != GameType.CREATIVE) {
-                    user.getCooldowns().addCooldown(serverPlayer.getActiveItem(), 200);
-                }
 
-                Dash.dashForward(user, 1.5f);
-                DashState.start(serverPlayer, 15, net.minecraft.core.particles.ParticleTypes.RAID_OMEN);
-                serverPlayer.startAutoSpinAttack(5, 2.5f, serverPlayer.getActiveItem());
-                level.playSound(null, user.getX(), user.getY(), user.getZ(),
-                        SoundEvents.BREEZE_WIND_CHARGE_BURST, SoundSource.PLAYERS, 1.0F, 0.5F);
+                if (!Cooldowns.isOnCooldown(serverPlayer, VARATHA_CHARGE_CD)) {
+                    if (!serverPlayer.isCreative()) {
+                        Cooldowns.start(serverPlayer, VARATHA_CHARGE_CD, 20 * 15, "Gravebound Charge");
+                    }
+                    Dash.dashForward(user, 1.5f);
+                    DashState.start(serverPlayer, 15, net.minecraft.core.particles.ParticleTypes.RAID_OMEN);
+                    serverPlayer.startAutoSpinAttack(5, 2.5f, serverPlayer.getActiveItem());
+                    level.playSound(null, user.getX(), user.getY(), user.getZ(),
+                            SoundEvents.BREEZE_WIND_CHARGE_BURST, SoundSource.PLAYERS, 1.0F, 0.5F);
+                } else if (!Cooldowns.isOnCooldown(serverPlayer, VARATHA_CHARGE_CD)) {
+                    serverPlayer.sendSystemMessage(Component.literal("Gravebound Charge is on Cooldown"), true);
+                    return InteractionResult.FAIL;
+                }
             }
         }
         return InteractionResult.SUCCESS;
     }
 
     @Override
-    public void hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+    public void hurtEnemy(@NonNull ItemStack stack, @NonNull LivingEntity target, LivingEntity attacker) {
         if (attacker.level().isClientSide()) return ;
         if (!(attacker instanceof ServerPlayer player)) return ;
 
@@ -191,11 +208,11 @@ public class Varatha extends Item implements PolymerItem, GlowItem {
 
             if (!player.isCreative()) Cooldowns.start(player, STYGIAN, 300);
         }
-        return ;
+
     }
 
     @Override
-    public void inventoryTick(ItemStack stack, ServerLevel serverLevel, Entity entity, @Nullable EquipmentSlot equipmentSlot) {
+    public void inventoryTick(@NonNull ItemStack stack, @NonNull ServerLevel serverLevel, @NonNull Entity entity, @Nullable EquipmentSlot equipmentSlot) {
         if (entity instanceof Player player) {
             if (stack.has(DataComponents.CUSTOM_NAME)) {
                 player.sendSystemMessage(Component.translatable("item.anvil.rename").withStyle(ChatFormatting.RED));
@@ -204,11 +221,13 @@ public class Varatha extends Item implements PolymerItem, GlowItem {
             if (stack.has(DataComponents.ENCHANTMENTS)) {
                 stack.remove(DataComponents.ENCHANTMENTS);
             }
+
+
         }
     }
 
     @Override
-    public Component getName(ItemStack stack) {
+    public @NonNull Component getName(@NonNull ItemStack stack) {
         return Component.translatable("item.pantheon.varatha").withStyle(ChatFormatting.GOLD);
     }
 
@@ -226,4 +245,7 @@ public class Varatha extends Item implements PolymerItem, GlowItem {
     public Item getPolymerItem(ItemStack itemStack, PacketContext context) {
         return Items.STICK;
     }
+
+
+
 }

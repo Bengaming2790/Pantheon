@@ -40,7 +40,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.function.Predicate;
 
-public class Khalkeus extends MaceItem implements PolymerItem {
+public class Pyrotheus extends MaceItem implements PolymerItem {
 
     private static final String KH_SLAM_CD = "kh_slam_timer";
     private static final String AOE_CD = "khalkeus_aoe_cd";
@@ -48,7 +48,7 @@ public class Khalkeus extends MaceItem implements PolymerItem {
     private static final Identifier MODEL =
             Identifier.fromNamespaceAndPath("pantheon", "khalkeus");
 
-    public Khalkeus(Properties settings) {
+    public Pyrotheus(Properties settings) {
         super(settings
                 .component(DataComponents.UNBREAKABLE, Unit.INSTANCE)
                 .component(DataComponents.ATTRIBUTE_MODIFIERS, getDefaultAttributeModifiers())
@@ -129,7 +129,7 @@ public class Khalkeus extends MaceItem implements PolymerItem {
 
     @Override
     public Component getName(ItemStack stack) {
-        return Component.translatable("item.pantheon.khalkeus");
+        return Component.translatable("item.pantheon.pyrotheus");
     }
 
     private static void knockbackNearbyEntities(Level level, Entity attacker, Entity attacked) {

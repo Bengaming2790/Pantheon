@@ -39,7 +39,7 @@ public class Kynthia extends BowItem implements PolymerItem {
 
 
     public void activate(Player player) {
-        Grapple.fire(player, 32.0);
+        Grapple.fireKyn(player, 32.0);
 
     }
     @Override

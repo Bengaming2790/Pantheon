@@ -1,8 +1,6 @@
 package ca.techgarage.pantheon.items.weapons;
 
-import ca.techgarage.pantheon.api.Cooldowns;
-import ca.techgarage.pantheon.api.Dash;
-import ca.techgarage.pantheon.api.DashState;
+import ca.techgarage.pantheon.api.*;
 import ca.techgarage.pantheon.items.GlowItem;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -51,6 +49,8 @@ public class Triaina extends Item implements PolymerItem, GlowItem {
             Identifier.fromNamespaceAndPath("pantheon", "triaina");
     private static final String TRIAINA_COMBO_TIMER = "triaina_hit_combo_timer";
     private static final String TRIAINA_COMBO_HITS = "triaina_hit_combo_hits";
+    private static final String TRIAINA_TEMPEST_CD = "triaina_tempest_cd";
+    private static final String TRIANA_RIPTIDERUSH_CD = "triana_riptiderush_cd";
 
     public static ItemAttributeModifiers createAttributeModifiers() {
         return ItemAttributeModifiers.builder()
@@ -74,30 +74,54 @@ public class Triaina extends Item implements PolymerItem, GlowItem {
                 )
                 .build();
     }
-
+    private static boolean isUsingTriaina(ServerPlayer player) {
+        ItemStack active = player.getMainHandItem();
+        return active.getItem() instanceof Triaina && player.isUsingItem();
+    }
     @Override
     public InteractionResult use(Level world, Player user, InteractionHand hand) {
         if (!world.isClientSide()) {
+            ServerPlayer serverPlayer = (ServerPlayer) user;
             ItemStack stack = user.getItemInHand(hand);
-            if(user.pick(2, 0, false).getType() == net.minecraft.world.phys.HitResult.Type.BLOCK) {
-                return InteractionResult.PASS;
-            }
-            if (!(user.gameMode().isCreative())) {
-                user.getCooldowns().addCooldown(stack, 200); //10 second cooldown
-            }
-            Dash.dashForward(user, 1.5f);
-            DashState.start((ServerPlayer) user, 15, ParticleTypes.FALLING_WATER);
+            if (!Cooldowns.isOnCooldown(user, TRIAINA_TEMPEST_CD) && user.isShiftKeyDown()) {
 
-            world.playSound(
-                    null,
-                    user.getX(), user.getY(), user.getZ(),
-                    SoundEvents.CONDUIT_ACTIVATE,
-                    SoundSource.PLAYERS,
-                    1.0F, // volume
-                    1.0F  // pitch
-            );
-            user.startAutoSpinAttack(15, 5.0f, stack);
+                if (!user.isCreative()) Cooldowns.start(user, TRIAINA_TEMPEST_CD, 20 * 20, "Tempest");
 
+                // Trigger wave
+                WaveAbility.summonWave(serverPlayer);
+
+                return InteractionResult.SUCCESS;
+            } else if (Cooldowns.isOnCooldown(user, TRIAINA_TEMPEST_CD) && user.isShiftKeyDown()) {
+                CooldownMessages.cooldownActiveMessage(serverPlayer, TRIAINA_TEMPEST_CD,
+                        "Tempest is on cooldown!");
+                return InteractionResult.FAIL;
+            }
+            if (!Cooldowns.isOnCooldown(user, TRIANA_RIPTIDERUSH_CD)) {
+
+                if (user.pick(2, 0, false).getType() == net.minecraft.world.phys.HitResult.Type.BLOCK) {
+                    return InteractionResult.PASS;
+                }
+                if (!(user.gameMode().isCreative())) {
+                    Cooldowns.start(user, TRIANA_RIPTIDERUSH_CD, 200); //10 second cooldown
+                }
+                Dash.dashForward(user, 1.5f);
+                DashState.start((ServerPlayer) user, 15, ParticleTypes.FALLING_WATER);
+
+                world.playSound(
+                        null,
+                        user.getX(), user.getY(), user.getZ(),
+                        SoundEvents.CONDUIT_ACTIVATE,
+                        SoundSource.PLAYERS,
+                        1.0F, // volume
+                        1.0F  // pitch
+                );
+                user.startAutoSpinAttack(15, 5.0f, stack);
+                return InteractionResult.SUCCESS;
+            } else if (Cooldowns.isOnCooldown(user, TRIANA_RIPTIDERUSH_CD)) {
+                CooldownMessages.cooldownActiveMessage(serverPlayer, TRIAINA_TEMPEST_CD,
+                        "Riptide Rush is on Cooldown");
+                return InteractionResult.FAIL;
+            }
         }
         return InteractionResult.SUCCESS;
     }

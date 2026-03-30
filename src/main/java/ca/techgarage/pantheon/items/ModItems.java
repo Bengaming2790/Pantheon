@@ -90,7 +90,7 @@ public class ModItems {
         KHALKEOUS = Registry.register(
                 BuiltInRegistries.ITEM,
                 KHALKEOUS_KEY,
-                new Khalkeus(new Item.Properties().setId(KHALKEOUS_KEY))
+                new Pyrotheus(new Item.Properties().setId(KHALKEOUS_KEY))
         );
         AEGIS = Registry.register(
                 BuiltInRegistries.ITEM,

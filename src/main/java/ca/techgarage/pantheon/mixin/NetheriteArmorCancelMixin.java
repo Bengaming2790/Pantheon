@@ -1,5 +1,6 @@
 package ca.techgarage.pantheon.mixin;
 
+import ca.techgarage.pantheon.Pantheon;
 import ca.techgarage.pantheon.PantheonConfig;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;

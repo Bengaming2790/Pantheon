@@ -29,6 +29,15 @@ public class ModEffects {
                     Identifier.fromNamespaceAndPath(Pantheon.MOD_ID, "bleed"),
                     BLEED_EFFECT
             );
+    public static final MobEffect WRETCHED_EFFECT =
+            new Wretched(MobEffectCategory.HARMFUL, 0xFF2B00);
+
+    public static final Holder<MobEffect>  WRETCHED =
+            Registry.registerForHolder(
+                    BuiltInRegistries.MOB_EFFECT,
+                    Identifier.fromNamespaceAndPath(Pantheon.MOD_ID, "wretched"),
+                    WRETCHED_EFFECT
+            );
 
     public static final MobEffect DROWSY_EFFECT =
             new Drowsy(MobEffectCategory.NEUTRAL, 0xFF2B00);

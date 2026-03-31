@@ -25,7 +25,7 @@ public class ModItems {
             ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "varatha"));
 
     public static final ResourceKey<Item> KHALKEOUS_KEY =
-            ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "khalkeous"));
+            ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "pyrotheus"));
 
     public static final ResourceKey<Item> AEGIS_KEY =
             ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "aegis"));

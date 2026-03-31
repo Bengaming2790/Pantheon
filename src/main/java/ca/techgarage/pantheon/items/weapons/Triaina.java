@@ -102,7 +102,7 @@ public class Triaina extends Item implements PolymerItem, GlowItem {
                     return InteractionResult.PASS;
                 }
                 if (!(user.gameMode().isCreative())) {
-                    Cooldowns.start(user, TRIANA_RIPTIDERUSH_CD, 200); //10 second cooldown
+                    Cooldowns.start(user, TRIANA_RIPTIDERUSH_CD, 200);
                 }
                 WaveAbility.summonWave(serverPlayer, -1.5);
                 Dash.dashForward(user, 1.5f);

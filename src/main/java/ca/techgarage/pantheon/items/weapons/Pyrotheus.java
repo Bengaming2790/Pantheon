@@ -26,6 +26,7 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.*;
 import net.minecraft.world.entity.player.Player;
 
+import net.minecraft.world.entity.projectile.hurtingprojectile.Fireball;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.component.*;
 import net.minecraft.world.level.Level;
@@ -36,6 +37,7 @@ import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 
 import net.minecraft.core.particles.ParticleTypes;
 
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.function.Predicate;
@@ -44,6 +46,8 @@ public class Pyrotheus extends MaceItem implements PolymerItem {
 
     private static final String KH_SLAM_CD = "kh_slam_timer";
     private static final String AOE_CD = "khalkeus_aoe_cd";
+    private static final String FIREBALL_CD = "khalkeus_fireball_cd";
+    private static final String DASH_CD = "khalkeus_dash_cd";
 
     private static final Identifier MODEL =
             Identifier.fromNamespaceAndPath("pantheon", "khalkeus");
@@ -73,14 +77,29 @@ public class Pyrotheus extends MaceItem implements PolymerItem {
     public InteractionResult use(Level level, Player user, InteractionHand hand) {
         if (!level.isClientSide()) {
 
-            ItemStack stack = user.getItemInHand(hand);
+            if (user.isShiftKeyDown() && !Cooldowns.isOnCooldown(user, FIREBALL_CD)) {
+                if (user.isShiftKeyDown() && !Cooldowns.isOnCooldown(user, FIREBALL_CD)) {
+
+                    Fireball fireball = getFireball(user);
+
+                    // Spawn into world
+                    user.level().addFreshEntity(fireball);
+
+                    Cooldowns.start(user, FIREBALL_CD, 20 * 10, "Fireball");
+                    return InteractionResult.SUCCESS;
+                }
+            } else if (user.isShiftKeyDown() && !Cooldowns.isOnCooldown(user, FIREBALL_CD)) {
+                return InteractionResult.FAIL;
+            }
+
+                ItemStack stack = user.getItemInHand(hand);
 
             if (user.pick(2, 0, false).getType() == net.minecraft.world.phys.HitResult.Type.BLOCK) {
                 return InteractionResult.PASS;
             }
 
             if (!user.isCreative()) {
-                user.getCooldowns().addCooldown(stack, 200);
+                Cooldowns.start(user,DASH_CD,200, "Forge Flight");
             }
 
             Dash.dashForward(user, 0.95f);
@@ -95,6 +114,35 @@ public class Pyrotheus extends MaceItem implements PolymerItem {
         }
 
         return InteractionResult.SUCCESS;
+    }
+
+    private @NonNull Fireball getFireball(Player user) {
+        Fireball fireball = new Fireball(EntityType.FIREBALL, user.level()) {
+
+            @Override
+            protected void onHit(net.minecraft.world.phys.HitResult result) {
+                super.onHit(result);
+
+                this.level().explode(
+                        this,
+                        this.getX(),
+                        this.getY(),
+                        this.getZ(),
+                        2.0F,
+                        Level.ExplosionInteraction.MOB
+                );
+
+                this.discard();
+            }
+        };
+
+        fireball.setPos(user.getX(), user.getEyeY(), user.getZ());
+
+        Vec3 look = user.getLookAngle();
+        fireball.setDeltaMovement(look.scale(0.5));
+
+        fireball.setItem(new ItemStack(Items.FIRE_CHARGE));
+        return fireball;
     }
 
     @Override

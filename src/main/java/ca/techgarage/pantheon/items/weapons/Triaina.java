@@ -88,7 +88,7 @@ public class Triaina extends Item implements PolymerItem, GlowItem {
                 if (!user.isCreative()) Cooldowns.start(user, TRIAINA_TEMPEST_CD, 20 * 20, "Tempest");
 
                 // Trigger wave
-                WaveAbility.summonWave(serverPlayer);
+                WaveAbility.summonWave(serverPlayer, 2.0);
 
                 return InteractionResult.SUCCESS;
             } else if (Cooldowns.isOnCooldown(user, TRIAINA_TEMPEST_CD) && user.isShiftKeyDown()) {
@@ -104,6 +104,7 @@ public class Triaina extends Item implements PolymerItem, GlowItem {
                 if (!(user.gameMode().isCreative())) {
                     Cooldowns.start(user, TRIANA_RIPTIDERUSH_CD, 200); //10 second cooldown
                 }
+                WaveAbility.summonWave(serverPlayer, -1.5);
                 Dash.dashForward(user, 1.5f);
                 DashState.start((ServerPlayer) user, 15, ParticleTypes.FALLING_WATER);
 

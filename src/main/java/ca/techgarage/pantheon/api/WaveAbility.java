@@ -19,13 +19,12 @@ public class WaveAbility {
     private static final int LAYERS = 3;
     private static final double HEIGHT_STEP = 0.25;
 
-    public static void summonWave(ServerPlayer player) {
+    public static void summonWave(ServerPlayer player, double knockback) {
         ServerLevel world = player.level();
         ServerLevel serverWorld = world;
 
         Vec3 center = player.position();
         double radius = 6.0;
-        double knockback = 1.5;
         int slownessDuration = 5 * 20;
 
         // Play sound once
@@ -35,21 +34,18 @@ public class WaveAbility {
                 1.0f,
                 1.5f);
 
-        // Register a "wave step" counter in INT_DATA
 
-        spawnParticles(player, player.level());
-        // Each tick, call tickWave(player, serverWorld, center)
+        spawnParticles(player, player.level(), knockback);
     }
 
     /** Call this on every server tick for players with active wave */
-    public static void spawnParticles(ServerPlayer player, ServerLevel world) {
+    public static void spawnParticles(ServerPlayer player, ServerLevel world, double knockback) {
 
 
 
         Vec3 center = player.position();
         double radius = 3.5;
 
-        double knockback = 2;
         int slownessDuration = 2;
 
         // Spawn particles

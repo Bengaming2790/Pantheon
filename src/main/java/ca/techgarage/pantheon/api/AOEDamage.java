@@ -97,7 +97,55 @@ public class AOEDamage {
             }
         }
     }
+    public static void applyAoeDamage(LivingEntity attacker, ServerLevel world, boolean fire, Vec3 center, float radius, float damageAmount) {
 
+        AABB box = new AABB(
+                center.x - radius, center.y - radius, center.z - radius,
+                center.x + radius, center.y + radius, center.z + radius
+        );
+
+        List<LivingEntity> entities = world.getEntitiesOfClass(
+                LivingEntity.class,
+                box,
+                LivingEntity::isAlive
+        );
+
+        for (LivingEntity entity : entities) {
+
+            if (entity.distanceToSqr(center) > radius * radius) continue;
+
+            // 🔥 Direction from explosion → entity
+            Vec3 direction = entity.position().subtract(center);
+
+            if (direction.lengthSqr() > 0) {
+                direction = direction.normalize();
+            }
+
+
+            if (entity.equals(attacker)) {
+                Vec3 bounce = direction.scale(1.5);
+
+                entity.push(bounce.x, 0.8, bounce.z);
+                entity.hurtMarked = true;
+
+                if (entity instanceof ServerPlayer sp) {
+                    sp.connection.send(new ClientboundSetEntityMotionPacket(sp));
+                }
+
+                continue;
+            }
+
+            entity.hurtServer(
+                    world,
+                    world.damageSources().playerAttack((Player) attacker),
+                    damageAmount
+            );
+
+            entity.igniteForTicks(20 * 3);
+            Vec3 knockback = direction.scale(0.6);
+            entity.push(knockback.x, 0.4, knockback.z);
+        }
+    }
     public static void applyAoeDamage(AstrapeEntity attacker, ServerLevel world, Vec3 center, float radius, float damageAmount, float knockbackStrength) {
 
         AABB box = new AABB(

@@ -31,6 +31,7 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.item.component.*;
 import net.minecraft.world.level.Level;
 
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 
 import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
@@ -85,7 +86,7 @@ public class Pyrotheus extends MaceItem implements PolymerItem {
                     // Spawn into world
                     user.level().addFreshEntity(fireball);
 
-                    Cooldowns.start(user, FIREBALL_CD, 20 * 10, "Fireball");
+                    if (!user.isCreative()) Cooldowns.start(user, FIREBALL_CD, 20 * 10, "Fireball");
                     return InteractionResult.SUCCESS;
                 }
             } else if (user.isShiftKeyDown() && !Cooldowns.isOnCooldown(user, FIREBALL_CD)) {
@@ -93,7 +94,7 @@ public class Pyrotheus extends MaceItem implements PolymerItem {
             }
 
                 ItemStack stack = user.getItemInHand(hand);
-
+            if (Cooldowns.isOnCooldown(user, DASH_CD)) return InteractionResult.FAIL;
             if (user.pick(2, 0, false).getType() == net.minecraft.world.phys.HitResult.Type.BLOCK) {
                 return InteractionResult.PASS;
             }
@@ -120,28 +121,55 @@ public class Pyrotheus extends MaceItem implements PolymerItem {
         Fireball fireball = new Fireball(EntityType.FIREBALL, user.level()) {
 
             @Override
+            protected void onHitEntity(net.minecraft.world.phys.EntityHitResult result) {
+            }
+
+            @Override
             protected void onHit(net.minecraft.world.phys.HitResult result) {
-                super.onHit(result);
+                if (!(this.level() instanceof ServerLevel serverLevel)) return;
+
+                Entity owner = this.getOwner();
+
+                if (owner instanceof LivingEntity attacker) {
+                    AOEDamage.applyAoeDamage(
+                            attacker,
+                            serverLevel,
+                            true,
+                            this.position(),
+                            3.0f,
+                            6.0f
+                    );
+                }
 
                 this.level().explode(
                         this,
                         this.getX(),
                         this.getY(),
                         this.getZ(),
-                        2.0F,
-                        Level.ExplosionInteraction.MOB
+                        0f,
+                        false,
+                        Level.ExplosionInteraction.NONE
                 );
 
                 this.discard();
             }
+
         };
 
-        fireball.setPos(user.getX(), user.getEyeY(), user.getZ());
+        fireball.setOwner(user);
 
         Vec3 look = user.getLookAngle();
+
+        fireball.setPos(
+                user.getX() + look.x * 1.5,
+                user.getEyeY(),
+                user.getZ() + look.z * 1.5
+        );
+
         fireball.setDeltaMovement(look.scale(0.5));
 
         fireball.setItem(new ItemStack(Items.FIRE_CHARGE));
+
         return fireball;
     }
 
@@ -162,6 +190,8 @@ public class Pyrotheus extends MaceItem implements PolymerItem {
     @Override
     public void hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
         if (attacker.level().isClientSide()) return;
+
+        super.hurtEnemy(stack, target, attacker);
 
         target.igniteForTicks(4);
 

@@ -1,4 +1,5 @@
 package ca.techgarage.pantheon;
+import ca.techgarage.bscm.Comment;
 
 public class PantheonConfig {
     @Comment("Amount of Drachma player can start with [Integer]")

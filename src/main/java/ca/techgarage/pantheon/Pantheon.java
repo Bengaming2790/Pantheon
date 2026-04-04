@@ -1,5 +1,6 @@
 package ca.techgarage.pantheon;
 
+import ca.techgarage.bscm.Bscm;
 import ca.techgarage.pantheon.api.*;
 import ca.techgarage.pantheon.blocks.ModAltarBlocks;
 import ca.techgarage.pantheon.blocks.ModBlockEntities;
@@ -62,7 +63,7 @@ public class Pantheon implements ModInitializer {
             return;
         }
 
-        ConfigManager.load(PantheonConfig.class);
+        Bscm.load(PantheonConfig.class, "pantheon");
         ItemDenyList.deny(Items.TRIDENT);
 
         ModItems.registerModItems();

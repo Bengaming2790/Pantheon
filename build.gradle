@@ -35,6 +35,8 @@ repositories {
     // for more information about repositories.
     maven { url 'https://maven.nucleoid.xyz' }
     maven { url "https://maven.terraformersmc.com/releases/" }
+    maven { url = "https://api.modrinth.com/maven"}
+
 }
 
 dependencies {
@@ -55,6 +57,8 @@ dependencies {
     compileOnly "net.luckperms:api:5.4"
     implementation "org.xerial:sqlite-jdbc:3.45.1.0"
     implementation "com.zaxxer:HikariCP:5.1.0"
+
+    implementation "maven.modrinth:bscm:1.0.4"
 
 
     // Fabric Permissions API

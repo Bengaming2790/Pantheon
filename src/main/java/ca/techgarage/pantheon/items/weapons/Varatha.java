@@ -9,6 +9,7 @@ import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
@@ -22,8 +23,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -33,11 +32,11 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.item.component.ItemLore;
+import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,7 +51,7 @@ public class Varatha extends Item implements PolymerItem, GlowItem {
     public Varatha(Properties properties) {
         super(properties.spear(
                                 ModToolMaterials.VARATHA_TOOL_MATERIAL,
-                                1.5f,    // swingAnimationSeconds → attack speed math
+                                1.5f,    // swingAnimationSeconds = attack speed
                                 1.5f,    // chargeDamageMultiplier
                                 0f,   // chargeDelaySeconds
                                 3.0f,    // maxDurationForDismountSeconds
@@ -124,8 +123,14 @@ public class Varatha extends Item implements PolymerItem, GlowItem {
                 .build();
     }
 
+    private static boolean registered = false;
+
     private static void registerEvents() {
+        if (registered) return;
+        registered = true;
+
         ServerTickEvents.END_SERVER_TICK.register(server -> {
+
             for (ServerPlayer player : server.getPlayerList().getPlayers()) {
                 if (getHeldVaratha(player) == null) continue;
 
@@ -136,6 +141,9 @@ public class Varatha extends Item implements PolymerItem, GlowItem {
                     }
                 }
             }
+
+            DashState.tick(server);
+            TrailCloudManager.tick(server);
         });
     }
 
@@ -173,11 +181,13 @@ public class Varatha extends Item implements PolymerItem, GlowItem {
                         Cooldowns.start(serverPlayer, VARATHA_CHARGE_CD, 20 * 15, "Gravebound Charge");
                     }
                     Dash.dashForward(user, 1.5f);
-                    DashState.start(serverPlayer, 15, net.minecraft.core.particles.ParticleTypes.RAID_OMEN);
+                    DashState.start(serverPlayer, 15, ParticleTypes.RAID_OMEN, (player) -> {
+                        spawnTrailCloud(player.level(), player.position(), player);
+                    });
                     serverPlayer.startAutoSpinAttack(5, 2.5f, serverPlayer.getActiveItem());
                     level.playSound(null, user.getX(), user.getY(), user.getZ(),
                             SoundEvents.BREEZE_WIND_CHARGE_BURST, SoundSource.PLAYERS, 1.0F, 0.5F);
-                } else if (!Cooldowns.isOnCooldown(serverPlayer, VARATHA_CHARGE_CD)) {
+                } else if (Cooldowns.isOnCooldown(serverPlayer, VARATHA_CHARGE_CD)) {
                     serverPlayer.sendSystemMessage(Component.literal("Gravebound Charge is on Cooldown"), true);
                     return InteractionResult.FAIL;
                 }
@@ -185,7 +195,9 @@ public class Varatha extends Item implements PolymerItem, GlowItem {
         }
         return InteractionResult.SUCCESS;
     }
-
+    public static void spawnTrailCloud(ServerLevel level, Vec3 pos, LivingEntity owner) {
+        TrailCloudManager.spawn(level, pos, owner);
+    }
     @Override
     public void hurtEnemy(@NonNull ItemStack stack, @NonNull LivingEntity target, LivingEntity attacker) {
         if (attacker.level().isClientSide()) return ;
@@ -211,20 +223,6 @@ public class Varatha extends Item implements PolymerItem, GlowItem {
 
     }
 
-    @Override
-    public void inventoryTick(@NonNull ItemStack stack, @NonNull ServerLevel serverLevel, @NonNull Entity entity, @Nullable EquipmentSlot equipmentSlot) {
-        if (entity instanceof Player player) {
-            if (stack.has(DataComponents.CUSTOM_NAME)) {
-                player.sendSystemMessage(Component.translatable("item.anvil.rename").withStyle(ChatFormatting.RED));
-                stack.remove(DataComponents.CUSTOM_NAME);
-            }
-            if (stack.has(DataComponents.ENCHANTMENTS)) {
-                stack.remove(DataComponents.ENCHANTMENTS);
-            }
-
-
-        }
-    }
 
     @Override
     public @NonNull Component getName(@NonNull ItemStack stack) {

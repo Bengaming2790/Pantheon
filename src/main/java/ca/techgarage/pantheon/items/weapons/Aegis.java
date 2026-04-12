@@ -1,6 +1,8 @@
 package ca.techgarage.pantheon.items.weapons;
 
 import ca.techgarage.pantheon.api.Cooldowns;
+import ca.techgarage.pantheon.api.HasItem;
+import ca.techgarage.pantheon.items.ModItems;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -131,7 +133,7 @@ public class Aegis extends ShieldItem implements PolymerItem {
         // DIVINE PROTECTION (Resistance I while held)
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-                if (getHeldAegis(player) == null) continue;
+                if (!HasItem.hasItem(player, ModItems.AEGIS)) continue;
 
                 player.addEffect(
                         new MobEffectInstance(

@@ -101,7 +101,7 @@ public class Phoebus extends Item implements PolymerItem {
     @Override
     public InteractionResult use(Level world, Player user, InteractionHand hand) {
         if (!world.isClientSide()) {
-            user.addEffect(new MobEffectInstance(MobEffects.SPEED, 20 * 10, 2), user);
+            user.addEffect(new MobEffectInstance(MobEffects.SPEED, 20 * 10, 0), user);
              if (user.gameMode() != GameType.CREATIVE) {
                 user.getCooldowns().addCooldown(user.getActiveItem(), 20 * 45); //45 second cooldown
             }

@@ -2,6 +2,7 @@ package ca.techgarage.pantheon.items.weapons;
 
 import ca.techgarage.pantheon.api.*;
 import ca.techgarage.pantheon.items.GlowItem;
+import ca.techgarage.pantheon.items.ModItems;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
@@ -181,8 +182,7 @@ public class Triaina extends Item implements PolymerItem, GlowItem {
         // Sea God's Boon
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-                if (getHeldEnyalios(player) == null) continue;
-
+                if (!hasTriania(player)) continue;
                 player.addEffect(
                         new MobEffectInstance(
                                 MobEffects.DOLPHINS_GRACE,
@@ -206,6 +206,20 @@ public class Triaina extends Item implements PolymerItem, GlowItem {
             }
         });
     }
+
+    private static boolean hasTriania(ServerPlayer player) {
+
+        boolean hasItem = false;
+        for (ItemStack stack : player.getInventory().getNonEquipmentItems()) {
+            if (stack.is(ModItems.TRIAINA)) {
+                hasItem = true;
+                break;
+            }
+        }
+
+        return hasItem;
+    }
+
     @Override
     public Identifier getPolymerItemModel(ItemStack stack, PacketContext context, HolderLookup.Provider lookup) {
         return MODEL;

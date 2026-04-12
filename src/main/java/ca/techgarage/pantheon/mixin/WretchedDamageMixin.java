@@ -23,7 +23,6 @@ public abstract class WretchedDamageMixin {
         LivingEntity entity = (LivingEntity)(Object)this;
 
         if (!entity.level().isClientSide() && entity.hasEffect(ModEffects.WRETCHED)) {
-            // Convert back to damage difference
             float currentHealth = entity.getHealth();
             float damage = currentHealth - healthValue;
 

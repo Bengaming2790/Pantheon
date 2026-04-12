@@ -13,16 +13,13 @@ import net.minecraft.world.entity.MobCategory;
 
 public class ModEntities {
 
-    // 1. Define the ID
     public static final Identifier ASTRAPE_ID = Identifier.fromNamespaceAndPath("pantheon", "astrape");
 
-    // 2. Create the RegistryKey (ResourceKey in MojMap)
     public static final ResourceKey<EntityType<?>> ASTRAPE_KEY = ResourceKey.create(
             Registries.ENTITY_TYPE,
             ASTRAPE_ID
     );
 
-    // 3. Build and Register
     public static final EntityType<AstrapeEntity> ASTRAPE = Registry.register(
             BuiltInRegistries.ENTITY_TYPE,
             ASTRAPE_KEY,

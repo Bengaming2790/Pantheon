@@ -18,46 +18,46 @@ import static ca.techgarage.pantheon.Pantheon.MOD_ID;
 
 public class ModItems {
 
-    public static final ResourceKey<Item> DRACHMA_KEY =
+    private static final ResourceKey<Item> DRACHMA_KEY =
             ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "drachma"));
 
-    public static final ResourceKey<Item> VARATHA_KEY =
+    private static final ResourceKey<Item> VARATHA_KEY =
             ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "varatha"));
 
-    public static final ResourceKey<Item> KHALKEOUS_KEY =
+    private static final ResourceKey<Item> KHALKEOUS_KEY =
             ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "pyrotheus"));
 
-    public static final ResourceKey<Item> AEGIS_KEY =
+    private static final ResourceKey<Item> AEGIS_KEY =
             ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "aegis"));
 
-    public static final ResourceKey<Item> KYNTHIA_KEY =
+    private static final ResourceKey<Item> KYNTHIA_KEY =
             ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "kynthia"));
 
-    public static final ResourceKey<Item> ENYALIOS_KEY =
+    private static final ResourceKey<Item> ENYALIOS_KEY =
             ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "enyalios"));
 
-    public static final ResourceKey<Item> ASTRAPE_KEY =
+    private static final ResourceKey<Item> ASTRAPE_KEY =
             ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "astrape"));
 
-    public static final ResourceKey<Item> PEITHO_KEY =
+    private static final ResourceKey<Item> PEITHO_KEY =
             ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "peitho"));
 
-    public static final ResourceKey<Item> TRIAINA_KEY =
+    private static final ResourceKey<Item> TRIAINA_KEY =
             ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "triaina"));
 
-    public static final ResourceKey<Item> CADUCEUS_KEY =
+    private static final ResourceKey<Item> CADUCEUS_KEY =
             ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "caduceus"));
 
-    public static final ResourceKey<Item> PHOEBUS_KEY =
+    private static final ResourceKey<Item> PHOEBUS_KEY =
             ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "phoebus"));
 
-    public static final ResourceKey<Item> THYRSUS_KEY =
+    private static final ResourceKey<Item> THYRSUS_KEY =
             ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "thyrsus"));
 
-    public static final ResourceKey<Item> GLACIERA_KEY =
+    private static final ResourceKey<Item> GLACIERA_KEY =
             ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "glaciera"));
 
-    public static final ResourceKey<Item> ICARUS_WINGS_KEY =
+    private static final ResourceKey<Item> ICARUS_WINGS_KEY =
             ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "icarus_wings"));
 
     public static Item DRACHMA;
@@ -76,7 +76,6 @@ public class ModItems {
     public static Item ICARUS_WINGS;
 
     public static void registerModItems() {
-        // In Mojang Mappings, Registry.register uses BuiltInRegistries.ITEM
         DRACHMA = Registry.register(
                 BuiltInRegistries.ITEM,
                 DRACHMA_KEY,
@@ -160,7 +159,7 @@ public class ModItems {
     }
 
     public static void applyGlowToAllDrops(ItemEntity itemEntity) {
-        Item item = itemEntity.getItem().getItem(); // getStack() -> getItem(), getItem() -> getItem()
+        Item item = itemEntity.getItem().getItem();
 
         if (!(item instanceof GlowItem glowItem)) return;
 

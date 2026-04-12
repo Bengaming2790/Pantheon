@@ -71,7 +71,6 @@ public class IcarusWings extends Item implements PolymerItem {
 
                 boolean breakCooldown = Cooldowns.isOnCooldown(player, ICARUS_BREAK_CD);
 
-                // ☀️ Too high → break wings
                 if (!breakCooldown && player.getY() > 384) {
 
                     world.playSound(

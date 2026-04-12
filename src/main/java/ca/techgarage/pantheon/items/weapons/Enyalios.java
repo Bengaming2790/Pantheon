@@ -4,6 +4,8 @@ import ca.techgarage.pantheon.DamageSources.ModDamageSources;
 import ca.techgarage.pantheon.api.Cooldowns;
 import ca.techgarage.pantheon.api.Dash;
 import ca.techgarage.pantheon.api.DashState;
+import ca.techgarage.pantheon.api.HasItem;
+import ca.techgarage.pantheon.items.ModItems;
 import ca.techgarage.pantheon.items.material.ModToolMaterials;
 import ca.techgarage.pantheon.status.ModEffects;
 import eu.pb4.polymer.core.api.item.PolymerItem;
@@ -14,6 +16,7 @@ import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Unit;
@@ -35,16 +38,15 @@ import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class Enyalios extends Item implements PolymerItem {
 
     private static final Random random = new Random();
     private static final Identifier MODEL =
             Identifier.fromNamespaceAndPath("pantheon", "enyalios");
-
+    private static final Map<UUID, Integer> BLEED_LEVELS = new HashMap<>();
+    private static final int MAX_BLEED_LEVEL = 5;
     public static final String ENYALIOS_BLEED_ACTIVE = "enyalios_active_timer";
     public static final String ENYALIOS_BLEED_CD = "enyalios_bleed_cd";
     public Enyalios(Item.Properties settings) {
@@ -87,22 +89,40 @@ public class Enyalios extends Item implements PolymerItem {
     public static void registerKillEffect() {
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
 
-            if (!(source.getEntity() instanceof Player)) return;
-            ServerPlayer player = (ServerPlayer) source.getEntity();
-            // Only trigger if player is holding Enyalios
+            //if (!(entity instanceof ServerPlayer)) return;
+
+            if (!(source.getEntity() instanceof ServerPlayer player)) return;
+
             if (!(player.getMainHandItem().getItem() instanceof Enyalios)) return;
 
-            if (player == entity) return;
-
             applyKillBuff(player);
+            increaseBleedLevel(player);
+        });
+    }
+
+    private static void increaseBleedLevel(ServerPlayer player) {
+        UUID id = player.getUUID();
+
+        int current = BLEED_LEVELS.getOrDefault(id, 1);
+
+        if (current < MAX_BLEED_LEVEL) {
+            current++;
+            BLEED_LEVELS.put(id, current);
+            player.sendSystemMessage(Component.literal("Bleed Level: " + current), true);
+        }
+    }
+    public static void registerDeathReset() {
+        ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
+            if (!(entity instanceof ServerPlayer player)) return;
+            BLEED_LEVELS.put(player.getUUID(), 1);
         });
     }
     private static void applyKillBuff(ServerPlayer player) {
         player.addEffect(
                 new MobEffectInstance(
                         MobEffects.STRENGTH,
-                        20 * 5, // 5 seconds
-                        2,      // Strength III
+                        20 * 5,
+                        2,
                         true,
                         false,
                         true
@@ -126,7 +146,7 @@ public class Enyalios extends Item implements PolymerItem {
             if (attacker.hasEffect(MobEffects.STRENGTH)) {
                 MobEffectInstance effect = attacker.getEffect(MobEffects.STRENGTH);
 
-                int level = effect.getAmplifier() + 1; // convert amplifier → level
+                int level = effect.getAmplifier() + 1; // convert amplifier = level
                 damage += level * 3f; // +3 damage per level
             }
 
@@ -137,17 +157,15 @@ public class Enyalios extends Item implements PolymerItem {
             );
 
             if (Cooldowns.isOnCooldown(player, ENYALIOS_BLEED_ACTIVE)) {
-                target.addEffect(
-                        new MobEffectInstance( ModEffects.BLEED, 20 * 8, 2, true, false, false),
-                        target
-                );
+                int level = BLEED_LEVELS.getOrDefault(player.getUUID(), 1) - 1;
+                target.addEffect(new MobEffectInstance(ModEffects.BLEED, 20 * 8, level, true, false, false), target);
                 Cooldowns.clear(player, ENYALIOS_BLEED_ACTIVE);
                 Cooldowns.start(player, ENYALIOS_BLEED_CD, 20 * 15);
             }
 
             if (Math.random() < 0.05) {
                 target.addEffect(
-                        new MobEffectInstance((Holder<MobEffect>) ModEffects.BLEED, 20 * 8, 2, true, false, false),
+                        new MobEffectInstance(ModEffects.BLEED, 20 * 8, 2, true, false, false),
                         target
                 );
             }
@@ -171,7 +189,7 @@ public class Enyalios extends Item implements PolymerItem {
                     (8f) * 1
             );
 
-            Dash.dashForward(user, 1.5f);
+            Dash.dashForward(user, 1.8f);
             DashState.start((ServerPlayer) user, 15, new DustParticleOptions(
                     16711680,
                     1.0F
@@ -211,7 +229,7 @@ public class Enyalios extends Item implements PolymerItem {
     public static void applyEffects(){
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-                if (getHeldEnyalios(player) == null) continue;
+                if (!HasItem.hasItem(player, ModItems.ENYALIOS)) continue;
 
                 player.addEffect(
                         new MobEffectInstance(

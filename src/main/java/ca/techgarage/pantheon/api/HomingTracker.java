@@ -12,12 +12,11 @@ import java.util.Comparator;
 public class HomingTracker {
 
     private static final double SPEED = 1.5;
-    private static final double TURN = 0.25;       // lower = smoother arc, higher = snappier
+    private static final double TURN = 0.25; // lower = smoother arc, higher = snappier
     private static final double RANGE = 24.0;
-    private static final double LOCK_RANGE = 2.5;  // teleport-correct if this close and about to miss
+    private static final double LOCK_RANGE = 2.5;
 
     public static void attach(Snowball projectile, LivingEntity owner) {
-        // Lock onto the nearest target at launch, don't re-acquire
         final LivingEntity[] lockedTarget = {null};
 
         ServerTickEvents.END_SERVER_TICK.register(level -> {
@@ -26,7 +25,6 @@ public class HomingTracker {
             ServerLevel world = level.getLevel(ServerLevel.OVERWORLD);
             ServerLevel nether = level.getLevel(ServerLevel.NETHER);
             ServerLevel end = level.getLevel(ServerLevel.END);
-            // Acquire lock on first tick
             if (lockedTarget[0] == null || !lockedTarget[0].isAlive()) {
                 assert world != null;
                 lockedTarget[0] = findTarget(world, projectile, owner);
@@ -49,12 +47,10 @@ public class HomingTracker {
                 return;
             }
 
-            // Predict where target will be next tick based on their velocity
             Vec3 targetVelocity = target.getDeltaMovement();
             Vec3 predictedPos = targetPos.add(targetVelocity);
             Vec3 dir = predictedPos.subtract(currentPos).normalize();
 
-            // Blend current velocity toward target direction
             Vec3 vel = projectile.getDeltaMovement()
                     .normalize()
                     .scale(1.0 - TURN)
@@ -63,7 +59,7 @@ public class HomingTracker {
                     .scale(SPEED);
 
             projectile.setDeltaMovement(vel);
-            projectile.setNoGravity(true); // prevent gravity from pulling it off course
+            projectile.setNoGravity(true);
         });
     }
 

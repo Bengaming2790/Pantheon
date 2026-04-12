@@ -66,7 +66,6 @@ public class Thyrsus extends Item implements PolymerItem {
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         if (!level.isClientSide()) {
 
-            // SHIFT ABILITY
             if (player.isShiftKeyDown() && !Cooldowns.isOnCooldown(player, THYRUS_SNOWBALL_CD)) {
                 player.addEffect(
                         new MobEffectInstance(MobEffects.STRENGTH, 30 * 20, 2, false, false, false)

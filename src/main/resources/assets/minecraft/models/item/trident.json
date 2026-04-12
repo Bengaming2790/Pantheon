@@ -1,9 +1,0 @@
-{
-  "parent": "minecraft:item/trident",
-  "overrides": [
-    {
-      "predicate": { "custom_model_data": 1 },
-      "model": "pantheon:item/astrape"
-    }
-  ]
-}

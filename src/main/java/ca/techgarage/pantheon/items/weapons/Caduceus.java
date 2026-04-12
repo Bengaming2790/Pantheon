@@ -2,6 +2,8 @@ package ca.techgarage.pantheon.items.weapons;
 
 import ca.techgarage.pantheon.api.AOEDamage;
 import ca.techgarage.pantheon.api.Cooldowns;
+import ca.techgarage.pantheon.api.HasItem;
+import ca.techgarage.pantheon.items.ModItems;
 import ca.techgarage.pantheon.status.ModEffects;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -134,7 +136,7 @@ public class Caduceus extends Item implements PolymerItem {
     public static void applyEffects(){
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-                if (getHeldCaduceus(player) == null) continue;
+                if (!HasItem.hasItem(player, ModItems.CADUCEUS)) continue;
                 player.addEffect(new MobEffectInstance(MobEffects.SPEED, 40, 0, true, false, false));
             }
         });

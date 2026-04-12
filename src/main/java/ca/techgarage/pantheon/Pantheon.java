@@ -2,8 +2,6 @@ package ca.techgarage.pantheon;
 
 import ca.techgarage.bscm.Bscm;
 import ca.techgarage.pantheon.api.*;
-import ca.techgarage.pantheon.blocks.ModAltarBlocks;
-import ca.techgarage.pantheon.blocks.ModBlockEntities;
 import ca.techgarage.pantheon.commands.ResetCooldownsCommand;
 import ca.techgarage.pantheon.commands.TempBanCommand;
 import ca.techgarage.pantheon.commands.TempBanListCommand;
@@ -28,22 +26,19 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import net.minecraft.world.item.alchemy.Potions;
 
 import java.nio.file.Path;
-import java.util.Optional;
 import java.util.UUID;
 
 import static com.mojang.brigadier.arguments.IntegerArgumentType.getInteger;
@@ -64,13 +59,15 @@ public class Pantheon implements ModInitializer {
         }
 
         Bscm.load(PantheonConfig.class, "pantheon");
-        ItemDenyList.deny(Items.TRIDENT);
+        ItemDenyList.init();
+
+
 
         ModItems.registerModItems();
         ModEffects.register();
 
         // Command Registration
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+        CommandRegistrationCallback.EVENT.register((dispatcher, _, _) -> {
             TempBanCommand.register(dispatcher);
             TempBanListCommand.register(dispatcher);
             TempBanRemoveCommand.register(dispatcher);
@@ -120,11 +117,12 @@ public class Pantheon implements ModInitializer {
 
         ServerTickEvents.END_SERVER_TICK.register(DashState::tick);
         PeithoTick.register();
-        Enyalios.registerKillEffect();
         Glaciera.registerFrostWalkerTrait();
         IcarusWings.icarusFall();
         CombatLogAutoBan.register();
-
+        Enyalios.registerKillEffect();
+        Enyalios.registerDeathReset();
+        Enyalios.registerHitCheck();
         PolymerResourcePackUtils.addModAssets(MOD_ID);
         PolymerResourcePackUtils.markAsRequired();
 
@@ -137,7 +135,7 @@ public class Pantheon implements ModInitializer {
                 PolymerCreativeModeTabUtils.builder()
                         .icon(() -> new ItemStack(ModItems.DRACHMA))
                         .title(Component.translatable("itemGroup.pantheon.items"))
-                        .displayItems((context, entries) -> {
+                        .displayItems((_, entries) -> {
                             entries.accept(ModItems.DRACHMA);
                             entries.accept(ModItems.VARATHA);
                             entries.accept(ModItems.ASTRAPE);
@@ -146,6 +144,8 @@ public class Pantheon implements ModInitializer {
                             entries.accept(ModItems.AEGIS);
                             entries.accept(ModItems.ENYALIOS);
                             entries.accept(ModItems.TRIAINA);
+                            entries.accept(ModItems.PHOEBUS);
+                            entries.accept(ModItems.CADUCEUS);
                         }).build()
         );
 
@@ -154,7 +154,6 @@ public class Pantheon implements ModInitializer {
         // Main Tick Logic
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-                // Kynthia Activation Logic
                 if (player.swinging && player.swingTime == 1) {
                     ItemStack stack = player.getMainHandItem();
                     if (stack.getItem() instanceof Kynthia kynthia) {
@@ -162,8 +161,7 @@ public class Pantheon implements ModInitializer {
                     }
                 }
 
-                // Item Denial / Banned Items Logic
-                if (PantheonConfig.dropBannedItems && server.getTickCount() % 100 == 0) {
+                if (PantheonConfig.dropBannedItems) {
                     for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
                         ItemStack stack = player.getInventory().getItem(i);
                         if (!stack.isEmpty() && ItemDenyList.isDenied(stack.getItem())) {
@@ -177,8 +175,7 @@ public class Pantheon implements ModInitializer {
             Caduceus.RandevuManager.tickAll();
         });
 
-        // Entity Load Glow Event
-        ServerEntityEvents.ENTITY_LOAD.register((entity, level) -> {
+        ServerEntityEvents.ENTITY_LOAD.register((entity, _) -> {
             if (entity instanceof ItemEntity itemEntity) {
                 if (itemEntity.getItem().getItem() instanceof GlowItem) {
                     ModItems.applyGlowToAllDrops(itemEntity);
@@ -186,8 +183,7 @@ public class Pantheon implements ModInitializer {
             }
         });
 
-        // Attack Event (Kynthia Sneak)
-        AttackEntityCallback.EVENT.register((player, level, hand, entity, hitResult) -> {
+        AttackEntityCallback.EVENT.register((player, level, hand, _, _) -> {
             if (level.isClientSide()) return InteractionResult.PASS;
             if (!player.isShiftKeyDown()) return InteractionResult.PASS;
 
@@ -199,16 +195,14 @@ public class Pantheon implements ModInitializer {
             return InteractionResult.PASS;
         });
 
-        // Join Logic
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+        ServerPlayConnectionEvents.JOIN.register((handler, _, _) -> {
             ServerPlayer player = handler.player;
             if (!BankDatabase.hasAccount(player.getUUID())) {
                 BankDatabase.createAccount(player.getUUID(), PantheonConfig.StartingDrachma);
             }
         });
 
-        // Death Logic
-        ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
+        ServerLivingEntityEvents.AFTER_DEATH.register((entity, _) -> {
             if (entity instanceof ServerPlayer player) {
                 UUID uuid = player.getUUID();
                 int needed = PantheonConfig.DroppedDrachmaOnDeath;

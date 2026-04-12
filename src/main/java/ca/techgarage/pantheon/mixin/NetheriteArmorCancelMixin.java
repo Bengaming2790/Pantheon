@@ -1,10 +1,9 @@
 package ca.techgarage.pantheon.mixin;
 
-import ca.techgarage.pantheon.Pantheon;
 import ca.techgarage.pantheon.PantheonConfig;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.SmithingMenu; // MojMap name for SmithingScreenHandler
+import net.minecraft.world.inventory.SmithingMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.spongepowered.asm.mixin.Mixin;
@@ -22,10 +21,15 @@ public abstract class NetheriteArmorCancelMixin {
         if (!PantheonConfig.diableNetheriteUpgrade) return;
 
         SmithingMenu self = (SmithingMenu)(Object)this;
-        // getSlot(3) is the output slot in SmithingMenu
-        ItemStack stack = self.getSlot(3).getItem();
 
-        if (pantheon$isNetheriteGear(stack)) {
+        ItemStack template = self.getSlot(0).getItem();
+        ItemStack addition = self.getSlot(2).getItem();
+        ItemStack result = self.getSlot(3).getItem();
+
+        if (template.is(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE)
+                && addition.is(Items.NETHERITE_INGOT)
+                && pantheon$isNetheriteGear(result)) {
+
             self.getSlot(3).set(ItemStack.EMPTY);
         }
     }
@@ -35,8 +39,16 @@ public abstract class NetheriteArmorCancelMixin {
     private void preventTaking(Player player, ItemStack stack, CallbackInfo ci) {
         if (!PantheonConfig.diableNetheriteUpgrade) return;
 
-        if (pantheon$isNetheriteGear(stack)) {
-            player.sendSystemMessage(Component.translatable("item.anvil.rename"));
+        SmithingMenu self = (SmithingMenu)(Object)this;
+
+        ItemStack template = self.getSlot(0).getItem();
+        ItemStack addition = self.getSlot(2).getItem();
+
+        if (template.is(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE)
+                && addition.is(Items.NETHERITE_INGOT)
+                && pantheon$isNetheriteGear(stack)) {
+
+            player.sendSystemMessage(Component.literal("Netherite upgrades are disabled."));
             ci.cancel();
         }
     }
@@ -45,7 +57,6 @@ public abstract class NetheriteArmorCancelMixin {
     private boolean pantheon$isNetheriteGear(ItemStack stack) {
         if (stack.isEmpty()) return false;
 
-        // In 1.21.1 MojMap: isOf() -> is()
         return stack.is(Items.NETHERITE_HELMET)
                 || stack.is(Items.NETHERITE_CHESTPLATE)
                 || stack.is(Items.NETHERITE_LEGGINGS)

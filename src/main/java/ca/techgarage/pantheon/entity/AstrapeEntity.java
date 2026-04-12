@@ -40,7 +40,6 @@ public class AstrapeEntity extends Arrow implements PolymerEntity {
     }
 
     public AstrapeEntity(Level level, Player owner, ItemStack stack) {
-        // Ensure ModEntities.ASTRAPE is registered as an EntityType<? extends AbstractArrow>
         super(ModEntities.ASTRAPE, level);
         this.setOwner(owner);
         this.weaponStack = stack.copy();
@@ -97,7 +96,6 @@ public class AstrapeEntity extends Arrow implements PolymerEntity {
         display.setItemStack(stack);
         display.setItemTransform(ItemDisplayContext.GROUND);
 
-        // setDisplayWidth/Height are usually handled via DataTracker or specific setters in MojMap
         display.setWidth(1f);
         display.setHeight(1f);
 

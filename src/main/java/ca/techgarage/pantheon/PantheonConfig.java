@@ -24,5 +24,7 @@ public class PantheonConfig {
     public static double wretchedPercent = 20;
 
     public static boolean dropBannedItems = true;
+    @Comment("The banned level of protection Ex: (4 = prot 4 banned) [Integer]")
+    public static int bannedProtectionLevel = 4;
 
 }

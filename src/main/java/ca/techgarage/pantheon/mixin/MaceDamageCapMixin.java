@@ -12,14 +12,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(MaceItem.class)
 public class MaceDamageCapMixin {
 
-    /**
-     * In 1.21.1 MojMap:
-     * - getBonusAttackDamage is the correct name.
-     * - PlayerEntity is Player.
-     * - getMainHandStack() is getMainHandItem().
-     */
     @Inject(
-            method = "getAttackDamageBonus", // Check if your mappings use 'getAttackDamageBonus' or 'getBonusAttackDamage'
+            method = "getAttackDamageBonus",
             at = @At("RETURN"),
             cancellable = true
     )
@@ -27,11 +21,9 @@ public class MaceDamageCapMixin {
 
         float damage = cir.getReturnValue();
 
-        // Yarn: PlayerEntity -> MojMap: Player
         if (!(damageSource.getEntity() instanceof Player player)) return;
 
-        // Yarn: getItemCooldownManager() -> MojMap: getCooldowns()
-        // Yarn: getMainHandStack() -> MojMap: getMainHandItem()
+
         if (player.getCooldowns().isOnCooldown(player.getMainHandItem())) {
             cir.setReturnValue(-1f);
             return;

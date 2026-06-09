@@ -1,7 +1,6 @@
 package ca.techgarage.pantheon.blocks;
 
 import eu.pb4.polymer.core.api.item.PolymerItem;
-
 import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -16,9 +15,7 @@ public class AltarBlockItem extends BlockItem implements PolymerItem {
     }
 
     @Override
-    public Item getPolymerItem(ItemStack itemStack, PacketContext packetContext) {
-        // What the client sees in the player's hand / inventory
+    public Item getPolymerItem(ItemStack itemStack, PacketContext context) {
         return Items.ENCHANTING_TABLE;
     }
-
 }

@@ -75,7 +75,7 @@ public class Varatha extends Item implements PolymerItem, GlowItem {
             Component.literal("A Bident Wielded by ")
                     .setStyle(Style.EMPTY.withItalic(false).withColor(ChatFormatting.DARK_RED).withBold(true))
                     .append(Component.literal("Hades")
-                            .setStyle(Style.EMPTY.withItalic(true).withColor(ChatFormatting.DARK_RED).withBold(true))),
+                            .setStyle(Style.EMPTY.withItalic(false).withColor(ChatFormatting.DARK_RED).withBold(true))),
             Component.literal(""),
             Component.literal("Piercing Blows")
                     .setStyle(Style.EMPTY.withItalic(false).withColor(ChatFormatting.GOLD).withBold(true)),

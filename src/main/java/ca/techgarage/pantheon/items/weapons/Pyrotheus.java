@@ -4,6 +4,7 @@ import ca.techgarage.pantheon.api.AOEDamage;
 import ca.techgarage.pantheon.api.Cooldowns;
 import ca.techgarage.pantheon.api.Dash;
 import ca.techgarage.pantheon.api.DashState;
+import ca.techgarage.pantheon.items.GlowItem;
 import eu.pb4.polymer.core.api.item.PolymerItem;
 
 import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
@@ -43,7 +44,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.function.Predicate;
 
-public class Pyrotheus extends MaceItem implements PolymerItem {
+public class Pyrotheus extends MaceItem implements PolymerItem, GlowItem {
 
     private static final String KH_SLAM_CD = "kh_slam_timer";
     private static final String AOE_CD = "khalkeus_aoe_cd";
@@ -83,7 +84,6 @@ public class Pyrotheus extends MaceItem implements PolymerItem {
 
                     Fireball fireball = getFireball(user);
 
-                    // Spawn into world
                     user.level().addFreshEntity(fireball);
 
                     if (!user.isCreative()) Cooldowns.start(user, FIREBALL_CD, 20 * 10, "Fireball");
@@ -257,5 +257,10 @@ public class Pyrotheus extends MaceItem implements PolymerItem {
     @Override
     public Identifier getPolymerItemModel(ItemStack stack, PacketContext context, HolderLookup.Provider lookup) {
         return MODEL;
+    }
+
+    @Override
+    public String getGlowColor() {
+        return "#FFAA00";
     }
 }

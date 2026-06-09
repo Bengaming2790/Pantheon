@@ -49,7 +49,6 @@ public class DrachmaItem extends Item implements PolymerItem {
 
     public static int countDrachma(ServerPlayer player) {
         int count = 0;
-        // In MojMap, inventory.items is the main list
         for (ItemStack stack : player.getInventory().getNonEquipmentItems()) {
             if (stack.is(ModItems.DRACHMA)) {
                 count += stack.getCount();

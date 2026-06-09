@@ -1,16 +1,14 @@
 package ca.techgarage.pantheon.blocks.altar;
 
-
-
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.Map;
+import java.util.function.Supplier;
 
 public class AltarRecipe {
 
-    // Defaults — match your tuned values
     public static final double DEFAULT_ITEM_HEIGHT  = 1.4;
     public static final double DEFAULT_TEXT_Y_START = 2.5;
     public static final double DEFAULT_TEXT_Y_STEP  = 0.3;
@@ -18,49 +16,49 @@ public class AltarRecipe {
 
     private final Map<Item, Integer> ingredients;
     private final int experience;
-    private final ItemStack output;
+    private final Supplier<ItemStack> outputSupplier;
 
-    // Display settings — per-altar overridable
-    private double itemHeight  = DEFAULT_ITEM_HEIGHT;
-    private double textYStart  = DEFAULT_TEXT_Y_START;
-    private double textYStep   = DEFAULT_TEXT_Y_STEP;
-    private int    itemSize    = DEFAULT_ITEM_SIZE;
+    private double itemHeight = DEFAULT_ITEM_HEIGHT;
+    private double textYStart = DEFAULT_TEXT_Y_START;
+    private double textYStep  = DEFAULT_TEXT_Y_STEP;
+    private int    itemSize   = DEFAULT_ITEM_SIZE;
 
-    public AltarRecipe(Map<Item, Integer> ingredients, int experience, ItemStack output, double itemHeight, double textYStart, double textYStep) {
-        this.ingredients = ingredients;
-        this.experience = experience;
-        this.output = output;
-        this.itemHeight = itemHeight;
-        this.textYStart = textYStart;
-        this.textYStep = textYStep;
+    public AltarRecipe(Map<Item, Integer> ingredients, int experience, Supplier<ItemStack> output,
+                       double itemHeight, double textYStart, double textYStep) {
+        this.ingredients    = Map.copyOf(ingredients);
+        this.experience     = experience;
+        this.outputSupplier = output;
+        this.itemHeight     = itemHeight;
+        this.textYStart     = textYStart;
+        this.textYStep      = textYStep;
     }
 
-    // ── Builder-style setters so registration stays readable ──────────
+    // ── Builder-style setters ─────────────────────────────────────────
 
-    public AltarRecipe itemHeight(double value)  { this.itemHeight = value; return this; }
-    public AltarRecipe textYStart(double value)  { this.textYStart = value; return this; }
-    public AltarRecipe textYStep(double value)   { this.textYStep  = value; return this; }
-    public AltarRecipe itemSize(int value)        { this.itemSize   = value; return this; }
+    public AltarRecipe itemHeight(double value) { this.itemHeight = value; return this; }
+    public AltarRecipe textYStart(double value) { this.textYStart = value; return this; }
+    public AltarRecipe textYStep(double value)  { this.textYStep  = value; return this; }
+    public AltarRecipe itemSize(int value)       { this.itemSize   = value; return this; }
 
     // ── Getters ───────────────────────────────────────────────────────
 
     public Map<Item, Integer> getIngredients() { return ingredients; }
-    public int getExperience()                 { return experience; }
-    public ItemStack getOutput()               { return output.copy(); }
-    public double getItemHeight()              { return itemHeight; }
-    public double getTextYStart()              { return textYStart; }
-    public double getTextYStep()               { return textYStep; }
-    public int getItemSize()                   { return itemSize; }
+    public int       getExperience()  { return experience; }
+    public ItemStack getOutput()      { return outputSupplier.get().copy(); }
+    public double    getItemHeight()  { return itemHeight; }
+    public double    getTextYStart()  { return textYStart; }
+    public double    getTextYStep()   { return textYStep; }
+    public int       getItemSize()    { return itemSize; }
 
     // ── Inventory helpers ─────────────────────────────────────────────
 
     public boolean playerHasIngredients(Player player) {
         for (Map.Entry<Item, Integer> entry : ingredients.entrySet()) {
             int needed = entry.getValue();
-            int found = 0;
+            int found  = 0;
             for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
                 ItemStack stack = player.getInventory().getItem(i);
-                if (stack.getItem() == entry.getKey()) found += stack.getCount();
+                if (stack.is(entry.getKey())) found += stack.getCount();
             }
             if (found < needed) return false;
         }
@@ -72,7 +70,7 @@ public class AltarRecipe {
             int toConsume = entry.getValue();
             for (int i = 0; i < player.getInventory().getContainerSize() && toConsume > 0; i++) {
                 ItemStack stack = player.getInventory().getItem(i);
-                if (stack.getItem() == entry.getKey()) {
+                if (stack.is(entry.getKey())) {
                     int remove = Math.min(toConsume, stack.getCount());
                     stack.shrink(remove);
                     toConsume -= remove;

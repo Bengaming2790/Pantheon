@@ -1,69 +1,77 @@
 package ca.techgarage.pantheon.api;
 
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.throwableitemprojectile.Snowball;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.server.level.ServerLevel;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
 
 public class HomingTracker {
 
-    private static final double SPEED = 1.5;
-    private static final double TURN = 0.25; // lower = smoother arc, higher = snappier
+    private static final double SPEED = 0.8;
+    private static final double TURN = 0.25;
     private static final double RANGE = 24.0;
     private static final double LOCK_RANGE = 2.5;
 
+    private record HomingEntry(Snowball projectile, LivingEntity owner, LivingEntity[] lockedTarget) {}
+    private static final Set<HomingEntry> active = new HashSet<>();
+    private static boolean registered = false;
+
     public static void attach(Snowball projectile, LivingEntity owner) {
-        final LivingEntity[] lockedTarget = {null};
+        projectile.setNoGravity(true); // disable gravity immediately on spawn
 
-        ServerTickEvents.END_SERVER_TICK.register(level -> {
-            if (projectile.isRemoved()) return;
+        active.add(new HomingEntry(projectile, owner, new LivingEntity[]{null}));
 
-            ServerLevel world = level.getLevel(ServerLevel.OVERWORLD);
-            ServerLevel nether = level.getLevel(ServerLevel.NETHER);
-            ServerLevel end = level.getLevel(ServerLevel.END);
-            if (lockedTarget[0] == null || !lockedTarget[0].isAlive()) {
-                assert world != null;
-                lockedTarget[0] = findTarget(world, projectile, owner);
-                assert end != null;
-                lockedTarget[0] = findTarget(end, projectile, owner);
-                assert nether != null;
-                lockedTarget[0] = findTarget(nether, projectile, owner);
-            }
+        if (!registered) {
+            registered = true;
+            ServerTickEvents.END_SERVER_TICK.register(server -> {
+                active.removeIf(entry -> {
+                    Snowball ball = entry.projectile();
+                    if (ball.isRemoved()) return true;
 
-            LivingEntity target = lockedTarget[0];
-            if (target == null || !target.isAlive()) return;
+                    // Use the level the projectile is actually in
+                    if (!(ball.level() instanceof ServerLevel level)) return true;
 
-            Vec3 targetPos = target.getEyePosition(1.0f);
-            Vec3 currentPos = projectile.position();
-            Vec3 toTarget = targetPos.subtract(currentPos);
-            double dist = toTarget.length();
+                    LivingEntity[] lockedTarget = entry.lockedTarget();
+                    if (lockedTarget[0] == null || !lockedTarget[0].isAlive()) {
+                        lockedTarget[0] = findTarget(level, ball, entry.owner());
+                    }
 
-            if (dist < LOCK_RANGE) {
-                projectile.setDeltaMovement(toTarget.normalize().scale(SPEED));
-                return;
-            }
+                    LivingEntity target = lockedTarget[0];
+                    if (target == null || !target.isAlive()) return false;
 
-            Vec3 targetVelocity = target.getDeltaMovement();
-            Vec3 predictedPos = targetPos.add(targetVelocity);
-            Vec3 dir = predictedPos.subtract(currentPos).normalize();
+                    Vec3 targetPos = target.getEyePosition(1.0f);
+                    Vec3 currentPos = ball.position();
+                    Vec3 toTarget = targetPos.subtract(currentPos);
+                    double dist = toTarget.length();
 
-            Vec3 vel = projectile.getDeltaMovement()
-                    .normalize()
-                    .scale(1.0 - TURN)
-                    .add(dir.scale(TURN))
-                    .normalize()
-                    .scale(SPEED);
+                    if (dist < LOCK_RANGE) {
+                        ball.setDeltaMovement(toTarget.normalize().scale(SPEED));
+                        ball.hurtMarked = true;
+                    } else {
+                        Vec3 predicted = targetPos.add(target.getDeltaMovement());
+                        Vec3 dir = predicted.subtract(currentPos).normalize();
+                        Vec3 vel = ball.getDeltaMovement()
+                                .normalize()
+                                .scale(1.0 - TURN)
+                                .add(dir.scale(TURN))
+                                .normalize()
+                                .scale(SPEED);
+                        ball.setDeltaMovement(vel);
+                        ball.hurtMarked = true;
+                    }
 
-            projectile.setDeltaMovement(vel);
-            projectile.setNoGravity(true);
-        });
+                    return false;
+                });
+            });
+        }
     }
 
-    private static LivingEntity findTarget(ServerLevel level, Entity projectile, LivingEntity owner) {
+    private static LivingEntity findTarget(ServerLevel level, Snowball projectile, LivingEntity owner) {
         return level.getEntitiesOfClass(
                         LivingEntity.class,
                         projectile.getBoundingBox().inflate(RANGE),

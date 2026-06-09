@@ -64,7 +64,6 @@ public class ItemDenyList {
         denyEffectAboveAmplifier(MobEffects.INSTANT_HEALTH,   -1);
         denyEffectAboveAmplifier(MobEffects.INSTANT_DAMAGE,   -1);
         denyEffectAboveAmplifier(MobEffects.SPEED, 0);
-        denyEffectAboveAmplifier(MobEffects.SLOWNESS, 2);
         denyEffectAboveAmplifier(MobEffects.RESISTANCE,  2);
     }
 

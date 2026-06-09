@@ -56,22 +56,22 @@ public class Aegis extends ShieldItem implements PolymerItem {
                 .component(DataComponents.UNBREAKABLE, Unit.INSTANCE)
                 .component(DataComponents.MAX_STACK_SIZE, 1)
                 .component(DataComponents.BLOCKS_ATTACKS, new BlocksAttacks(
-                        0.25F, // 1: blockDelaySeconds
-                        1.0F,  // 2: disableCooldownScale
+                        0.25F,
+                        1.0F,
                         List.of(new BlocksAttacks.DamageReduction(
-                                90.0F,            // horizontalBlockingAngle (90 deg each side = 180 total)
-                                Optional.empty(), // damage type filter
-                                0.0F,             // base damage blocked
-                                1.0F              // factor (1.0 = 100% of incoming damage is blocked)
-                        )),    // 3: damageReductions (List)
+                                90.0F,
+                                Optional.empty(),
+                                0.0F,
+                                1.0F
+                        )),
                         new BlocksAttacks.ItemDamageFunction(
-                                3.0F, // threshold (min damage to hurt shield)
-                                0.0F, // base durability loss
-                                1.0F  // factor (1 durability per 1 damage)
-                        ),     // 4: itemDamage
-                        Optional.empty(), // 5: bypassedBy (DamageType Tag)
-                        Optional.of(SoundEvents.SHIELD_BLOCK), // 6: blockSound
-                        Optional.of(SoundEvents.SHIELD_BREAK))  // 7: disableSound
+                                3.0F,
+                                0.0F,
+                                1.0F
+                        ),
+                        Optional.empty(),
+                        Optional.of(SoundEvents.SHIELD_BLOCK),
+                        Optional.of(SoundEvents.SHIELD_BREAK))
                 )
                 .fireResistant()
         );

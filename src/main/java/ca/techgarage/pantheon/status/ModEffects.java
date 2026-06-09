@@ -59,6 +59,16 @@ public class ModEffects {
                     SUN_POISONING_EFFECT
             );
 
+    public static final MobEffect TIME_FROZEN_EFFECT =
+            new TimeFrozen(MobEffectCategory.NEUTRAL, 0xFFAB00);
+
+    public static final Holder<MobEffect> TIME_FROZEN =
+            Registry.registerForHolder(
+                    BuiltInRegistries.MOB_EFFECT,
+                    Identifier.fromNamespaceAndPath(Pantheon.MOD_ID, "time_frozen"),
+                    TIME_FROZEN_EFFECT
+            );
+
     public static void register() {
         Pantheon.log("Registering status effects...");
     }

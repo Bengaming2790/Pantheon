@@ -89,8 +89,6 @@ public class Enyalios extends Item implements PolymerItem {
     public static void registerKillEffect() {
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
 
-            //if (!(entity instanceof ServerPlayer)) return;
-
             if (!(source.getEntity() instanceof ServerPlayer player)) return;
 
             if (!(player.getMainHandItem().getItem() instanceof Enyalios)) return;

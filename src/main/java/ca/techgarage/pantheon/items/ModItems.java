@@ -60,6 +60,14 @@ public class ModItems {
     private static final ResourceKey<Item> ICARUS_WINGS_KEY =
             ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "icarus_wings"));
 
+    private static final ResourceKey<Item> ORCUS_KEY =
+            ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "orcus"));
+    private static final ResourceKey<Item> URANICIDE_KEY =
+            ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "uranicide"));
+    private static final ResourceKey<Item> ALTAR_MODEL_KEY =
+            ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(MOD_ID, "altar"));
+
+
     public static Item DRACHMA;
     public static Item VARATHA;
     public static Item KHALKEOUS;
@@ -74,8 +82,15 @@ public class ModItems {
     public static Item THYRSUS;
     public static Item GLACIERA;
     public static Item ICARUS_WINGS;
+    public static Item ORCUS;
+    public static Item URANICIDE;
+    public static Item ALTAR_MODEL;
 
     public static void registerModItems() {
+        ALTAR_MODEL = Registry.register(BuiltInRegistries.ITEM,
+                ALTAR_MODEL_KEY,
+                new AltarModelItem(new Item.Properties().setId(ALTAR_MODEL_KEY)));
+
         DRACHMA = Registry.register(
                 BuiltInRegistries.ITEM,
                 DRACHMA_KEY,
@@ -135,6 +150,14 @@ public class ModItems {
                 BuiltInRegistries.ITEM,
                 GLACIERA_KEY,
                 new Glaciera(new Item.Properties().setId(GLACIERA_KEY)));
+        ORCUS = Registry.register(
+                BuiltInRegistries.ITEM,
+                ORCUS_KEY,
+                new Orcus(new Item.Properties().setId(ORCUS_KEY)));
+        URANICIDE = Registry.register(
+                BuiltInRegistries.ITEM,
+                URANICIDE_KEY,
+                new Uranicide(new Item.Properties().setId(URANICIDE_KEY)));
         ICARUS_WINGS = Registry.register(
                 BuiltInRegistries.ITEM,
                 ICARUS_WINGS_KEY,

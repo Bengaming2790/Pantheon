@@ -9,13 +9,7 @@ import net.minecraft.world.scores.Team;
 
 public class DroppedItemGlow {
 
-    /**
-     * Applies a glow outline to a dropped ItemEntity using the nearest
-     * supported Minecraft team color derived from a hex code.
-     *
-     * @param itemEntity The dropped item entity to glow.
-     * @param hexColor   A hex color string, e.g. "#FF5500" or "FF5500"
-     */
+
     public static void applyGlow(ItemEntity itemEntity, String hexColor) {
         if (!(itemEntity.level() instanceof ServerLevel serverWorld)) return;
 
@@ -42,9 +36,6 @@ public class DroppedItemGlow {
         serverWorld.getScoreboard().removePlayerFromTeam(itemEntity.getScoreboardName());
     }
 
-    /**
-     * Converts a hex color string to the nearest Minecraft ChatFormatting color.
-     */
     public static ChatFormatting hexToNearestFormatting(String hex) {
         hex = hex.replace("#", "");
         int r = Integer.parseInt(hex.substring(0, 2), 16);
